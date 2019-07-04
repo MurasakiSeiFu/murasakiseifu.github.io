@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>Zookeeper快速入门&amp;集群部署 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="Zookeeper快速入门&amp;amp;集群部署单机模式的环境搭建 官网下载  http://mirrors.shu.edu.cn/apache/zookeeper/zookeeper-3.4.10/  上传到服务器  scp zookeeper-3.4.10.tar.gz 用户名@服务器IP:上传至的目录 eg. 目标端和源端两台服务器都安装了scp命令之后，才可以通过scp命令互相传输。 安装">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zookeeper快速入门&amp;集群部署">
+<meta property="og:url" content="http://ilovenorth.life/2019/02/22/Zookeeper快速入门-集群部署/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="Zookeeper快速入门&amp;amp;集群部署单机模式的环境搭建 官网下载  http://mirrors.shu.edu.cn/apache/zookeeper/zookeeper-3.4.10/  上传到服务器  scp zookeeper-3.4.10.tar.gz 用户名@服务器IP:上传至的目录 eg. 目标端和源端两台服务器都安装了scp命令之后，才可以通过scp命令互相传输。 安装">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.759Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zookeeper快速入门&amp;集群部署">
+<meta name="twitter:description" content="Zookeeper快速入门&amp;amp;集群部署单机模式的环境搭建 官网下载  http://mirrors.shu.edu.cn/apache/zookeeper/zookeeper-3.4.10/  上传到服务器  scp zookeeper-3.4.10.tar.gz 用户名@服务器IP:上传至的目录 eg. 目标端和源端两台服务器都安装了scp命令之后，才可以通过scp命令互相传输。 安装">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Zookeeper快速入门-amp-集群部署"><span class="toc-text">Zookeeper快速入门&amp;集群部署</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#单机模式的环境搭建"><span class="toc-text">单机模式的环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#集群模式搭建"><span class="toc-text">集群模式搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#集群模式介绍"><span class="toc-text">集群模式介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#角色"><span class="toc-text">角色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zookeeper命令介绍"><span class="toc-text">zookeeper命令介绍</span></a></li></ol></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Zookeeper快速入门-集群部署" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Zookeeper快速入门&amp;集群部署</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.02.22</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/分布式专题/">分布式专题</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="Zookeeper快速入门-amp-集群部署"><a href="#Zookeeper快速入门-amp-集群部署" class="headerlink" title="Zookeeper快速入门&amp;集群部署"></a>Zookeeper快速入门&amp;集群部署</h1><h2 id="单机模式的环境搭建"><a href="#单机模式的环境搭建" class="headerlink" title="单机模式的环境搭建"></a>单机模式的环境搭建</h2><ol>
+<li>官网下载</li>
+</ol>
+<pre><code>http://mirrors.shu.edu.cn/apache/zookeeper/zookeeper-3.4.10/
+</code></pre><ol start="2">
+<li>上传到服务器</li>
+</ol>
+<pre><code>scp zookeeper-3.4.10.tar.gz 用户名@服务器IP:上传至的目录
+</code></pre><p><strong>eg.</strong> 目标端和源端两台服务器都安装了scp命令之后，才可以通过scp命令互相传输。</p>
+<pre><code>安装scp命令：
+yum -y install openssh-clients
+</code></pre><ol start="3">
+<li>解压压缩包 zookeeper-3.4.10.tar.gz </li>
+</ol>
+<pre><code>tar -zxvf zookeeper-3.4.10.tar.gz
+</code></pre><ol start="4">
+<li>进入 zookeeper-3.4.10 目录下的conf文件夹，重命名zoo_simple.cfg</li>
+</ol>
+<pre><code>mv zoo_sample.cfg zoo.cfg
+</code></pre><ol start="5">
+<li>启动：进入 zookeeper-3.4.10 目录下的bin文件夹</li>
+</ol>
+<pre><code>sh zkServer.sh start
+
+显示如下信息则为启动成功：
+ZooKeeper JMX enabled by default
+Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+</code></pre><ol start="6">
+<li>验证一下，同样是 zookeeper-3.4.10 目录下的conf文件夹</li>
+</ol>
+<pre><code>sh zkServer.sh status
+
+显示如下信息则为启动成功：
+ZooKeeper JMX enabled by default
+Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
+Mode: standalone #单机模式
+</code></pre><ol start="7">
+<li>连接客户端，同样是 zookeeper-3.4.10 目录下的conf文件夹</li>
+</ol>
+<pre><code>sh zkCli.sh
+</code></pre><h2 id="集群模式搭建"><a href="#集群模式搭建" class="headerlink" title="集群模式搭建"></a>集群模式搭建</h2><ol>
+<li>启动3台服务器，修改zoo.cfg配置文件</li>
+</ol>
+<pre><code>在配置文档的末尾加上：
+server.1=192.168.187.200:2188:2888
+server.2=192.168.187.201:2188:2888
+server.3=192.168.187.202:2188:2888
+</code></pre><p><strong>zoo.cfg 参数</strong>    </p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">参数</th>
+<th style="text-align:left">意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">tickTime</td>
+<td style="text-align:left">2000</td>
+</tr>
+<tr>
+<td style="text-align:left">syncLimit</td>
+<td style="text-align:left">Leader和follower之间的通讯时长最长不能超过initLimt * ticktime</td>
+</tr>
+<tr>
+<td style="text-align:left">initLimt</td>
+<td style="text-align:left">接受客户端链接zk初始化的最长等待心跳时长initLimt * ticktime</td>
+</tr>
+<tr>
+<td style="text-align:left">dataDir</td>
+<td style="text-align:left">数据目录</td>
+</tr>
+<tr>
+<td style="text-align:left">dataLogDir</td>
+<td style="text-align:left">日志文件</td>
+</tr>
+<tr>
+<td style="text-align:left">clientPort</td>
+<td style="text-align:left">客户端链接服务端端口号</td>
+</tr>
+<tr>
+<td style="text-align:left">Server.A=B:C:D</td>
+<td style="text-align:left">A:第几号服务器<br>B:服务IP<br>C:代表Leader和follower通讯端口<br>D:备用选leader端口</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li>根据自己配置的dataDir目录，在三台服务器中添加myid文件，这个myid为投票选举的标志id，同时也是告诉zk这是哪台服务器，细节后面再讲。</li>
+</ol>
+<pre><code>echo &quot;1&quot; &gt; /usr/local/zookeeper/myid
+echo &quot;2&quot; &gt; /usr/local/zookeeper/myid
+echo &quot;3&quot; &gt; /usr/local/zookeeper/myid
+</code></pre><ol start="3">
+<li>然后依次启动就好，控制台会打印出一下信息。</li>
+</ol>
+<pre><code>ZooKeeper JMX enabled by default
+Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
+Mode: follower
+</code></pre><p><strong>注意：</strong>    </p>
+<ul>
+<li>集群模式，服务器之前互相通讯，所以要关闭防火墙。</li>
+<li>集群模式需要Java环境。</li>
+</ul>
+<pre><code># 关闭防火墙
+service iptables stop
+
+# 如果提示 iptables unrecognized service，则需要安装：
+yum install -y iptables
+</code></pre><h2 id="集群模式介绍"><a href="#集群模式介绍" class="headerlink" title="集群模式介绍"></a>集群模式介绍</h2><h3 id="角色"><a href="#角色" class="headerlink" title="角色"></a>角色</h3><hr>
+<p><strong>Leader ：</strong></p>
+<p>   Leader作为整个ZooKeeper集群的主节点，负责响应所有对ZooKeeper状态变更的请求。它会将每个状态更新请求进行排序和编号，<font color="red">以便保证整个集群内部消息处理的FIFO（先进先出），写操作都走leader，zk里面leader只有一个。</font></p>
+<p><strong>Follower ：</strong></p>
+<p>   Follower的逻辑就比较简单了。除了响应本服务器上的读请求外，follower还要处理leader的提议，并在leader提交该提议时在本地也进行提交。<br>   另外需要注意的是，leader和follower构成ZooKeeper集群的法定人数，也就是说，只有他们才参与新leader的选举、响应leader的提议。<font color="red">帮助leader处理读请求，投票权。</font>    </p>
+<p><strong>Observer ：</strong>    </p>
+<p>   如果ZooKeeper集群的读取负载很高，或者客户端多到跨机房，可以设置一些observer服务器，以提高读取的吞吐量。Observer和Follower比较相似，只有一些小区别：首先observer不属于法定人数，即不参加选举也不响应提议；其次是observer不需要将事务持久化到磁盘，一旦observer被重启，需要从leader重新同步整个名字空间。 <font color="red">没有投票权利，可以处理读请求。</font></p>
+<h3 id="zookeeper命令介绍"><a href="#zookeeper命令介绍" class="headerlink" title="zookeeper命令介绍"></a>zookeeper命令介绍</h3><hr>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">命令</th>
+<th style="text-align:left">意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ls</td>
+<td style="text-align:left">ls 命令来查看某个目录包含的所有文件</td>
+</tr>
+<tr>
+<td style="text-align:left">ls2</td>
+<td style="text-align:left">ls2 命令来查看某个目录包含的所有文件，与ls不同的是它查看到time、version等信息</td>
+</tr>
+<tr>
+<td style="text-align:left">create</td>
+<td style="text-align:left">创建znode，并设置初始内容</td>
+</tr>
+<tr>
+<td style="text-align:left">get</td>
+<td style="text-align:left">获取znode的数据</td>
+</tr>
+<tr>
+<td style="text-align:left">set</td>
+<td style="text-align:left">修改znode内容</td>
+</tr>
+<tr>
+<td style="text-align:left">delete</td>
+<td style="text-align:left">删除znode</td>
+</tr>
+<tr>
+<td style="text-align:left">quit</td>
+<td style="text-align:left">退出客户端</td>
+</tr>
+<tr>
+<td style="text-align:left">help</td>
+<td style="text-align:left">帮助命令</td>
+</tr>
+<tr>
+<td style="text-align:left">rmr</td>
+<td style="text-align:left">递归删除 可以删除包含有子节点的</td>
+</tr>
+</tbody>
+</table>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/01/22/HashMap源码分析-md/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/02/27/zookeeper客户端详解/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

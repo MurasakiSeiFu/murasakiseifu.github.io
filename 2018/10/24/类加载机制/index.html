@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>类加载机制 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="类加载机制 Java运行时编译源码(.java)成字节码，由jre运行。jre由Java虚拟机(jvm)实现。Jvm分析字节码，后解释并执行。简单看看就行 -。- 主要内容1.类加载过程 2.类加载器种类 3.类加载机制  类加载过程 类加载：类加载器将class文件加载到虚拟机的内存      加载：在硬盘上查找并通过IO读入字节码文件。      连接：执行校验、准备、解析（可选）步骤。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类加载机制">
+<meta property="og:url" content="http://ilovenorth.life/2018/10/24/类加载机制/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="类加载机制 Java运行时编译源码(.java)成字节码，由jre运行。jre由Java虚拟机(jvm)实现。Jvm分析字节码，后解释并执行。简单看看就行 -。- 主要内容1.类加载过程 2.类加载器种类 3.类加载机制  类加载过程 类加载：类加载器将class文件加载到虚拟机的内存      加载：在硬盘上查找并通过IO读入字节码文件。      连接：执行校验、准备、解析（可选）步骤。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tNbRwly1fwhxxi4thuj30zk0a80va.jpg">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwhxzsbd4ej30zk04qab0.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwhyj98u6aj30j80fwjt9.jpg">
+<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tNbRwly1fwhyo8ndzjj31hq0eik4c.jpg">
+<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tNbRwly1fwhz97rco1j31kw0mmgvc.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwhyj98u6aj30j80fwjt9.jpg">
+<meta property="og:updated_time" content="2019-04-29T02:00:17.818Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="类加载机制">
+<meta name="twitter:description" content="类加载机制 Java运行时编译源码(.java)成字节码，由jre运行。jre由Java虚拟机(jvm)实现。Jvm分析字节码，后解释并执行。简单看看就行 -。- 主要内容1.类加载过程 2.类加载器种类 3.类加载机制  类加载过程 类加载：类加载器将class文件加载到虚拟机的内存      加载：在硬盘上查找并通过IO读入字节码文件。      连接：执行校验、准备、解析（可选）步骤。">
+<meta name="twitter:image" content="https://ws4.sinaimg.cn/large/006tNbRwly1fwhxxi4thuj30zk0a80va.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#类加载机制"><span class="toc-text">类加载机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#类加载过程"><span class="toc-text">类加载过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#类加载器种类"><span class="toc-text">类加载器种类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#类加载机制-1"><span class="toc-text">类加载机制</span></a></li></ol></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-类加载机制" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">类加载机制</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.10.24</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/源码分析/">源码分析</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h1><hr>
+<p>Java运行时编译源码(.java)成字节码，由jre运行。jre由Java虚拟机(jvm)实现。Jvm分析字节码，后解释并执行。<br>简单看看就行 -。-<br><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fwhxxi4thuj30zk0a80va.jpg" alt=""></p>
+<h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><pre><code>1.类加载过程
+2.类加载器种类
+3.类加载机制
+</code></pre><hr>
+<h3 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h3><p><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwhxzsbd4ej30zk04qab0.jpg" alt=""></p>
+<p>类加载：类加载器将class文件加载到虚拟机的内存    </p>
+<ul>
+<li><p>加载：在硬盘上查找并通过IO读入字节码文件。    </p>
+</li>
+<li><p>连接：执行校验、准备、解析（可选）步骤。    </p>
+</li>
+<li><p>校验：校验字节码文件的正确性。    </p>
+</li>
+<li><p>准备：给类的静态变量分配内存，并赋予默认值，我们都知道静态变量是归属于类的，而不是类的对象，只在类的第一次加载的时候会给静态变量分配内存，然后赋予默认值。    </p>
+</li>
+<li><p>解析：类装载器装入类所引用的其他所有类。    </p>
+</li>
+<li><p>初始化：对类的静态变量初始化为指定的值，执行静态代码块,和准备步骤的区别:假如我们 static int a = 5，在准备的那步是把int类型的变量a赋予默认值为0，然后在初始化这步把a初始化为5。</p>
+</li>
+</ul>
+<h3 id="类加载器种类"><a href="#类加载器种类" class="headerlink" title="类加载器种类"></a>类加载器种类</h3><p>从现在开始就是重点内容了！</p>
+<p>类加载器有以下几个种类：    </p>
+<ul>
+<li><p>启动类加载器：负责加载JRE的核心类库，如jre目标下的rt.jar,charsets.jar等    </p>
+</li>
+<li><p>扩展类加载器：负责加载JRE扩展目录ext中JAR类包    </p>
+</li>
+<li><p>系统类加载器：负责加载ClassPath路径下的类包    </p>
+</li>
+<li><p>用户自定义加载器：负责加载用户自定义路径下的类包</p>
+</li>
+</ul>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwhyj98u6aj30j80fwjt9.jpg" alt=""></p>
+<p>这些定义是很难直接理解的，我们还是根据代码来分析。</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fwhyo8ndzjj31hq0eik4c.jpg" alt=""><br>执行一下，我们先来看看这四个类是用什么类加载器加载的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">null</span><br><span class="line">sun.misc.Launcher$ExtClassLoader</span><br><span class="line">sun.misc.Launcher$AppClassLoader</span><br><span class="line">sun.misc.Launcher$AppClassLoader</span><br></pre></td></tr></table></figure>
+<p>我们先不看String类，我们直接看第二行的 DESKeyFactory 类，这是一个加解密的类，我们发现，它的类加载器是ExtClassLoader，根据上面的层级图我们可以知道，ExtClassLoader也就是拓展类加载器。拓展类加载器负责加载JRE扩展目录ext中JAR类包，我们找一下这个类所在的位置，在我的电脑里是/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/<font color="orange">jre/lib/ext/sunjce_provider.jar!</font>/com/sun/crypto/provider/DESKeyFactory.class ，果然！</p>
+<p>我们再看第二行，第二行我们要看是我们这个测试类本身，它的类加载器是AppClassLoader，AppClassLoader也就是系统类加载器：负责加载ClassPath路径下的类包，在我的电脑里/Users/murasakiseifu/Downloads/SDKTest/src/main/java/com/oss/SDKTest/TestJDKClassLoader.java，只要是在我们类路径下的类，就都会用AppClassLoader。</p>
+<p>我们再回到第一行String类，我们先看一下String类的位置：/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/rt.jar!/java/lang/String.class，我们可以看到String.class是在JDK核心jar包之一的rt.jar下的，和ext扩展类文件夹同级的这些包，都属于JDK的核心jar包。<br><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fwhz97rco1j31kw0mmgvc.jpg" alt=""><br>但是为什么显示为null？因为这些jar包都是c语言写的，JDK并不知道名字。</p>
+<p>最后一行是打印了一下我们系统类加载器的名字。</p>
+<hr>
+<h3 id="类加载机制-1"><a href="#类加载机制-1" class="headerlink" title="类加载机制"></a>类加载机制</h3><hr>
+<p>1.全盘负责委托机制<br>2.双亲委派机制</p>
+<p><strong>全盘负责委托机制</strong>    </p>
+<p>当一个ClassLoader加载一个类时，除非显示的使用另一个ClassLoader，该类所依赖和引用的类也由这个ClassLoader载入。<br>当我们类A引用类B引用C时，类A用的是什么类加载器，那么类B类C用的就是什么加载器，一般我们也会不改这个，了解一下就好。</p>
+<p><strong>双亲委派机制</strong>    </p>
+<p>指先委托父类加载器寻找目标类，在找不到的情况下在自己的路径中查找并载入目标类。<br>这个是我们要了解的重点！我们再来看一下这个图。<br><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwhyj98u6aj30j80fwjt9.jpg" alt=""></p>
+<p>在介绍之前，我们要明白一个概念：<font color="red">这些ClassLoader之间并不是继承的关系！并不是继承的关系！并不是继承的关系！</font>重要的事情说三遍，准确点说应该是父级的类加载器，这里是为了大家更好的理解。</p>
+<p>比如我们加载我们这个Test类，如果我们没有自定义类加载器，那么一开始就是从系统类加载器开始—-&gt;它去请求他的上一级类加载器：拓展类加载器—-&gt;拓展类加载器再去请求他的上级：启动类加载器——&gt;然后启动类加载器开始检测能否加载这个类，因为启动类加载器只加载JRE的核心类库，所有他加载不了，他就交由他的子级加载器：拓展类加载器—-&gt;拓展类加载器开始检测能否加载这个类，因为拓展列加载器负责加载JRE扩展目录ext中JAR类包，他也加载不了，他也交由给他的子级加载器：系统类加载器。</p>
+<p>这么玩的原因是什么？</p>
+<p><strong>双亲委派模式的沙箱安全机制</strong>：自己写的String.class类不会被加载，这样便可以防止核心API库被随意篡改.</p>
+<p>假如有一个王八蛋自己写了一个String.class，而且完完全全模拟了JDK中String类的包路径，如果没有双亲委派机制，那后果可就不堪设想了。假如黑客模拟写了一个java.lang.string类，当类加载器进行加载的时候，类加载器根据双亲委派机制，当启动类加载器看到这个路径的java.lang.string类，他也是会去加载JRE的核心类库里的String类，确保了<br>核心API库不会被随意篡改.</p>
+<p><strong>避免类的重复加载</strong>：当父亲已经加载了该类时，就没有必要ClassLoader再加载一次。</p>
+<p>一个常见的问题：JVM加载jar包是否会将包里的所有类全部加载进内存？<br>JVM对class文件是按需加载(运行期间动态加载)，非一次性加载。</p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/10/23/JVM指令集/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/10/26/JVM垃圾回收详解/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

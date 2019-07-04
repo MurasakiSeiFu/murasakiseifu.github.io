@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>Springboot 定时器用法 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="简介顾名思义，定时器的意思就是每隔固定时间就执行一次的方法。 使用1.开关我们都知道 springboot 有一个自己的入口，就是@SpringBootApplication，我们的第一步，当然就是在启动类上打开定时器开关：@EnableScheduling，我们点开这个注解就会看到，在注释里，就已经告诉我该如何使用啦。因为太长，就不铺在这里了。 2.创建一个定时器类12345678910@C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Springboot 定时器用法">
+<meta property="og:url" content="http://ilovenorth.life/2018/04/20/Springboot-定时器用法/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="简介顾名思义，定时器的意思就是每隔固定时间就执行一次的方法。 使用1.开关我们都知道 springboot 有一个自己的入口，就是@SpringBootApplication，我们的第一步，当然就是在启动类上打开定时器开关：@EnableScheduling，我们点开这个注解就会看到，在注释里，就已经告诉我该如何使用啦。因为太长，就不铺在这里了。 2.创建一个定时器类12345678910@C">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-04-28T06:48:51.470Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Springboot 定时器用法">
+<meta name="twitter:description" content="简介顾名思义，定时器的意思就是每隔固定时间就执行一次的方法。 使用1.开关我们都知道 springboot 有一个自己的入口，就是@SpringBootApplication，我们的第一步，当然就是在启动类上打开定时器开关：@EnableScheduling，我们点开这个注解就会看到，在注释里，就已经告诉我该如何使用啦。因为太长，就不铺在这里了。 2.创建一个定时器类12345678910@C">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#简介"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用"><span class="toc-text">使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-开关"><span class="toc-text">1.开关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-创建一个定时器类"><span class="toc-text">2.创建一个定时器类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-注解详解"><span class="toc-text">3.注解详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Component"><span class="toc-text">@Component</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Scheduled"><span class="toc-text">@Scheduled</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-cron"><span class="toc-text"> 1.cron </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-zone"><span class="toc-text"> 2.zone </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-fixedDelay"><span class="toc-text"> 3.fixedDelay </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-fixedDelayString"><span class="toc-text"> 4.fixedDelayString </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-fixedRate"><span class="toc-text"> 5.fixedRate </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-fixedRateString"><span class="toc-text"> 6.fixedRateString </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-initialDelay"><span class="toc-text"> 7.initialDelay </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-initialDelayString"><span class="toc-text"> 8.initialDelayString </span></a></li></ol></li></ol></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Springboot-定时器用法" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Springboot 定时器用法</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.04.20</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Springboot/">Springboot</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>顾名思义，定时器的意思就是每隔固定时间就执行一次的方法。</p>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><h3 id="1-开关"><a href="#1-开关" class="headerlink" title="1.开关"></a>1.开关</h3><p>我们都知道 springboot 有一个自己的入口，就是@SpringBootApplication，我们的第一步，当然就是在启动类上打开定时器开关：@EnableScheduling，我们点开这个注解就会看到，在注释里，就已经告诉我该如何使用啦。因为太长，就不铺在这里了。</p>
+<h3 id="2-创建一个定时器类"><a href="#2-创建一个定时器类" class="headerlink" title="2.创建一个定时器类"></a>2.创建一个定时器类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoScheduler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(<span class="keyword">this</span>.getClass());</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Scheduled</span>(cron = <span class="string">"0/10 * * * * ?"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createtable</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        logger.info(<span class="string">"10秒一次定时器！"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法的意思就是每10秒打印一次日志。</p>
+<h3 id="3-注解详解"><a href="#3-注解详解" class="headerlink" title="3.注解详解"></a>3.注解详解</h3><h4 id="Component"><a href="#Component" class="headerlink" title="@Component"></a>@Component</h4><p>@Component注解，我们都不陌生，就是将这个类作为组件扫描到spring容器中，这样我们就可以通过类路径扫描自动发现这个组件了。</p>
+<h4 id="Scheduled"><a href="#Scheduled" class="headerlink" title="@Scheduled"></a>@Scheduled</h4><p>@Scheduled 就是定时器的核心注解。<br>源码注释上是这么说的，简单翻译一下：<br>一个用来标记要安排的方法的注释(翻译的不是太好..嘿嘿就是一个注释，用来标记要安排定时的方法)。 必须指定 cron(),fixedDelay()或fixedRate()属性中的一个。</p>
+<p>注释的方法不能有任何参数。这是方法通常会有一个void返回类型; 如果不是，则通过调度程序调用时，返回的值将被忽略。也就是说被安排的方法是不期望有返回值的，即使有也会被忽略。</p>
+<p>此注解可以用作元注解以创建具有属性覆盖的自定义组合批注。<br>我们看一下这个注解的源码。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target</span>(&#123;ElementType.METHOD, ElementType.ANNOTATION_TYPE&#125;)  </span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)  </span><br><span class="line"><span class="meta">@Documented</span>  </span><br><span class="line"><span class="meta">@Repeatable</span>(Schedules.class)  </span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Scheduled &#123;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">cron</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="function">String <span class="title">zone</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">long</span> <span class="title">fixedDelay</span><span class="params">()</span> <span class="keyword">default</span> -1L</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="function">String <span class="title">fixedDelayString</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">long</span> <span class="title">fixedRate</span><span class="params">()</span> <span class="keyword">default</span> -1L</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="function">String <span class="title">fixedRateString</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">long</span> <span class="title">initialDelay</span><span class="params">()</span> <span class="keyword">default</span> -1L</span>;  </span><br><span class="line">  </span><br><span class="line">    <span class="function">String <span class="title">initialDelayString</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这些属性我们一个个说。</p>
+<h5 id="1-cron"><a href="#1-cron" class="headerlink" title=" 1.cron "></a><strong> 1.cron </strong></h5><p>这个是比较常用的属性。一种类似于cron的表达方式。可以作为一个触发器，时间包括时分秒月日年星期等，格式为”0*…MON-FRI”。<br>“星号” 表示为占位符，从左至右：秒分时日月年，最后一位则表示星期。</p>
+<h5 id="2-zone"><a href="#2-zone" class="headerlink" title=" 2.zone "></a><strong> 2.zone </strong></h5><p>将被cron表达式解析的时区。 默认情况下，此属性是空字符串（即使用服务器的本地时区将）。</p>
+<h5 id="3-fixedDelay"><a href="#3-fixedDelay" class="headerlink" title=" 3.fixedDelay "></a><strong> 3.fixedDelay </strong></h5><p>以毫秒为时间间隔。为Long型</p>
+<h5 id="4-fixedDelayString"><a href="#4-fixedDelayString" class="headerlink" title=" 4.fixedDelayString "></a><strong> 4.fixedDelayString </strong></h5><p>以毫秒为时间间隔。为String类型</p>
+<h5 id="5-fixedRate"><a href="#5-fixedRate" class="headerlink" title=" 5.fixedRate "></a><strong> 5.fixedRate </strong></h5><p>在调用之间以毫秒为单位,执行带有固定时间段的注释方法。为Long型</p>
+<h5 id="6-fixedRateString"><a href="#6-fixedRateString" class="headerlink" title=" 6.fixedRateString "></a><strong> 6.fixedRateString </strong></h5><p>在调用之间以毫秒为单位,执行带有固定时间段的注释方法。为String类型</p>
+<h5 id="7-initialDelay"><a href="#7-initialDelay" class="headerlink" title=" 7.initialDelay "></a><strong> 7.initialDelay </strong></h5><p>第一次执行fixedRate()或fixedDelay()任务之前要延迟的毫秒数。为Long型</p>
+<h5 id="8-initialDelayString"><a href="#8-initialDelayString" class="headerlink" title=" 8.initialDelayString "></a><strong> 8.initialDelayString </strong></h5><p>第一次执行fixedRate()或fixedDelay()任务之前要延迟的毫秒数。为String类型</p>
+<p>一般我们常用的就是 cron 属性。但是cron表达式我们一般也不是很了解 -。-、<br>在这里我给大家推荐一个网站 可以在线生成cron表达式，很方便~<br>网址：<a href="http://cron.qqe2.com/" target="_blank" rel="noopener">在线cron表达式生成器</a></p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/04/19/Util-Springboot类beans获取/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/04/20/springboot-根据角色权限生成菜单树/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

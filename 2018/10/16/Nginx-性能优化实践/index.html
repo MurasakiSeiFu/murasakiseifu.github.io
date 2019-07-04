@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>Nginx 性能优化实践---反向代理 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="一、Nginx 反向代理实现 主要内容： 反向代理基本配置 负载均衡配置与参数解析 负载均衡算法详解  1. 反向代理基本配置提问：什么是反向代理其与正向代理有什么区别？     正向代理的概念：正向代理是指客户端与目标服务器之间增加一个代理服务器，客户端直接访问代理服务器，在由代理服务器访问目标服务器并返回客户端并返回 。这个过程当中客户端需要知道代理服务器地址，并配置连接。  反向代理的概">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx 性能优化实践---反向代理">
+<meta property="og:url" content="http://ilovenorth.life/2018/10/16/Nginx-性能优化实践/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="一、Nginx 反向代理实现 主要内容： 反向代理基本配置 负载均衡配置与参数解析 负载均衡算法详解  1. 反向代理基本配置提问：什么是反向代理其与正向代理有什么区别？     正向代理的概念：正向代理是指客户端与目标服务器之间增加一个代理服务器，客户端直接访问代理服务器，在由代理服务器访问目标服务器并返回客户端并返回 。这个过程当中客户端需要知道代理服务器地址，并配置连接。  反向代理的概">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fw9x1jhba1j30il088q2u.jpg">
+<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tNbRwly1fw9x1s24bjj30iz067t8m.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwa3gofbbqj30xm0i8t9w.jpg">
+<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tNbRwly1fwa46aunopj30wm0l2gn6.jpg">
+<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tNbRwly1fwa5uglffcj30wi0me770.jpg">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.730Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Nginx 性能优化实践---反向代理">
+<meta name="twitter:description" content="一、Nginx 反向代理实现 主要内容： 反向代理基本配置 负载均衡配置与参数解析 负载均衡算法详解  1. 反向代理基本配置提问：什么是反向代理其与正向代理有什么区别？     正向代理的概念：正向代理是指客户端与目标服务器之间增加一个代理服务器，客户端直接访问代理服务器，在由代理服务器访问目标服务器并返回客户端并返回 。这个过程当中客户端需要知道代理服务器地址，并配置连接。  反向代理的概">
+<meta name="twitter:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fw9x1jhba1j30il088q2u.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、Nginx-反向代理实现"><span class="toc-text">一、Nginx 反向代理实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#主要内容："><span class="toc-text">主要内容：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-反向代理基本配置"><span class="toc-text">1. 反向代理基本配置</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#正向代理的概念："><span class="toc-text">正向代理的概念：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#反向代理的概念："><span class="toc-text">反向代理的概念：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#反向代理与正向代理的区别"><span class="toc-text">反向代理与正向代理的区别</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Nginx代理基本配置"><span class="toc-text">Nginx代理基本配置</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#代理相关参数："><span class="toc-text">代理相关参数：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-负载均衡配置与参数解析"><span class="toc-text">2.负载均衡配置与参数解析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#演示upstream-的实现"><span class="toc-text">演示upstream 的实现</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#upstream-权重"><span class="toc-text">upstream 权重</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#upstream-相关参数"><span class="toc-text">upstream 相关参数:</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-upstream-负载均衡算法介绍"><span class="toc-text">3.upstream 负载均衡算法介绍</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Nginx-性能优化实践" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Nginx 性能优化实践---反向代理</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.10.16</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/分布式专题/">分布式专题</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h2 id="一、Nginx-反向代理实现"><a href="#一、Nginx-反向代理实现" class="headerlink" title="一、Nginx 反向代理实现"></a>一、Nginx 反向代理实现</h2><hr>
+<h3 id="主要内容："><a href="#主要内容：" class="headerlink" title="主要内容："></a>主要内容：</h3><ol>
+<li>反向代理基本配置</li>
+<li>负载均衡配置与参数解析</li>
+<li>负载均衡算法详解</li>
+</ol>
+<h3 id="1-反向代理基本配置"><a href="#1-反向代理基本配置" class="headerlink" title="1. 反向代理基本配置"></a>1. 反向代理基本配置</h3><p>提问：什么是反向代理其与正向代理有什么区别？    </p>
+<h5 id="正向代理的概念："><a href="#正向代理的概念：" class="headerlink" title="正向代理的概念："></a><strong>正向代理的概念：</strong></h5><p>正向代理是指客户端与目标服务器之间增加一个代理服务器，客户端直接访问代理服务器，在由代理服务器访问目标服务器并返回客户端并返回 。这个过程当中客户端需要知道代理服务器地址，并配置连接。</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fw9x1jhba1j30il088q2u.jpg" alt=""></p>
+<h5 id="反向代理的概念："><a href="#反向代理的概念：" class="headerlink" title="反向代理的概念："></a><strong>反向代理的概念：</strong></h5><p>反向代理是指 客户端访问目标服务器，在目标服务内部有一个统一接入网关将请求转发至后端真正处理的服务器并返回结果。这个过程当中客户端不需要知道代理服务器地址，代理对客户端而言是透明的。</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fw9x1s24bjj30iz067t8m.jpg" alt=""></p>
+<p><strong>PS:</strong> 因为一个端口只能绑定一个进程，如果我们一个服务器，有2个域名网站，如果访问80端口就只能访问其中一个，使用了反向代理，我们可以直接访问8080端口，由代理服务器来选择域名。</p>
+<h5 id="反向代理与正向代理的区别"><a href="#反向代理与正向代理的区别" class="headerlink" title="反向代理与正向代理的区别"></a><strong>反向代理与正向代理的区别</strong></h5><table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left"><strong>正向代理</strong></th>
+<th style="text-align:left"><strong>反向代理</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">代理服务器位置</td>
+<td style="text-align:left">客户端与服务都能连接的们位置</td>
+<td style="text-align:left">目标服务器内部</td>
+</tr>
+<tr>
+<td style="text-align:left">主要作用</td>
+<td style="text-align:left">屏蔽客户端IP、集中式缓存、解决客户端不能直连服务端的问题。</td>
+<td style="text-align:left">屏蔽服务端内部实现、负载均衡、缓存。</td>
+</tr>
+<tr>
+<td style="text-align:left">应用场景</td>
+<td style="text-align:left">爬虫、翻墙、maven 的nexus 服务</td>
+<td style="text-align:left">Nginx 、Apache负载均衡应用</td>
+</tr>
+</tbody>
+</table>
+<h5 id="Nginx代理基本配置"><a href="#Nginx代理基本配置" class="headerlink" title="Nginx代理基本配置"></a><strong>Nginx代理基本配置</strong></h5><p>Nginx 代理只需要配置 location 中配置proxy_pass 属性即可。其指向代理的服务器地址。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 正向代理到 baidu服务</span><br><span class="line">location = /baidu.html &#123;</span><br><span class="line">         proxy_pass http://www.baidu.com;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 反向代理至 本机的8010服务</span><br><span class="line">location /luban/ &#123;</span><br><span class="line">	 # 只是分发到后端的一个 Tomcat服务器</span><br><span class="line">     proxy_pass http://127.0.0.1:8010;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="代理相关参数："><a href="#代理相关参数：" class="headerlink" title="代理相关参数："></a><strong>代理相关参数：</strong></h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">proxy_pass           # 代理服务</span><br><span class="line">proxy_redirect off;   # 是否允许重定向</span><br><span class="line">proxy_set_header Host $host; # 传 header 参数至后端服务</span><br><span class="line">proxy_set_header X-Forwarded-For $remote_addr; # 设置request header 即客户端IP 地址</span><br><span class="line">proxy_connect_timeout 90; # 连接代理服务超时时间</span><br><span class="line">proxy_send_timeout 90; # 请求发送最大时间</span><br><span class="line">proxy_read_timeout 90;  # 读取最大时间</span><br><span class="line">proxy_buffer_size 4k; </span><br><span class="line">proxy_buffers 4 32k;</span><br><span class="line">proxy_busy_buffers_size 64k; </span><br><span class="line">proxy_temp_file_write_size 64k;</span><br></pre></td></tr></table></figure>
+<h3 id="2-负载均衡配置与参数解析"><a href="#2-负载均衡配置与参数解析" class="headerlink" title="2.负载均衡配置与参数解析"></a>2.负载均衡配置与参数解析</h3><p>通过 proxy_pass 可以把请求代理至后端服务，但是为了实现更高的负载及性能， 我们的后端服务通常是多个， 这个是时候可以通过upstream模块实现负载均衡。</p>
+<h5 id="演示upstream-的实现"><a href="#演示upstream-的实现" class="headerlink" title="演示upstream 的实现"></a><strong>演示upstream 的实现</strong></h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">upstream backend &#123;     </span><br><span class="line">   server 127.0.0.1:8010;</span><br><span class="line">   server 127.0.0.1:8080;</span><br><span class="line">&#125;</span><br><span class="line">location / &#123;</span><br><span class="line">          proxy_pass http://backend;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们执行 curl 127.0.0.1 命令，nginx会轮询这两个server，而不是随机的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">147 8010</span><br><span class="line">147 8080</span><br><span class="line">147 8010</span><br><span class="line">147 8080</span><br></pre></td></tr></table></figure></p>
+<h5 id="upstream-权重"><a href="#upstream-权重" class="headerlink" title="upstream 权重"></a><strong>upstream 权重</strong></h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">upstream backend &#123;     </span><br><span class="line">   server 127.0.0.1:8010 weight=1;</span><br><span class="line">   server 127.0.0.1:8080 weight=2;</span><br><span class="line">&#125;</span><br><span class="line">location / &#123;</span><br><span class="line">          proxy_pass http://backend;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>配置weight权重参数，我们重新执行curl 127.0.0.1 命令，结果如下。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#第一次会走一遍两个server 然后开始权重轮询</span><br><span class="line">147 8080</span><br><span class="line">147 8010</span><br><span class="line">147 8080</span><br><span class="line">147 8080</span><br><span class="line">147 8010</span><br></pre></td></tr></table></figure></p>
+<h5 id="upstream-相关参数"><a href="#upstream-相关参数" class="headerlink" title="upstream 相关参数:"></a><strong>upstream 相关参数:</strong></h5><ul>
+<li><strong>service：</strong>    反向服务地址 加端口</li>
+<li><strong>weight：</strong>    权重</li>
+<li><strong>max_fails：</strong>    失败多少次 认为主机已挂掉则，踢出</li>
+<li><p><strong>fail_timeout：</strong>    踢出后重新探测时间，当我们的server挂了之后，nginx会一直检测server服务的心跳来确定何时server会重新启动，这样会占用nginx的性能空间，因此我们设置fail_timeout参数，来在规定时间到了之后再检测server服务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">upstream backend &#123;     </span><br><span class="line">   server 127.0.0.1:8010 weight=1;</span><br><span class="line">   server 127.0.0.1:8080 weight=2 fail_timeout=30s;</span><br><span class="line">   </span><br><span class="line">   server 127.0.0.1:8090 backup;</span><br><span class="line">&#125;</span><br><span class="line">location / &#123;</span><br><span class="line">          proxy_pass http://backend;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>backup：</strong>    备用服务，当我们正在用的server挂了，就会启用备用服务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">upstream backend &#123;     </span><br><span class="line">   server 127.0.0.1:8010 weight=1;</span><br><span class="line">   server 127.0.0.1:8080 weight=2;</span><br><span class="line">   </span><br><span class="line">   server 127.0.0.1:8090 backup;</span><br><span class="line">&#125;</span><br><span class="line">location / &#123;</span><br><span class="line">          proxy_pass http://backend;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>max_conns：</strong>    允许最大连接数</p>
+</li>
+<li><strong>slow_start：</strong>    当节点恢复，不立即加入,而是等待 slow_start    后加入服务对列。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">upstream backend &#123;     </span><br><span class="line">   server 127.0.0.1:8010 weight=1;</span><br><span class="line">   server 127.0.0.1:8080 weight=2 fail_timeout=30s slow_start=30s;</span><br><span class="line">   </span><br><span class="line">   server 127.0.0.1:8090 backup;</span><br><span class="line">&#125;</span><br><span class="line">location / &#123;</span><br><span class="line">          proxy_pass http://backend;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="3-upstream-负载均衡算法介绍"><a href="#3-upstream-负载均衡算法介绍" class="headerlink" title="3.upstream 负载均衡算法介绍"></a><strong>3.upstream 负载均衡算法介绍</strong></h3><ul>
+<li><strong>ll+weight：</strong><br>轮询加权重 (默认) 。  <font color="red">坏处:</font><font color="orange">权重越高轮询次数越多有一个坏处，就是如果权重高的服务器快满了，就会恶性循环。</font></li>
+<li><strong>ip_hash：</strong>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">upstream backend &#123; </span><br><span class="line">   ip_hash;</span><br><span class="line">   server 127.0.0.1:8010;</span><br><span class="line">   server 127.0.0.1:8080;</span><br><span class="line">&#125;</span><br><span class="line">location / &#123;</span><br><span class="line">          proxy_pass http://backend;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>基于Hash计算，用于保持session一至性。    </p>
+<p><font color="green"><strong>eg：</strong></font>我们有两个tomcat，当用户第一次登陆，nginx将session记录在Tomcat1，当用户再一次请求时，nginx将请求发送到Tomcat2，因为Tomcat2中没有记录用户session，用户就需要再登陆一次，很显然这种情况是不应该发生的。这时我们就会用<strong>ip_hash</strong>算法，先将用户ip进行hash运算然后对服务器的个数进行取模，我们这里有两个，就是对2取模运行，得到的结果只有0或者1，如果是0，就记录到第一台Tomcat，如果是1，就记录到第二台Tomcat，当用户在一个请求时，就是根据<strong>ip_hash</strong>算法直接找到对应存session状态信息的Tomcat服务器了。    </p>
+<p><font color="red">坏处:</font><font color="orange">如果其中一台Tomcat挂了，就会有50%的用户会话丢失。</font><br><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwa3gofbbqj30xm0i8t9w.jpg" alt=""></p>
+<ul>
+<li><strong>url_hash:</strong><br>静态资源缓存，节约存储，加快速度。<br><font color="green"><strong>eg：</strong></font>原理和上面ip_hash一样，如果我们有210T的图片存储，每一个服务器都存210T是很不现实的，最好的是把210T平均分配到服务器上。根据<strong>url_hash</strong>算法，就可以定位。<br><font color="red">坏处:</font><font color="orange">如果其中一台Tomcat挂了……</font><br><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fwa46aunopj30wm0l2gn6.jpg" alt=""></li>
+<li><strong>least_conn：</strong><br>最少链接（第三方）</li>
+<li><p><strong>least_time ：</strong><br>最小的响应时间,计算节点平均响应时间，然后取响应最快的那个，分配更高权重（第三方）</p>
+</li>
+<li><p><strong>一致性hash</strong><br>因为上述两个hash算法都有一些可能出现坏处，这里我们介绍一下一致性hash，可以尽可能的减少坏处发生时所带来的影响。<br><font color="green"><strong>eg：</strong></font>如图所示，这是一个链路hash，hash值的范围是0~2^23，分布在这个链路hash上，我们的3台Tomcat服务器分布在这个链路上，每个服务器之间我们放置一些虚拟节点，当来了一个url的hash值时，会找到这个hash值在链路上的位置(五角星位置)，然后顺时针沿着这个链路找到最近的虚拟节点，保存在这里，假如第2台Tomcat挂了，也只会影响第2台Tomcat和顺时针最近的虚拟节点之间的数据，将影响降低了很多。<br><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fwa5uglffcj30wi0me770.jpg" alt=""></p>
+</li>
+</ul>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/10/15/Nginx-核心模块与配置实践/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/10/17/Nginx-性能优化实践-高速缓存/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

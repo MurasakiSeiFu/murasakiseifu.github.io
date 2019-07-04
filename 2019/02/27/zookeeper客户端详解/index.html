@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>zookeeper客户端详解 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="zookeeper客户端详解1. zookeeper核心概念Zookeeper提供一个多层级的节点命名空间（节点称为znode）。与文件系统不同的是，这些节点都可以设置关联的数据，而文件系统中只有文件节点可以存放数据，而目录节点不行。     Zookeeper为了保证高吞吐和低延迟，在内存中维护了这个树状的目录结构，这种特性使得Zookeeper不能用于存放大量的数据，每个节点的存放数据上限">
+<meta property="og:type" content="article">
+<meta property="og:title" content="zookeeper客户端详解">
+<meta property="og:url" content="http://ilovenorth.life/2019/02/27/zookeeper客户端详解/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="zookeeper客户端详解1. zookeeper核心概念Zookeeper提供一个多层级的节点命名空间（节点称为znode）。与文件系统不同的是，这些节点都可以设置关联的数据，而文件系统中只有文件节点可以存放数据，而目录节点不行。     Zookeeper为了保证高吞吐和低延迟，在内存中维护了这个树状的目录结构，这种特性使得Zookeeper不能用于存放大量的数据，每个节点的存放数据上限">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tKfTcly1g0f24w4olxj31d00n0778.jpg">
+<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tKfTcly1g0f5k911z0j306303i418.jpg">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tKfTcly1g0k1c1vokmj31ds0sstbh.jpg">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.762Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="zookeeper客户端详解">
+<meta name="twitter:description" content="zookeeper客户端详解1. zookeeper核心概念Zookeeper提供一个多层级的节点命名空间（节点称为znode）。与文件系统不同的是，这些节点都可以设置关联的数据，而文件系统中只有文件节点可以存放数据，而目录节点不行。     Zookeeper为了保证高吞吐和低延迟，在内存中维护了这个树状的目录结构，这种特性使得Zookeeper不能用于存放大量的数据，每个节点的存放数据上限">
+<meta name="twitter:image" content="https://ws1.sinaimg.cn/large/006tKfTcly1g0f24w4olxj31d00n0778.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#zookeeper客户端详解"><span class="toc-text">zookeeper客户端详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-zookeeper核心概念"><span class="toc-text">1. zookeeper核心概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-znode"><span class="toc-text">2. znode</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#znode类型"><span class="toc-text">znode类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Stat-数据结构"><span class="toc-text">Stat 数据结构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-watcher"><span class="toc-text">3.watcher</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#什么是watcher"><span class="toc-text">什么是watcher</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-ACL"><span class="toc-text">4.ACL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#什么是ACL"><span class="toc-text">什么是ACL</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-高性能"><span class="toc-text">5.高性能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-顺序访问"><span class="toc-text">6.顺序访问</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-zookeeper客户端详解" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">zookeeper客户端详解</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.02.27</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/分布式专题/">分布式专题</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="zookeeper客户端详解"><a href="#zookeeper客户端详解" class="headerlink" title="zookeeper客户端详解"></a>zookeeper客户端详解</h1><h2 id="1-zookeeper核心概念"><a href="#1-zookeeper核心概念" class="headerlink" title="1. zookeeper核心概念"></a>1. zookeeper核心概念</h2><p>Zookeeper提供一个多层级的节点命名空间（节点称为znode）。与文件系统不同的是，这些节点都可以设置关联的数据，而文件系统中只有文件节点可以存放数据，而目录节点不行。    </p>
+<p>Zookeeper为了保证高吞吐和低延迟，在内存中维护了这个树状的目录结构，<strong>这种特性使得Zookeeper不能用于存放大量的数据，每个节点的存放数据上限为1M。</strong></p>
+<p>说白了，可以理解zookeeper为一个存储功能，在其节点上存放数据，比如分布式配置中心就是一个典型的例子。    </p>
+<p><img src="https://ws1.sinaimg.cn/large/006tKfTcly1g0f24w4olxj31d00n0778.jpg" alt=""></p>
+<h2 id="2-znode"><a href="#2-znode" class="headerlink" title="2. znode"></a>2. znode</h2><p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1g0f5k911z0j306303i418.jpg" alt=""></p>
+<p>ZooKeeper操作和维护的为一个个数据节点，称为 znode，采用类似文件系统的层级树状结构进行管理。如果 znode 节点包含数据则存储为字节数组（byte array）。</p>
+<h3 id="znode类型"><a href="#znode类型" class="headerlink" title="znode类型"></a>znode类型</h3><p><strong>PERSISTENT-持久节点</strong></p>
+<ul>
+<li>除非手动删除，否则节点一直存在于Zookeeper上</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 1] create /murasaki hello</span><br><span class="line">Created /murasaki</span><br><span class="line">[zk: localhost:2181(CONNECTED) 2] create /murasaki/sei hello</span><br><span class="line">Created /murasaki/sei</span><br></pre></td></tr></table></figure>
+<p><strong>EPHEMERAL-临时节点</strong></p>
+<ul>
+<li>临时节点的生命周期与客户端会话绑定，一旦客户端会话失效（客户端与zookeeper连接断开不一定会话失效），那么这个客户端创建的所有临时节点都会被移除。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 1] create -e /linshi hello</span><br><span class="line">Created /linshi</span><br><span class="line">[zk: localhost:2181(CONNECTED) 2] ls /</span><br><span class="line">[zookeeper, murasaki, linshi]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 3] quit</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 0] ls /</span><br><span class="line">[zookeeper, murasaki]</span><br></pre></td></tr></table></figure>
+<p><strong>PERSISTENT_SEQUENTIAL-持久顺序节点</strong></p>
+<ul>
+<li>基本特性同持久节点，只是增加了顺序属性，节点名后边会追加一个由父节点维护的自增整型数字。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 0] ls /</span><br><span class="line">[zookeeper, murasaki]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 1] create -s /youxu hello</span><br><span class="line">Created /youxu0000000002</span><br><span class="line">[zk: localhost:2181(CONNECTED) 2] ls /</span><br><span class="line">[youxu0000000002, zookeeper, murasaki]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 3] create -s /youxu2 hello</span><br><span class="line">Created /youxu20000000003</span><br><span class="line">[zk: localhost:2181(CONNECTED) 4] ls /</span><br><span class="line">[youxu20000000003, youxu0000000002, zookeeper, murasaki]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 5]</span><br></pre></td></tr></table></figure>
+<p><strong>EPHEMERAL_SEQUENTIAL-临时顺序节点</strong></p>
+<ul>
+<li>基本特性同临时节点，增加了顺序属性，节点名后边会追加一个由父节点维护的自增整型数字。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 6] ls /</span><br><span class="line">[youxu20000000003, youxu0000000002, zookeeper, murasaki]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 7] create -s -e /linshiyouxu hello</span><br><span class="line">Created /linshiyouxu0000000004</span><br><span class="line">[zk: localhost:2181(CONNECTED) 8] ls /</span><br><span class="line">[youxu20000000003, youxu0000000002, zookeeper, murasaki, linshiyouxu0000000004]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 9] quit</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 0] ls /</span><br><span class="line">[youxu20000000003, youxu0000000002, zookeeper, murasaki]</span><br></pre></td></tr></table></figure>
+<p><strong>思考：</strong></p>
+<ul>
+<li>Q：一个zookeeper集群有三台机器A、B、C，A机器创建临时节点后A断开，问B机器还有会临时节点吗？</li>
+<li>A：因为是A机器创建的节点，所以当A机器的zkClient断开连接时，节点会被删除，B机器同样也看不到临时节点了。</li>
+</ul>
+<ul>
+<li>Q：一个zookeeper集群有三台机器A、B、C，A机器创建临时节点后B断开，问临时节点还在吗？</li>
+<li>A：还在，因为是A机器创建的临时节点，只要A机器的zkClient依然保持连接，临时节点就不会删除。</li>
+</ul>
+<h3 id="Stat-数据结构"><a href="#Stat-数据结构" class="headerlink" title="Stat 数据结构"></a>Stat 数据结构</h3><p>Stat中记录了这个 ZNode 的三个数据版本，分别是version（当前ZNode的版本）、cversion（当前ZNode子节点的版本）和 cversion（当前ZNode的ACL版本）。<br>Stat：状态信息、版本、权限相关</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 1] get /murasaki</span><br><span class="line">hello</span><br><span class="line">cZxid = 0x400000002</span><br><span class="line">ctime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">mZxid = 0x400000002</span><br><span class="line">mtime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">pZxid = 0x400000003</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 5</span><br><span class="line">numChildren = 1</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">状态属性</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">czxid</td>
+<td style="text-align:left">节点创建时的zxid</td>
+</tr>
+<tr>
+<td style="text-align:left">mzxid</td>
+<td style="text-align:left">节点最新一次更新发生时的zxid</td>
+</tr>
+<tr>
+<td style="text-align:left">ctime</td>
+<td style="text-align:left">节点创建时的时间戳</td>
+</tr>
+<tr>
+<td style="text-align:left">mtime</td>
+<td style="text-align:left">节点最新一次更新发生时的时间戳</td>
+</tr>
+<tr>
+<td style="text-align:left">dataVersion</td>
+<td style="text-align:left">节点数据的更新次数</td>
+</tr>
+<tr>
+<td style="text-align:left">cversion</td>
+<td style="text-align:left">其子节点的更新次数</td>
+</tr>
+<tr>
+<td style="text-align:left">aclVersion</td>
+<td style="text-align:left">节点ACL（授权信息）的更新次数</td>
+</tr>
+<tr>
+<td style="text-align:left">ephemeralOwner</td>
+<td style="text-align:left">如果该节点为ephemeral（临时）节点, ephemeralOwner值表示与该节点绑定的session id. 如果该节点不是ephemeral节点, ephemeralOwner值为0.</td>
+</tr>
+<tr>
+<td style="text-align:left">dataLength</td>
+<td style="text-align:left">节点数据的字节数</td>
+</tr>
+<tr>
+<td style="text-align:left">numChildren</td>
+<td style="text-align:left">子节点个数</td>
+</tr>
+</tbody>
+</table>
+<p>Session会话：<br>客户端来创建一个和zk服务端连接的句柄。<br>连接状态：CONNECTING\CONNECTED\CLOSED</p>
+<h2 id="3-watcher"><a href="#3-watcher" class="headerlink" title="3.watcher"></a>3.watcher</h2><h3 id="什么是watcher"><a href="#什么是watcher" class="headerlink" title="什么是watcher"></a>什么是watcher</h3><p>Watcher（事件监听器），是zookeeper中的一个很重要的特性。zookeeper允许用户在指定节点（znode）上注册一些Watcher，并且在一些特定事件触发的时候，zookeeper服务端会将事件通知到感兴趣的客户端上去，该机制zookeeper实现分布式协调服务的<font color="red">重要特性。</font></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">1.首先我们在集群1机器上执行以下命令</span><br><span class="line">[zk: localhost:2181(CONNECTED) 2] get /murasaki watcher</span><br><span class="line">hello</span><br><span class="line">cZxid = 0x400000002</span><br><span class="line">ctime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">mZxid = 0x400000002</span><br><span class="line">mtime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">pZxid = 0x400000003</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 5</span><br><span class="line">numChildren = 1</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">2.然后我们在集群2机器上修改/murasaki节点，并把值设为666</span><br><span class="line">[zk: localhost:2181(CONNECTED) 2] set /murasaki 666</span><br><span class="line">cZxid = 0x400000002</span><br><span class="line">ctime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">mZxid = 0x800000003</span><br><span class="line">mtime = Fri Feb 22 00:59:05 CST 2019</span><br><span class="line">pZxid = 0x400000003</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 1</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 3</span><br><span class="line">numChildren = 1</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">3.回到集群1机器，会触发watcher时间</span><br><span class="line">[zk: localhost:2181(CONNECTED) 3] </span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected type:NodeDataChanged path:/murasaki</span><br></pre></td></tr></table></figure>
+<p>根据上面的客户端代码，我们可以看到三个重要的属性：state、type、Path<br>下面重点说明一下state、type两个属性的主要意义。</p>
+<p><strong>SyncConnected</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">KeeperState</th>
+<th style="text-align:left">EventType</th>
+<th style="text-align:left">触发条件</th>
+<th style="text-align:left">说明</th>
+<th style="text-align:left">操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">SyncConnected</td>
+<td style="text-align:left">None</td>
+<td style="text-align:left">客户端与服务端成功建立连接</td>
+<td style="text-align:left">此时客户端和服务器处于连接状态</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">NodeCreated</td>
+<td style="text-align:left">Watcher监听的对应数据节点被创建</td>
+<td style="text-align:left">此时客户端和服务器处于连接状态</td>
+<td style="text-align:left">Create</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">NodeDeleted</td>
+<td style="text-align:left">Watcher监听的对应数据节点被删除</td>
+<td style="text-align:left">此时客户端和服务器处于连接状态</td>
+<td style="text-align:left">Delete/znode</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">NodeDataChanged</td>
+<td style="text-align:left">Watcher监听的对应数据节点的数据内容发生改变</td>
+<td style="text-align:left">此时客户端和服务器处于连接状态</td>
+<td style="text-align:left">setDate/znode</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">NodeChildChanged</td>
+<td style="text-align:left">Watcher监听的对应数据节点的子节点列表发生变更</td>
+<td style="text-align:left">此时客户端和服务器处于连接状态</td>
+<td style="text-align:left">Create/child</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Disconnected</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">KeeperState</th>
+<th style="text-align:left">EventType</th>
+<th style="text-align:left">触发条件</th>
+<th style="text-align:left">说明</th>
+<th style="text-align:left">操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Disconnected</td>
+<td style="text-align:left">None</td>
+<td style="text-align:left">客户端与zookeeper服务器断开连接</td>
+<td style="text-align:left">此时客户端和服务器处于断开连接状态</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Expired</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">KeeperState</th>
+<th style="text-align:left">EventType</th>
+<th style="text-align:left">触发条件</th>
+<th style="text-align:left">说明</th>
+<th style="text-align:left">操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Expired</td>
+<td style="text-align:left">None</td>
+<td style="text-align:left">会话超时</td>
+<td style="text-align:left">此时客户端会话失效，通畅同时也会收到SessionExpiredException异常</td>
+</tr>
+</tbody>
+</table>
+<p><strong>AuthFailed</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">KeeperState</th>
+<th style="text-align:left">EventType</th>
+<th style="text-align:left">触发条件</th>
+<th style="text-align:left">说明</th>
+<th style="text-align:left">操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">AuthFailed</td>
+<td style="text-align:left">None</td>
+<td style="text-align:left">通常有两种情况，1：使用错误的schema进行权限检查 2：SASL权限检查失败</td>
+<td style="text-align:left">通常同时也会收到AuthFailedException异常</td>
+</tr>
+</tbody>
+</table>
+<p>通过这个监听机制，我们就可以监听节点状态，以及节点何时发生了改变。</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g0k1c1vokmj31ds0sstbh.jpg" alt=""></p>
+<p>比如分布式任务调度中心，有三个交易的任务，每一个都与Job调度中心建立连接，假如此时我们只让B机器执行交易任务，当有一天B机器挂了，通过watcher机制，我们就可以知道B机器的会话状态为Disconnected，因此我们就可以做相应的处理。</p>
+<h2 id="4-ACL"><a href="#4-ACL" class="headerlink" title="4.ACL"></a>4.ACL</h2><h3 id="什么是ACL"><a href="#什么是ACL" class="headerlink" title="什么是ACL"></a>什么是ACL</h3><p>ACL全称：Access Control List，字面理解就是访问控制集合。<br>其中包含了内置的ACl Scheemes：</p>
+<ul>
+<li>world：默认方式，相当于全世界都能访问。</li>
+<li>auth：代表已经认证通过的用户（客户端中可以通过addauth digest user:pwd 来添加当前的上下文中的授权用户）</li>
+<li>digest：即用户名：密码 这种认证方式进行认证，这也是业务系统中最常用的。</li>
+<li>ip：使用IP地址认证。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 0] ls /</span><br><span class="line">[youxu20000000003, youxu0000000002, zookeeper, murasaki, ceshi0000000005]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 1] getAcl /murasaki</span><br><span class="line">&apos;world,&apos;anyone</span><br><span class="line">: cdrwa</span><br></pre></td></tr></table></figure>
+<p>根据上述代码我们可以知道，world 就是说明 murasaki 这个节点是所有用户都可以访问的。<br>那么这个 cdrwa 是什么呢？</p>
+<p>cdrwa 指的就是ACL所支持的权限。    </p>
+<ul>
+<li><font color="red">C</font>REATE：能创建子节点。</li>
+<li><font color="red">D</font>ELETE：能删除子节点。</li>
+<li><font color="red">R</font>EAD：能获取节点数据和列出其子节点。</li>
+<li><font color="red">W</font>RITE：能设置节点数据。</li>
+<li><font color="red">A</font>DMIN：能设置权限。</li>
+</ul>
+<p>cdrwa也是这些权限的首字母。</p>
+<p><strong>接下来，我们通过实操来设置一个具有权限认证的节点</strong></p>
+<ol>
+<li><p>首先在我们的集群A机器上执行如下操作,先创建一个用户，账号为murasaki，密码为seifu</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 0] addauth digest murasaki:seifu</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>然后我们创建一个节点，并且现在集群B机器可以访问</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 1] create /quanxian hello</span><br><span class="line">Created /quanxian</span><br><span class="line"></span><br><span class="line">集群B机器：</span><br><span class="line"></span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected type:None path:null</span><br><span class="line">[zk: localhost:2181(CONNECTED) 0] get /quanxian</span><br><span class="line">hello</span><br><span class="line">cZxid = 0xb00000006</span><br><span class="line">ctime = Fri Feb 22 12:24:58 CST 2019</span><br><span class="line">mZxid = 0xb00000006</span><br><span class="line">mtime = Fri Feb 22 12:24:58 CST 2019</span><br><span class="line">pZxid = 0xb00000006</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 5</span><br><span class="line">numChildren = 0</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>然后回到我们的集群A机器，对这个节点进行权限设置</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 2] setAcl /quanxian auth:murasaki:seifu:cdrwa</span><br><span class="line">cZxid = 0xb00000006</span><br><span class="line">ctime = Fri Feb 22 12:24:58 CST 2019</span><br><span class="line">mZxid = 0xb00000006</span><br><span class="line">mtime = Fri Feb 22 12:24:58 CST 2019</span><br><span class="line">pZxid = 0xb00000006</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 1</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 5</span><br><span class="line">numChildren = 0</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>我们在集群A机器获取一下这个节点Acl信息，会发现和以前不一样了，现在这个节点已经带着我们的权限信息了</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 3] getAcl /quanxian</span><br><span class="line">&apos;digest,&apos;murasaki:7Ae+lxj75Wgx4JLEoBSFSRdv218=</span><br><span class="line">: cdrwa</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>但是，这时我们依然在集群A机器上获取一下这个节点数据，发现能获取到，这是为什么？原因就是此时我们的session会话依然是连接，所以依然可以获取到。</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 4] get /quanxian</span><br><span class="line">hello</span><br><span class="line">cZxid = 0xb00000006</span><br><span class="line">ctime = Fri Feb 22 12:24:58 CST 2019</span><br><span class="line">mZxid = 0xb00000006</span><br><span class="line">mtime = Fri Feb 22 12:24:58 CST 2019</span><br><span class="line">pZxid = 0xb00000006</span><br><span class="line">cversion = 0</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 1</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 5</span><br><span class="line">numChildren = 0</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当我们在集群B机器上去获取这个节点时，就获取不到了。</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 1] get /quanxian</span><br><span class="line">Authentication is not valid : /quanxian</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="5-高性能"><a href="#5-高性能" class="headerlink" title="5.高性能"></a>5.高性能</h2><p>ZooKeeper 是高性能的。 在“读”多于“写”的应用程序中尤其地高性能，因为“写”会导致所有的服务器间同步状态。（“读”多于“写”是协调服务的典型场景。）</p>
+<h2 id="6-顺序访问"><a href="#6-顺序访问" class="headerlink" title="6.顺序访问"></a>6.顺序访问</h2><p>对于来自客户端的每个更新请求，ZooKeeper 都会分配一个全局唯一的递增编号，这个编号反应了所有事务操作的先后顺序，应用程序可以使用 ZooKeeper 这个特性来实现更高层次的同步原语。 这个编号也叫做时间戳——zxid（Zookeeper Transaction Id）</p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/02/22/Zookeeper快速入门-集群部署/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/03/04/zookeeper-java-api-介绍/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
