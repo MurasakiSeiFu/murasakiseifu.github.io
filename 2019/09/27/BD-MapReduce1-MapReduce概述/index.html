@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>BD-MapReduce1-MapReduce概述 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="BD-MapReduce1-MapReduce概述主要内容 定义 优缺点 核心思想 进程 常用数据序列化类型 MapReduce编程规范  一、MapReduce 定义MapReduce是一个分布式运算程序的编程框架，是用户开发“基于Hadoop数据分析应用”的核心框架。 MapReduce核心功能是将用户编写的业务逻辑代码和自带默认组件整合成一个完整的分布式运算程序，并发运行在一个Hadoo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce1-MapReduce概述">
+<meta property="og:url" content="http://ilovenorth.life/2019/09/27/BD-MapReduce1-MapReduce概述/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce1-MapReduce概述主要内容 定义 优缺点 核心思想 进程 常用数据序列化类型 MapReduce编程规范  一、MapReduce 定义MapReduce是一个分布式运算程序的编程框架，是用户开发“基于Hadoop数据分析应用”的核心框架。 MapReduce核心功能是将用户编写的业务逻辑代码和自带默认组件整合成一个完整的分布式运算程序，并发运行在一个Hadoo">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2mbtsiej31qf0u0n46.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2q0yszaj31qm0u0tjf.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2zdpmclj31q80u0k6x.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e34hgqk8j31qr0u07op.jpg">
+<meta property="og:updated_time" content="2019-09-27T08:30:52.295Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce1-MapReduce概述">
+<meta name="twitter:description" content="BD-MapReduce1-MapReduce概述主要内容 定义 优缺点 核心思想 进程 常用数据序列化类型 MapReduce编程规范  一、MapReduce 定义MapReduce是一个分布式运算程序的编程框架，是用户开发“基于Hadoop数据分析应用”的核心框架。 MapReduce核心功能是将用户编写的业务逻辑代码和自带默认组件整合成一个完整的分布式运算程序，并发运行在一个Hadoo">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2mbtsiej31qf0u0n46.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce1-MapReduce概述"><span class="toc-text">BD-MapReduce1-MapReduce概述</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce-定义"><span class="toc-text">一、MapReduce 定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、MapReduce-优缺点"><span class="toc-text">二、MapReduce 优缺点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-优点：简单"><span class="toc-text">2.1 优点：简单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-易于编程"><span class="toc-text">1. 易于编程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、MapReduce-核心思想"><span class="toc-text">三、MapReduce 核心思想</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、MapReduce-进程"><span class="toc-text">四、MapReduce 进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、常用数据序列化类型"><span class="toc-text">五、常用数据序列化类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、MapReduce编程规范"><span class="toc-text">六、MapReduce编程规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Mapper阶段"><span class="toc-text">6.1 Mapper阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Reducer阶段"><span class="toc-text">6.2 Reducer阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Driver阶段"><span class="toc-text">6.3 Driver阶段</span></a></li></ol></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-BD-MapReduce1-MapReduce概述" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">BD-MapReduce1-MapReduce概述</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.09.27</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-MapReduce1-MapReduce概述"><a href="#BD-MapReduce1-MapReduce概述" class="headerlink" title="BD-MapReduce1-MapReduce概述"></a>BD-MapReduce1-MapReduce概述</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>定义</li>
+<li>优缺点</li>
+<li>核心思想</li>
+<li>进程</li>
+<li>常用数据序列化类型</li>
+<li>MapReduce编程规范</li>
+</ol>
+<h2 id="一、MapReduce-定义"><a href="#一、MapReduce-定义" class="headerlink" title="一、MapReduce 定义"></a>一、MapReduce 定义</h2><p>MapReduce是<font color="red">一个分布式运算程序的编程框架</font>，是用户开发“基于Hadoop数据分析应用”的核心框架。</p>
+<p>MapReduce核心功能是将<font color="red">用户编写的业务逻辑代码</font>和<font color="red">自带默认组件</font>整合成一个完整的<font color="red">分布式运算程序</font>，并发运行在一个Hadoop集群上。</p>
+<h2 id="二、MapReduce-优缺点"><a href="#二、MapReduce-优缺点" class="headerlink" title="二、MapReduce 优缺点"></a>二、MapReduce 优缺点</h2><h3 id="2-1-优点：简单"><a href="#2-1-优点：简单" class="headerlink" title="2.1 优点：简单"></a>2.1 优点：简单</h3><h4 id="1-易于编程"><a href="#1-易于编程" class="headerlink" title="1. 易于编程"></a>1. 易于编程</h4><font color="red">它简单的实现一些接口，就可以完成一个分布式程序</font>，这个分布式程序可以分布到大量廉价的PC机器上运行。也就是说你写一个分布式程序，跟写一个简单的串行程序是一模一样的。就是因为这个特点使得MapReduce变成变得非常流行。<br><br>#### 2. 良好的扩展性<br><br>当你的计算资源不能得到满足的时候，你可以通过<font color="red">简单的增加机器</font>来扩展它的计算能力。<br><br>#### 3. 高容错性<br><br>MapReduce设计的初衷就是使程序能够部署在廉价的PC机器上，这就要求它具有很高的容错性。<font color="red">比如其中一台机器挂了，它可以把上面的计算任务转移到另外一个节点上运行，不至于这个任务运行失败</font>，而且这个过程不需要人工参与，而完全是由Hadoop内部完成的。<br><br>### 2.2 缺点：慢<br><br>#### 1. 不擅长实时计算<br><br>MapReduce无法像MySQL一样，在毫秒或者秒级内返回结果。<br><br>#### 2. 不擅长流式计算<br><br>流式计算的输入数据是动态的(数据流)，而MapReduce的<font color="red">输入数据集是静态的(文件)</font>，不能动态变化。这是因为MapReduce自身的设计特点决定了数据源必须是静态的。<br><br>#### 3. 不擅长DAG（有向图）计算<br><br>多个应用程序存在依赖关系，后一个应用程序的输入为前一个的输出。在这种情况下，MapReduce并不是不能做，而是使用后，<font color="red">每个MapReduce作业的输出结果都会写入到磁盘，会造成大量的磁盘IO，导致性能非常的低下。</font>
+
+<h2 id="三、MapReduce-核心思想"><a href="#三、MapReduce-核心思想" class="headerlink" title="三、MapReduce 核心思想"></a>三、MapReduce 核心思想</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2mbtsiej31qf0u0n46.jpg" alt=""></p>
+<p>MapReduce运算程序一般需要分成2个阶段：Map阶段和Reduce阶段。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2q0yszaj31qm0u0tjf.jpg" alt=""></p>
+<ul>
+<li>Map拿到数据之后，交给MapTask，完全并行运行，互不相干。</li>
+<li>MapTask对数据进行处理，首先读数据。</li>
+<li>然后将数据按空格切分行内单词。</li>
+<li>把数据映射成KV键值对的形式（单词，1）</li>
+</ul>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2zdpmclj31q80u0k6x.jpg" alt=""></p>
+<p>分区我们一会再说，在Map阶段我们已经把数据分成了一个单词一个&lt;单词，1&gt;的形式，在Reduce阶段，会将相同单词的1进行累加，变成&lt;单词，n&gt;的形式。总结一写，MapReduce的核心思想其实就是Map阶段将文件变成我们想要的形式，Reduce阶段把数据做处理。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e34hgqk8j31qr0u07op.jpg" alt=""></p>
+<p>至于一些细节，会在后面的文章中慢慢渗透。</p>
+<h2 id="四、MapReduce-进程"><a href="#四、MapReduce-进程" class="headerlink" title="四、MapReduce 进程"></a>四、MapReduce 进程</h2><p>一个完整的MapReduce程序在分布式运行时有三类实例进程：</p>
+<ul>
+<li>MrAppMaster：程序管家，负责整个程序的过程调度及状态协调。</li>
+<li>MapTask：负责Map阶段的整个数据处理流程。</li>
+<li>ReduceTask：负责Reduce阶段的整个数据处理流程。</li>
+</ul>
+<h2 id="五、常用数据序列化类型"><a href="#五、常用数据序列化类型" class="headerlink" title="五、常用数据序列化类型"></a>五、常用数据序列化类型</h2><table>
+<thead>
+<tr>
+<th style="text-align:center">java类型</th>
+<th style="text-align:center">Hadoop Writeable 类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Boolean</td>
+<td style="text-align:center">BooleanWriteable</td>
+</tr>
+<tr>
+<td style="text-align:center">Byte</td>
+<td style="text-align:center">ByteWriteable</td>
+</tr>
+<tr>
+<td style="text-align:center">Int</td>
+<td style="text-align:center">IntWriteable</td>
+</tr>
+<tr>
+<td style="text-align:center">Float</td>
+<td style="text-align:center">FloatWriteable</td>
+</tr>
+<tr>
+<td style="text-align:center">Double</td>
+<td style="text-align:center">DoubleWriteable</td>
+</tr>
+<tr>
+<td style="text-align:center"><mark>String<mark></mark></mark></td>
+<td style="text-align:center"><mark>Text<mark></mark></mark></td>
+</tr>
+<tr>
+<td style="text-align:center">Map</td>
+<td style="text-align:center">MapWriteable</td>
+</tr>
+<tr>
+<td style="text-align:center">Array</td>
+<td style="text-align:center">ArrayWriteable</td>
+</tr>
+</tbody>
+</table>
+<h2 id="六、MapReduce编程规范"><a href="#六、MapReduce编程规范" class="headerlink" title="六、MapReduce编程规范"></a>六、MapReduce编程规范</h2><h3 id="6-1-Mapper阶段"><a href="#6-1-Mapper阶段" class="headerlink" title="6.1 Mapper阶段"></a>6.1 Mapper阶段</h3><ol>
+<li>用户自定义的Mapper要继承自己的父类</li>
+<li>Mapper的输入数据是KV对的形式（KV的类型可自定义）</li>
+<li>Mapper中的业务逻辑写在map()方法中</li>
+<li>Mapper的输出数据是KV对的形式（KV的类型可自定义）</li>
+<li><font color="red">map()方法（MapTask进程）对每一个&lt;K,V&gt;调用一次<br></font>
+
+</li>
+</ol>
+<h3 id="6-2-Reducer阶段"><a href="#6-2-Reducer阶段" class="headerlink" title="6.2 Reducer阶段"></a>6.2 Reducer阶段</h3><ol>
+<li>用户自定义的Reducer要继承自己的父类</li>
+<li>Reducer的输入数据类型对应Mapper的输出数据类型，也是KV</li>
+<li>Reducer的业务逻辑写在reduce()方法中</li>
+<li><font color="red">ReduceTask进程对每一组相同k的&lt;k,v&gt;组调用一次reduce()方法</font>
+
+</li>
+</ol>
+<h3 id="6-3-Driver阶段"><a href="#6-3-Driver阶段" class="headerlink" title="6.3 Driver阶段"></a>6.3 Driver阶段</h3><p>相当于YARN集群的客户端，用于提交我们整个程序到YARN集群，提交的是封装了MapReduce程序相关运行参数的job对象</p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">Chat with me 🍾</span>
+      <div class="donation-body">
+        <div class="tip text-center">Tell me when you add that you are from the blog</div>
+        <ul>
+        
+          <li class="item">
+            
+            <img src="/images/WechatIMG5.jpeg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/09/27/BD-HDFS-DataNode/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

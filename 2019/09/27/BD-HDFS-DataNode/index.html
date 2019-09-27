@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>BD-HDFS-DataNode | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="BD-HDFS-DataNode主要内容 DataNode工作机制 数据完整性 掉线时限参数设置  一、DataNode工作机制 一个数据块在DataNode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据信息包括数据块的长度，块数据的校验和，以及时间戳。  DataNode启动后向NameNode注册。  通过后，周期性（1小时）的向NameNode上报所有的块信息。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-HDFS-DataNode">
+<meta property="og:url" content="http://ilovenorth.life/2019/09/27/BD-HDFS-DataNode/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-HDFS-DataNode主要内容 DataNode工作机制 数据完整性 掉线时限参数设置  一、DataNode工作机制 一个数据块在DataNode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据信息包括数据块的长度，块数据的校验和，以及时间戳。  DataNode启动后向NameNode注册。  通过后，周期性（1小时）的向NameNode上报所有的块信息。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7d85vvznmj31q30u0thj.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7duhrwl03j31pd0u0ti9.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dujhh0foj31p20u07fb.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dun1lo3ij31qo0u0n9e.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7duocv9d1j30xa09zgmy.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7durp72mvj31qn0u0gyl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dwwbj7ttj30j000zweh.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dwxbo4cvj30yq0atmyj.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dxaz0vioj31pg0u0qg7.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dx0tvnxrj31tf0u0qcw.jpg">
+<meta property="og:updated_time" content="2019-09-27T03:46:18.885Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-HDFS-DataNode">
+<meta name="twitter:description" content="BD-HDFS-DataNode主要内容 DataNode工作机制 数据完整性 掉线时限参数设置  一、DataNode工作机制 一个数据块在DataNode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据信息包括数据块的长度，块数据的校验和，以及时间戳。  DataNode启动后向NameNode注册。  通过后，周期性（1小时）的向NameNode上报所有的块信息。">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7d85vvznmj31q30u0thj.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-HDFS-DataNode"><span class="toc-text">BD-HDFS-DataNode</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、DataNode工作机制"><span class="toc-text">一、DataNode工作机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、数据完整性"><span class="toc-text">二、数据完整性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、掉线时限参数设置"><span class="toc-text">三、掉线时限参数设置</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-BD-HDFS-DataNode" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">BD-HDFS-DataNode</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.09.27</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Hadoop-HDFS/">Hadoop-HDFS</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-HDFS-DataNode"><a href="#BD-HDFS-DataNode" class="headerlink" title="BD-HDFS-DataNode"></a>BD-HDFS-DataNode</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>DataNode工作机制</li>
+<li>数据完整性</li>
+<li>掉线时限参数设置</li>
+</ol>
+<h2 id="一、DataNode工作机制"><a href="#一、DataNode工作机制" class="headerlink" title="一、DataNode工作机制"></a>一、DataNode工作机制</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7d85vvznmj31q30u0thj.jpg" alt=""></p>
+<p>一个数据块在DataNode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据信息包括数据块的长度，块数据的校验和，以及时间戳。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7duhrwl03j31pd0u0ti9.jpg" alt=""></p>
+<p>DataNode启动后向NameNode注册。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dujhh0foj31p20u07fb.jpg" alt=""></p>
+<p>通过后，周期性（1小时）的向NameNode上报所有的块信息。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dun1lo3ij31qo0u0n9e.jpg" alt=""></p>
+<p>心跳是每3秒一次，心跳返回结果带有NameNode给该DataNode的命令如复制块数据到另一台机器，或删除某个数据块。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7duocv9d1j30xa09zgmy.jpg" alt=""></p>
+<p>DN的心跳就是Last contact，我们一直刷新页面就会看到这个数值一直在0~2自增。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7durp72mvj31qn0u0gyl.jpg" alt=""></p>
+<p>如果超过10分钟没有收到某个DataNode的心跳，则认为该节点不可用。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dwwbj7ttj30j000zweh.jpg" alt=""></p>
+<p>我们先把hadoop003机器上的datanode停了。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dwxbo4cvj30yq0atmyj.jpg" alt=""></p>
+<p>现在这个哥们已经失联了。</p>
+<h2 id="二、数据完整性"><a href="#二、数据完整性" class="headerlink" title="二、数据完整性"></a>二、数据完整性</h2><p><strong><em>思考：如果电脑磁盘里面存储的数据是控制高铁信号灯的<font color="red">红灯信号（1）</font>和 <font color="green">绿灯信号（0）</font>，但是存储该数据的磁盘坏了，一直显示是绿灯，是否很危险？同理DataNode节点上的数据损坏了，却没有发现，是否也很危险，那么如何解决呢？</em></strong></p>
+<p>如下是DataNode节点保证数据完整性的方法。</p>
+<ol>
+<li>当DataNode读取Block的时候，它会计算CheckSum。</li>
+<li>如果计算后的CheckSum，与Block创建时值不一样，说明Block已经损坏。</li>
+<li>Client读取其他DataNode上的Block。</li>
+<li>DataNode在其文件创建后周期验证CheckSum。</li>
+</ol>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dxaz0vioj31pg0u0qg7.jpg" alt=""></p>
+<p>奇偶校验法：通过判断数据奇数为个数来校验数据，如果两个位数不相同，则说明数据有问题，但是没法测出数据正确性，比如奇数位个数相同，但是位置不一样，用奇偶校验是检查不出来的。</p>
+<p>CRC校验：对原始数据进行重新crc计算生成新的散列码，然后和传输过来的crc检验位比较，看是否一直。由于crc校验位计算生成的散列码变动会非常大，所以大部分情况下都会满足校验需求。</p>
+<h2 id="三、掉线时限参数设置"><a href="#三、掉线时限参数设置" class="headerlink" title="三、掉线时限参数设置"></a>三、掉线时限参数设置</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7dx0tvnxrj31tf0u0qcw.jpg" alt=""></p>
+<p>需要注意的是<strong><em>hdfs-site.xml</em></strong> 配置文件中的heartbeat.recheck.interval的单位为<font color="red">毫秒</font>，dfs.heartbeat.interval的单位为<font color="red">秒</font>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">	 &lt;!-- 默认检查心跳的间隔 默认5分钟 --&gt;</span><br><span class="line">    &lt;name&gt;dfs.namenode.heartbeat.recheck-interval&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;300000&lt;/value&gt;</span><br><span class="line">&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">	 &lt;!-- 心跳间隔 默认3秒钟 --&gt;</span><br><span class="line">    &lt;name&gt;dfs.heartbeat.interval&lt;/name&gt;</span><br><span class="line">    &lt;value&gt;3&lt;/value&gt;</span><br><span class="line">&lt;/property&gt;</span><br></pre></td></tr></table></figure>
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">Chat with me 🍾</span>
+      <div class="donation-body">
+        <div class="tip text-center">Tell me when you add that you are from the blog</div>
+        <ul>
+        
+          <li class="item">
+            
+            <img src="/images/WechatIMG5.jpeg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/09/26/BD-HDFS-NameNode和SecondaryNameNode/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/09/27/BD-MapReduce1-MapReduce概述/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
