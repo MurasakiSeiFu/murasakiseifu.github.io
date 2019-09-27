@@ -8,7 +8,7 @@
   <meta charset="utf-8">
   <meta name="referrer" content="no-referrer" />
   
-  <title>MurasakiSeiFu</title>
+  <title>BD-HDFS-NameNode和SecondaryNameNode | MurasakiSeiFu</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -16,12 +16,12 @@
     <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
   
 
-  <meta name="description" content="title: BD-HDFS-NameNode和SecondaryNameNodeauthor: MurasakiSeiFu.date: 2019-09-26 09:27:36tags:categories:  Hadoop-HDFS  BD-HDFS-NameNode和SecondaryNameNode主要内容 NN和2NN的工作机制 Fsimage和Edits解析 CheckPoint时间设置">
+  <meta name="description" content="BD-HDFS-NameNode和SecondaryNameNode主要内容 NN和2NN的工作机制 Fsimage和Edits解析 CheckPoint时间设置 NameNode 故障处理  1.1 NN和2NN的工作机制问题：元数据就是描述数据的数据，NameNode中的元数据相当于一本书的目录，可以找到DataNode中的块。那么NameNode中的元数据是存储在哪里的？ 首先，我们做个">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MurasakiSeiFu">
+<meta property="og:title" content="BD-HDFS-NameNode和SecondaryNameNode">
 <meta property="og:url" content="http://ilovenorth.life/2019/09/26/BD-HDFS-NameNode和SecondaryNameNode/index.html">
 <meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="title: BD-HDFS-NameNode和SecondaryNameNodeauthor: MurasakiSeiFu.date: 2019-09-26 09:27:36tags:categories:  Hadoop-HDFS  BD-HDFS-NameNode和SecondaryNameNode主要内容 NN和2NN的工作机制 Fsimage和Edits解析 CheckPoint时间设置">
+<meta property="og:description" content="BD-HDFS-NameNode和SecondaryNameNode主要内容 NN和2NN的工作机制 Fsimage和Edits解析 CheckPoint时间设置 NameNode 故障处理  1.1 NN和2NN的工作机制问题：元数据就是描述数据的数据，NameNode中的元数据相当于一本书的目录，可以找到DataNode中的块。那么NameNode中的元数据是存储在哪里的？ 首先，我们做个">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7br5bnf2dj313a0u0wj5.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7br92hd3rj312y0u079u.jpg">
@@ -37,10 +37,10 @@
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7c4mbq6dhj317c06mmz0.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7c4oogh79j315g0nyk5r.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7c54dmyslj311a09ejvs.jpg">
-<meta property="og:updated_time" content="2019-09-26T12:44:47.164Z">
+<meta property="og:updated_time" content="2019-09-26T12:46:29.027Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MurasakiSeiFu">
-<meta name="twitter:description" content="title: BD-HDFS-NameNode和SecondaryNameNodeauthor: MurasakiSeiFu.date: 2019-09-26 09:27:36tags:categories:  Hadoop-HDFS  BD-HDFS-NameNode和SecondaryNameNode主要内容 NN和2NN的工作机制 Fsimage和Edits解析 CheckPoint时间设置">
+<meta name="twitter:title" content="BD-HDFS-NameNode和SecondaryNameNode">
+<meta name="twitter:description" content="BD-HDFS-NameNode和SecondaryNameNode主要内容 NN和2NN的工作机制 Fsimage和Edits解析 CheckPoint时间设置 NameNode 故障处理  1.1 NN和2NN的工作机制问题：元数据就是描述数据的数据，NameNode中的元数据相当于一本书的目录，可以找到DataNode中的块。那么NameNode中的元数据是存储在哪里的？ 首先，我们做个">
 <meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7br5bnf2dj313a0u0wj5.jpg">
 
   
@@ -219,7 +219,7 @@ ga('send', 'pageview');
 <div class="content content-post CENTER">
    <article id="post-BD-HDFS-NameNode和SecondaryNameNode" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">(no title)</h1>
+    <h1 class="post-title">BD-HDFS-NameNode和SecondaryNameNode</h1>
 
     <div class="article-meta">
       <span>
@@ -235,6 +235,11 @@ ga('send', 'pageview');
       
 
       
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Hadoop-HDFS/">Hadoop-HDFS</a>
+  </span>
+
 
 
       
@@ -252,10 +257,8 @@ ga('send', 'pageview');
 
   <div class="article-content">
     
-      <p>title: BD-HDFS-NameNode和SecondaryNameNode<br>author: MurasakiSeiFu.<br>date: 2019-09-26 09:27:36<br>tags:<br>categories:</p>
-<ul>
-<li>Hadoop-HDFS</li>
-</ul>
+      <meta name="referrer" content="no-referrer">
+
 <h1 id="BD-HDFS-NameNode和SecondaryNameNode"><a href="#BD-HDFS-NameNode和SecondaryNameNode" class="headerlink" title="BD-HDFS-NameNode和SecondaryNameNode"></a>BD-HDFS-NameNode和SecondaryNameNode</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
 <li>NN和2NN的工作机制</li>
 <li>Fsimage和Edits解析</li>
