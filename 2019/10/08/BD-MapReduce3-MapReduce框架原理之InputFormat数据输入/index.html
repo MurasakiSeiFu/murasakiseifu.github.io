@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>BD-MapReduce3-MapReduce框架原理之InputFormat数据输入 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="BD-MapReduce3-MapReduce框架原理之InputFormat数据输入主要内容一、切片与MapTask并行度决定机制  我们知道Mapper处理数据的时候是将数据变成KV键值对的形式，这个转变的过程正式InputFormat来实现的。 Mapper输出的KV键值对是无序的，到了Reducer，它把相同的数据汇到了同一组，这个过程叫做Shuffle。这个Shuffle过程其实是我">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce3-MapReduce框架原理之InputFormat数据输入">
+<meta property="og:url" content="http://ilovenorth.life/2019/10/08/BD-MapReduce3-MapReduce框架原理之InputFormat数据输入/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce3-MapReduce框架原理之InputFormat数据输入主要内容一、切片与MapTask并行度决定机制  我们知道Mapper处理数据的时候是将数据变成KV键值对的形式，这个转变的过程正式InputFormat来实现的。 Mapper输出的KV键值对是无序的，到了Reducer，它把相同的数据汇到了同一组，这个过程叫做Shuffle。这个Shuffle过程其实是我">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f307bsrsj31qe0u0dmp.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f4419qdmj31r90u0wmb.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f4785r6oj31q50u0tkt.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f6a601a8j31mi0u0tlf.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f6c20bedj31nz0u0qgn.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f92en4g8j30ky0j2tao.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7g6uduvx0j30ki0jmdhv.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7g719tuyoj309609yjrt.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7g73ye1czj31k406aac2.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7qworfri6j31iu0dmgnc.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7qwpjdr9zj31ee0hy0w2.jpg">
+<meta property="og:updated_time" content="2019-10-08T09:16:08.035Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce3-MapReduce框架原理之InputFormat数据输入">
+<meta name="twitter:description" content="BD-MapReduce3-MapReduce框架原理之InputFormat数据输入主要内容一、切片与MapTask并行度决定机制  我们知道Mapper处理数据的时候是将数据变成KV键值对的形式，这个转变的过程正式InputFormat来实现的。 Mapper输出的KV键值对是无序的，到了Reducer，它把相同的数据汇到了同一组，这个过程叫做Shuffle。这个Shuffle过程其实是我">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce3-MapReduce框架原理之InputFormat数据输入"><span class="toc-text">BD-MapReduce3-MapReduce框架原理之InputFormat数据输入</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、切片与MapTask并行度决定机制"><span class="toc-text">一、切片与MapTask并行度决定机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-切片与MapTask并行度决定机制"><span class="toc-text">1.1 切片与MapTask并行度决定机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-问题引出"><span class="toc-text">1. 问题引出</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-MapTask并行度决定机制"><span class="toc-text">2. MapTask并行度决定机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Job提交流程源码和切片源码详解"><span class="toc-text">二、Job提交流程源码和切片源码详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Job提交流程源码详解"><span class="toc-text">2.1 Job提交流程源码详解</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、FileInputFormat实现类"><span class="toc-text">三、FileInputFormat实现类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-TextInputFormat"><span class="toc-text">3.1 TextInputFormat</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-KeyValueTextInputFormat"><span class="toc-text">3.2 KeyValueTextInputFormat</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-NLineInputFormat"><span class="toc-text">3.3 NLineInputFormat</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-CombineTextInputFormat的切片机制"><span class="toc-text">3.4 CombineTextInputFormat的切片机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-1-应用场景"><span class="toc-text">3.4.1 应用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-2-虚拟存储切片最大值设置"><span class="toc-text">3.4.2 虚拟存储切片最大值设置</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-改写RecordReader，实现一次读取一个完整文件封装为KV。"><span class="toc-text">4.2 改写RecordReader，实现一次读取一个完整文件封装为KV。</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-自定义InputFormat案例实操"><span class="toc-text">4.2 自定义InputFormat案例实操</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-需求"><span class="toc-text">4.2.1 需求</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-2-需求分析"><span class="toc-text">4.2.2 需求分析</span></a></li></ol></li></ol></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-BD-MapReduce3-MapReduce框架原理之InputFormat数据输入" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">BD-MapReduce3-MapReduce框架原理之InputFormat数据输入</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.10.08</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-MapReduce3-MapReduce框架原理之InputFormat数据输入"><a href="#BD-MapReduce3-MapReduce框架原理之InputFormat数据输入" class="headerlink" title="BD-MapReduce3-MapReduce框架原理之InputFormat数据输入"></a>BD-MapReduce3-MapReduce框架原理之InputFormat数据输入</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h2 id="一、切片与MapTask并行度决定机制"><a href="#一、切片与MapTask并行度决定机制" class="headerlink" title="一、切片与MapTask并行度决定机制"></a>一、切片与MapTask并行度决定机制</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
+<ul>
+<li>我们知道Mapper处理数据的时候是将数据变成KV键值对的形式，<br>这个转变的过程正式InputFormat来实现的。</li>
+<li>Mapper输出的KV键值对是无序的，到了Reducer，它把相同的数据汇到了同一组，这个过程叫做Shuffle。<font color="red">这个Shuffle过程其实是我们人为划分的，其实Shuffle阶段是由MapTask的后半段和ReduceTask的前半段共同组成的。</font></li>
+<li>Reducer将KV值结果输出到外部文件，通过OutPutFormat来实现。</li>
+</ul>
+<p>这就是我们接下来要介绍的主要部分。</p>
+<h3 id="1-1-切片与MapTask并行度决定机制"><a href="#1-1-切片与MapTask并行度决定机制" class="headerlink" title="1.1 切片与MapTask并行度决定机制"></a>1.1 切片与MapTask并行度决定机制</h3><h4 id="1-问题引出"><a href="#1-问题引出" class="headerlink" title="1. 问题引出"></a>1. 问题引出</h4><p><strong><em>MapTask的并行度决定Map阶段的任务处理并发度，进而影响到整个Job的处理速度。</em></strong></p>
+<font color="#5555FF">Q：1G的数据，启动8个MapTask，可以提高集群的并发处理能力。那么1K的数据，也启动8个MapTask，会提高集群性能吗？MapTask并行任务是否越多越好呢？哪些因素影响了MapTask并行度？</font>
+
+<p>数据划分就是由InputFormat来完成的，假如我们划分了8份，一份128M，启动了响应数量的Maptask来处理数据，并行度也就为8。</p>
+<h4 id="2-MapTask并行度决定机制"><a href="#2-MapTask并行度决定机制" class="headerlink" title="2. MapTask并行度决定机制"></a>2. MapTask并行度决定机制</h4><p><strong>数据块</strong>：Block是HDFS在物理上把数据分成一块一块的单位。<br><strong>数据切片</strong>：数据切片只是在逻辑上对输入进行分片，并不会在磁盘上将其切分成片进行存储。</p>
+<p>现在我们有一个300M的文件，HDFS的块大小默认为128M，默认情况下，我们也按照128M的大小来切文件。可以设想一下，如果我们按100M的大小来切分文件，会是什么效果。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f307bsrsj31qe0u0dmp.jpg" alt=""></p>
+<p>按100M切分，每个MapTask确实处理文件大小变小了，每个MapTask处理文件的时间也变短了<strong><em>（节点上的这个文件会交给该节点上的MapTask来处理，这是yarn的一个优化原则，本地数据尽量在本地的MapTask上处理，也就是hadoop002上的文件一般都会交给hadoop002机器的MR来处理，为了避免网络传输）</em></strong>。但是MR框架就不爽了，因为一块的大小为128M，然而我们的MapTask按100M的大小切文件，将0~100M交给DN1的MapTask来处理，第二个100M交给DN2的MapTask来处理，<font color="red">但是第二块100M，其中，有28M在第一个DN中，这就面临着28M的网络传输，同理算上第三块，一共产生了84M的网络传输。尽管MapTask处理效率上升了，但是得不偿失，失在了网络传输上了。</font></p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f4419qdmj31r90u0wmb.jpg" alt=""></p>
+<p>如果我们的MapTask按照128M来切分文件，尽管每个MapTask处理的文件变大了，但是省去了网路传输，整体的性能其实是更优的。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f4785r6oj31q50u0tkt.jpg" alt=""></p>
+<p>在总结中，说一下第四点。    </p>
+<p>也就是说如果我们总共有500M的文件，不过是3个文件汇总的，300、100、100，此时，切片是针对单一文件的，也就说300M切位3片，100M为一片，最后的100M为一片。</p>
+<h2 id="二、Job提交流程源码和切片源码详解"><a href="#二、Job提交流程源码和切片源码详解" class="headerlink" title="二、Job提交流程源码和切片源码详解"></a>二、Job提交流程源码和切片源码详解</h2><h3 id="2-1-Job提交流程源码详解"><a href="#2-1-Job提交流程源码详解" class="headerlink" title="2.1 Job提交流程源码详解"></a>2.1 Job提交流程源码详解</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">waitForCompletion()</span><br><span class="line"></span><br><span class="line">submit();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1建立连接</span></span><br><span class="line">	connect();	</span><br><span class="line">		<span class="comment">// 1）创建提交Job的代理</span></span><br><span class="line">		<span class="keyword">new</span> Cluster(getConfiguration());</span><br><span class="line">			<span class="comment">// （1）判断是本地yarn还是远程</span></span><br><span class="line">			initialize(jobTrackAddr, conf); </span><br><span class="line"></span><br><span class="line"><span class="comment">// 2 提交job</span></span><br><span class="line">submitter.submitJobInternal(Job.<span class="keyword">this</span>, cluster)</span><br><span class="line">	<span class="comment">// 1）创建给集群提交数据的Stag路径</span></span><br><span class="line">	Path jobStagingArea = JobSubmissionFiles.getStagingDir(cluster, conf);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 2）获取jobid ，并创建Job路径</span></span><br><span class="line">	JobID jobId = submitClient.getNewJobID();</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 3）拷贝jar包到集群</span></span><br><span class="line">copyAndConfigureFiles(job, submitJobDir);	</span><br><span class="line">	rUploader.uploadFiles(job, jobSubmitDir);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4）计算切片，生成切片规划文件</span></span><br><span class="line">writeSplits(job, submitJobDir);</span><br><span class="line">		maps = writeNewSplits(job, jobSubmitDir);</span><br><span class="line">		<span class="comment">// 切片规则 被切文件大小是否大于128M的1.1倍</span></span><br><span class="line">		input.getSplits(job);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 5）向Stag路径写XML配置文件</span></span><br><span class="line">writeConf(conf, submitJobFile);</span><br><span class="line">	conf.writeXml(out);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 6）提交Job,返回提交状态</span></span><br><span class="line">status = submitClient.submitJob(jobId, submitJobDir.toString(), job.getCredentials());</span><br></pre></td></tr></table></figure>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f6a601a8j31mi0u0tlf.jpg" alt=""></p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f6c20bedj31nz0u0qgn.jpg" alt=""></p>
+<h2 id="三、FileInputFormat实现类"><a href="#三、FileInputFormat实现类" class="headerlink" title="三、FileInputFormat实现类"></a>三、FileInputFormat实现类</h2><p>思考：<font color="red">在运行MapReduce程序时，输入的文件格式包括：基于行的日志文件、二进制格式文件、数据库表等。</font>那么，针对不同的数据类型，MapReduce是如何读取这些数据的呢？</p>
+<p>FileInputFormat常见的接口实现类包括：<font color="red">TextInputFormat、KeyValueTextInputFormat、NLineInputFormat、CombineTextInputFormat和自定义InputFormat等。</font></p>
+<h2 id="3-1-TextInputFormat"><a href="#3-1-TextInputFormat" class="headerlink" title="3.1 TextInputFormat"></a>3.1 TextInputFormat</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7f92en4g8j30ky0j2tao.jpg" alt=""></p>
+<p>TextInputFormat是默认的FileInputFormat实现类。按行读取每条记录。键是存储该行在整个文件中的起始字节偏移量， LongWritable类型。值是这行的内容，不包括任何行终止符（换行符和回车符），Text类型。</p>
+<p>以下是一个示例，比如，一个分片包含了如下4条文本记录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Rich learning form</span><br><span class="line">Intelligent learning engine</span><br><span class="line">Learning more convenient</span><br><span class="line">From the real demand for more close to the enterprise</span><br></pre></td></tr></table></figure>
+<p>每条记录表示为以下键/值对：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(0,Rich learning form)</span><br><span class="line">(19,Intelligent learning engine)</span><br><span class="line">(47,Learning more convenient)</span><br><span class="line">(72,From the real demand for more close to the enterprise)</span><br></pre></td></tr></table></figure>
+<h2 id="3-2-KeyValueTextInputFormat"><a href="#3-2-KeyValueTextInputFormat" class="headerlink" title="3.2 KeyValueTextInputFormat"></a>3.2 KeyValueTextInputFormat</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7g6uduvx0j30ki0jmdhv.jpg" alt=""></p>
+<p>每一行均为一条记录，被分隔符分割为key，value。可以通过在驱动类中设置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conf.set(KeyValueLineRecordReader.KEY_VALUE_SEPERATOR, &quot;\t&quot;);来设定分隔符。</span><br></pre></td></tr></table></figure>
+<p>默认分隔符是tab（\t）。</p>
+<p>以下是一个示例，输入是一个包含4条记录的分片。其中——&gt;表示一个（水平方向的）制表符。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">line1 ——&gt;Rich learning form</span><br><span class="line">line2 ——&gt;Intelligent learning engine</span><br><span class="line">line3 ——&gt;Learning more convenient</span><br><span class="line">line4 ——&gt;From the real demand for more close to the enterprise</span><br></pre></td></tr></table></figure>
+<p>每条记录表示为以下键/值对：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(line1,Rich learning form)</span><br><span class="line">(line2,Intelligent learning engine)</span><br><span class="line">(line3,Learning more convenient)</span><br><span class="line">(line4,From the real demand for more close to the enterprise)</span><br></pre></td></tr></table></figure>
+<p>此时的键是每行排在制表符之前的Text序列。</p>
+<h2 id="3-3-NLineInputFormat"><a href="#3-3-NLineInputFormat" class="headerlink" title="3.3 NLineInputFormat"></a>3.3 NLineInputFormat</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7g719tuyoj309609yjrt.jpg" alt=""></p>
+<p>如果使用NlineInputFormat，代表每个map进程处理的<font color="red">InputSplit不再按Block块去划分，而是按NlineInputFormat指定的行数N来划分。</font>即输入文件的总行数/N=切片数，如果不整除，切片数=商+1。</p>
+<p>以下是一个示例，仍然以上面的4行输入为例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Rich learning form</span><br><span class="line">Intelligent learning engine</span><br><span class="line">Learning more convenient</span><br><span class="line">From the real demand for more close to the enterprise</span><br></pre></td></tr></table></figure>
+<p>例如，如果N是2，则每个输入分片包含两行。开启2个MapTask。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(0,Rich learning form)</span><br><span class="line">(19,Intelligent learning engine)</span><br></pre></td></tr></table></figure>
+<p>另一个 mapper 则收到后两行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(47,Learning more convenient)</span><br><span class="line">(72,From the real demand for more close to the enterprise)</span><br></pre></td></tr></table></figure>
+<p>这里的键和值与TextInputFormat生成的一样。</p>
+<p>总结一下：</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7g73ye1czj31k406aac2.jpg" alt=""></p>
+<h2 id="3-4-CombineTextInputFormat的切片机制"><a href="#3-4-CombineTextInputFormat的切片机制" class="headerlink" title="3.4 CombineTextInputFormat的切片机制"></a>3.4 CombineTextInputFormat的切片机制</h2><p>框架默认的TextInputFormat切片机制是对任务按文件规划切片，<font color="red">不管文件多小，都会是一个单独的切片，</font>都会交给一个MapTask，这样如果有大量小文件，<font color="red">就会产生大量的MapTask，处理效率极其低下。</font></p>
+<h3 id="3-4-1-应用场景"><a href="#3-4-1-应用场景" class="headerlink" title="3.4.1 应用场景"></a>3.4.1 应用场景</h3><p>CombineTextInputFormat用于小文件过多的场景，<font color="red">它可以将多个小文件从逻辑上规划到一个切片中，</font>这样，多个小文件就可以交给一个MapTask处理。</p>
+<h3 id="3-4-2-虚拟存储切片最大值设置"><a href="#3-4-2-虚拟存储切片最大值设置" class="headerlink" title="3.4.2 虚拟存储切片最大值设置"></a>3.4.2 虚拟存储切片最大值设置</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">CombineTextInputFormat.setMaxInputSplitSize(job, <span class="number">4194304</span>);<span class="comment">// 4M</span></span><br><span class="line">``` </span><br><span class="line"></span><br><span class="line">注意：虚拟存储切片最大值设置最好根据实际的小文件大小情况来设置具体的值。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 3.4.3 切片机制</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">生成切片过程包括：虚拟存储过程和切片过程二部分。</span><br><span class="line"></span><br><span class="line">![](https:<span class="comment">//tva1.sinaimg.cn/large/006y8mN6ly1g7qktxrqvdj31550kzn0h.jpg)</span></span><br><span class="line"></span><br><span class="line">**<span class="number">1</span>.虚拟存储过程：**</span><br><span class="line"></span><br><span class="line">将输入目录下所有文件大小，依次和设置的setMaxInputSplitSize值比较，如果不大于设置的最大值，逻辑上划分一个块。如果输入文件大于设置的最大值且大于两倍，那么以最大值切割一块；&lt;font color="red"&gt;当剩余数据大小超过设置的最大值且不大于最大值2倍，此时将文件均分成2个虚拟存储块（防止出现太小切片）。&lt;/font&gt;</span><br><span class="line"></span><br><span class="line">例如setMaxInputSplitSize值为<span class="number">4</span>M，输入文件大小为<span class="number">8.02</span>M，则先逻辑上分成一个<span class="number">4</span>M。剩余的大小为<span class="number">4.02</span>M，如果按照<span class="number">4</span>M逻辑划分，就会出现<span class="number">0.02</span>M的小的虚拟存储文件，所以将剩余的<span class="number">4.02</span>M文件切分成（<span class="number">2.01</span>M和<span class="number">2.01</span>M）两个文件。</span><br><span class="line"></span><br><span class="line">**<span class="number">2</span>.切片过程**</span><br><span class="line"></span><br><span class="line">* 判断虚拟存储的文件大小是否大于setMaxInputSplitSize值，大于等于则单独形成一个切片。</span><br><span class="line">* 如果不大于则跟下一个虚拟存储文件进行合并，共同形成一个切片。</span><br><span class="line">* &lt;font color="red"&gt;测试举例：有4个小文件大小分别为1.7M、5.1M、3.4M以及6.8M这四个小文件，则虚拟存储之后形成6个文件块，大小分别为：&lt;/font&gt;</span><br></pre></td></tr></table></figure>
+<p>1.7M、（2.55M、2.55M）、3.4M、以及（3.4M、3.4M）<br>最终会形成3个切片，大小分别为：<br>（1.7+2.55）M、（2.55+3.4）M、（3.4+3.4）M<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">## 四、自定义InputFormat实现类</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 4.1 自定义InputFormat准备步骤</span><br><span class="line"></span><br><span class="line">在企业开发中，Hadoop框架自带的InputFormat类型不能满足所有应用场景，需要自定义InputFormat来解决实际问题。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">**自定义InputFormat准备步骤如下：**</span><br><span class="line"></span><br><span class="line">1. 自定义一个类继承FileInputFormat。（准备步骤）</span><br><span class="line">2. 改写RecordReader，实现一次读取一个完整文件封装为KV。（准备步骤）</span><br><span class="line">3. 在输出时使用SequenceFileOutPutFormat输出合并文件。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#### 4.1 自定义一个类继承FileInputFormat。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">```Java</span><br><span class="line">import org.apache.hadoop.io.BytesWritable;</span><br><span class="line">import org.apache.hadoop.io.Text;</span><br><span class="line">import org.apache.hadoop.mapreduce.InputSplit;</span><br><span class="line">import org.apache.hadoop.mapreduce.RecordReader;</span><br><span class="line">import org.apache.hadoop.mapreduce.TaskAttemptContext;</span><br><span class="line">import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;</span><br><span class="line"></span><br><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 泛型: K 为 Text（文件名） V 为 BytesWritable（一段2进制数值）</span><br><span class="line"> *</span><br><span class="line"> * @ClassName : WholeFileInputFormat</span><br><span class="line"> * @Description : TODO</span><br><span class="line"> * @Author : murasaki</span><br><span class="line"> * @Date : 2019-10-08 10:58</span><br><span class="line"> * @Version : 1.0</span><br><span class="line"> */</span><br><span class="line">public class WholeFileInputFormat extends FileInputFormat&lt;Text, BytesWritable&gt; &#123;</span><br><span class="line">    </span><br><span class="line">    public RecordReader&lt;Text, BytesWritable&gt; createRecordReader(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="4-2-改写RecordReader，实现一次读取一个完整文件封装为KV。"><a href="#4-2-改写RecordReader，实现一次读取一个完整文件封装为KV。" class="headerlink" title="4.2 改写RecordReader，实现一次读取一个完整文件封装为KV。"></a>4.2 改写RecordReader，实现一次读取一个完整文件封装为KV。</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.BytesWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.InputSplit;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.RecordReader;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.TaskAttemptContext;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义RR，处理一个文件：把这个文件直接都城一个KV值</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@ClassName</span> : WholeFileRecordReader</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span> : TODO</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span> : murasaki</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span> : 2019-10-08 11:02</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> : 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WholeFileRecordReader</span> <span class="keyword">extends</span> <span class="title">RecordReader</span>&lt;<span class="title">Text</span>, <span class="title">BytesWritable</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化方法，框架会在开始的时候调用一次</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Author</span> MurasakiSeiFu</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Date</span> 11:06 2019-10-08</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Param</span> [split, context]</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> void</span></span><br><span class="line"><span class="comment">     **/</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(InputSplit split, TaskAttemptContext context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 读取下一组KV值</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Author</span> MurasakiSeiFu</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Date</span> 11:09 2019-10-08</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Param</span> []</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 如果读到了，返回true；读完了，返回false</span></span><br><span class="line"><span class="comment">     **/</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">nextKeyValue</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取当前读到的Key</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 当前的Key</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Text <span class="title">getCurrentKey</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取当前读到的Value</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 当前的Value</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> BytesWritable <span class="title">getCurrentValue</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取当前数据读取进度（我们执行MR的时候，会看到Maper执行到百分之几，就是从这里来的）</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 当前的进度</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getProgress</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关闭资源</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="4-2-自定义InputFormat案例实操"><a href="#4-2-自定义InputFormat案例实操" class="headerlink" title="4.2 自定义InputFormat案例实操"></a>4.2 自定义InputFormat案例实操</h3><p>无论HDFS还是MapReduce，在处理小文件时效率都非常低，但又难免面临处理大量小文件的场景，此时，就需要有相应解决方案。可以自定义InputFormat实现小文件的合并。</p>
+<h4 id="4-2-1-需求"><a href="#4-2-1-需求" class="headerlink" title="4.2.1 需求"></a>4.2.1 需求</h4><p>将多个小文件合并成一个SequenceFile文件（SequenceFile文件是Hadoop用来存储二进制形式的key-value对的文件格式），SequenceFile里面存储着多个文件，存储的形式为【文件路径+名称】为key，【文件内容】为value。</p>
+<ol>
+<li>输入数据: one.txt two.txt three.txt</li>
+<li>期望输出文件格式: part-r-0000</li>
+</ol>
+<h4 id="4-2-2-需求分析"><a href="#4-2-2-需求分析" class="headerlink" title="4.2.2 需求分析"></a>4.2.2 需求分析</h4><p>因为需求中说<font color="red">将多个小文件合并成一个SequenceFile文件</font>，所以我们需要在我们自定义的<strong>FileInputFormat</strong>类中重写<strong><em>isSplitable()</em></strong>方法，返回false，不可分割。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">isSplitable</span><span class="params">(JobContext context, Path filename)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来，第一件事，我们先完成<strong>自定义RR</strong>中的<strong><em>getProgress()</em></strong>方法，开始读取数据的时候要么就是没读，要么就是读完，所以我们需要声明的一个boolean类型的变量来进行控制。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">boolean</span> notRead = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getProgress</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> notRead ? <span class="number">0</span> : <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们知道通过<strong><em>nextKeyValue()</em></strong>方法来读取下一组KV值，通过<strong><em>getCurrentKey()和getCurrentValue()</em></strong>来获取数据的Key和Value，可以看到key和value值得获取跨了方法，所以我们需要声明成员变量。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Text key = <span class="keyword">new</span> Text();</span><br><span class="line"><span class="keyword">private</span> BytesWritable value = <span class="keyword">new</span> BytesWritable();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> Text <span class="title">getCurrentKey</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> key;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> BytesWritable <span class="title">getCurrentValue</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为我们最终要只处理一个文件，而且我们只读一次就把文件都读完了，于是<strong><em>nextKeyValue()方法</em></strong>在第一次调用的时候会返回ture表示能读到数据，第二次就会返回false。简单架子如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">nextKeyValue</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (notRead) &#123;</span><br><span class="line">        <span class="comment">// 具体读文件的过程</span></span><br><span class="line"></span><br><span class="line">        notRead = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来我们来具体实现需求，首先读取文件需要开启流，我们可以在<strong><em>initialize()</em></strong>方法里开启，也可以在<strong><em>nextKeyValue()</em></strong>中开启，我们以在<strong><em>initialize()</em></strong>方法中开启为例，我们在<strong><em>initialize()</em></strong>方法中开启流，在<strong><em>nextKeyValue()方法</em></strong>中使用，在<strong><em>close()</em></strong>方法中关闭流，因此我们需要声明一个成员变量。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 因为以后的操作需要用到path 这里就直接提出来了</span></span><br><span class="line"><span class="keyword">private</span> FileSplit fs;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(InputSplit split, TaskAttemptContext context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">       <span class="comment">// 转换切片类型到文件切片『因为split本身就是FileSplit FileSplit继承InputSplit』</span></span><br><span class="line">       fs = (FileSplit) split;</span><br><span class="line">       <span class="comment">// 结合之前文章：HDFS的数据流写入</span></span><br><span class="line">       <span class="comment">// 通过切片获取路径</span></span><br><span class="line">       Path path = fs.getPath();</span><br><span class="line">       <span class="comment">// 通过路径获取文件系统</span></span><br><span class="line">       FileSystem fileSystem = path.getFileSystem(context.getConfiguration());</span><br><span class="line">       <span class="comment">// 开流</span></span><br><span class="line">       inputStream = fileSystem.open(path);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">       IOUtils.closeStream(inputStream);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>现在我们完成读的过程。说白了就是读出Key和Value。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">nextKeyValue</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (notRead) &#123;</span><br><span class="line">           <span class="comment">// 具体读文件的过程</span></span><br><span class="line">           <span class="comment">// 读Key</span></span><br><span class="line">           key.set(fs.getPath().toString());</span><br><span class="line"></span><br><span class="line">           <span class="comment">// 读Value</span></span><br><span class="line">           <span class="comment">// 因为我们的value为BytesWritable 所以我们根据文件的大小声明一个byte数组</span></span><br><span class="line">           <span class="keyword">byte</span>[] buf = <span class="keyword">new</span> <span class="keyword">byte</span>[(<span class="keyword">int</span>) fs.getLength()];</span><br><span class="line">           <span class="comment">// 将流中读取的字节存储到byte数组中</span></span><br><span class="line">           inputStream.read(buf);</span><br><span class="line">           value.set(buf, <span class="number">0</span>, buf.length);</span><br><span class="line"></span><br><span class="line">           notRead = <span class="keyword">false</span>;</span><br><span class="line">           <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>下面铺出全部WholeFileRecordReader、WholeFileInputFormat代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.FSDataInputStream;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.FileSystem;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.BytesWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.input.FileSplit;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.InputSplit;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.RecordReader;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.TaskAttemptContext;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义RR，处理一个文件：把这个文件直接都城一个KV值</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@ClassName</span> : WholeFileRecordReader</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span> : TODO</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span> : murasaki</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span> : 2019-10-08 11:02</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> : 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WholeFileRecordReader</span> <span class="keyword">extends</span> <span class="title">RecordReader</span>&lt;<span class="title">Text</span>, <span class="title">BytesWritable</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> notRead = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Text key = <span class="keyword">new</span> Text();</span><br><span class="line">    <span class="keyword">private</span> BytesWritable value = <span class="keyword">new</span> BytesWritable();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> FSDataInputStream inputStream;</span><br><span class="line">    <span class="keyword">private</span> FileSplit fs;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化方法，框架会在开始的时候调用一次</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Author</span> MurasakiSeiFu</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Date</span> 11:06 2019-10-08</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Param</span> [split:切片, context:任务信息]</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> void</span></span><br><span class="line"><span class="comment">     **/</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(InputSplit split, TaskAttemptContext context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">// 转换切片类型到文件切片『因为split本身就是FileSplit FileSplit继承InputSplit』</span></span><br><span class="line">        fs = (FileSplit) split;</span><br><span class="line">        <span class="comment">// 结合之前文章：HDFS的数据流写入</span></span><br><span class="line">        <span class="comment">// 通过切片获取路径</span></span><br><span class="line">        Path path = fs.getPath();</span><br><span class="line">        <span class="comment">// 通过路径获取文件系统</span></span><br><span class="line">        FileSystem fileSystem = path.getFileSystem(context.getConfiguration());</span><br><span class="line">        <span class="comment">// 开流</span></span><br><span class="line">        inputStream = fileSystem.open(path);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 读取下一组KV值</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Author</span> MurasakiSeiFu</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Date</span> 11:09 2019-10-08</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Param</span> []</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 如果读到了，返回true；读完了，返回false</span></span><br><span class="line"><span class="comment">     **/</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">nextKeyValue</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (notRead) &#123;</span><br><span class="line">            <span class="comment">// 具体读文件的过程</span></span><br><span class="line">            <span class="comment">// 读Key</span></span><br><span class="line">            key.set(fs.getPath().toString());</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 读Value</span></span><br><span class="line">            <span class="keyword">byte</span>[] buf = <span class="keyword">new</span> <span class="keyword">byte</span>[(<span class="keyword">int</span>) fs.getLength()];</span><br><span class="line">            inputStream.read(buf);</span><br><span class="line">            value.set(buf, <span class="number">0</span>, buf.length);</span><br><span class="line"></span><br><span class="line">            notRead = <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取当前读到的Key</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 当前的Key</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Text <span class="title">getCurrentKey</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> key;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取当前读到的Value</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 当前的Value</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> BytesWritable <span class="title">getCurrentValue</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取当前数据读取进度（我们执行MR的时候，会看到Maper执行到百分之几，就是从这里来的）</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 当前的进度</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getProgress</span><span class="params">()</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> notRead ? <span class="number">0</span> : <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关闭资源</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> IOException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        IOUtils.closeStream(inputStream);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.BytesWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.InputSplit;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.JobContext;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.RecordReader;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.TaskAttemptContext;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.input.FileInputFormat;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 泛型: K 为 Text（文件名） V 为 BytesWritable（一段2进制数值）</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@ClassName</span> : WholeFileInputFormat</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span> : TODO</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span> : murasaki</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span> : 2019-10-08 10:58</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> : 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WholeFileInputFormat</span> <span class="keyword">extends</span> <span class="title">FileInputFormat</span>&lt;<span class="title">Text</span>, <span class="title">BytesWritable</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">isSplitable</span><span class="params">(JobContext context, Path filename)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> RecordReader&lt;Text, BytesWritable&gt; <span class="title">createRecordReader</span><span class="params">(InputSplit split, TaskAttemptContext context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> WholeFileRecordReader();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后，我们写一下Driver，这里我们没有重新Mapper和Reducer，因为不需要，所以这里使用的是默认的Mapper、Reducer。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.conf.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.BytesWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.input.FileInputFormat;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WholeFileDriver</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException, InterruptedException </span>&#123;</span><br><span class="line"></span><br><span class="line">        Job job = Job.getInstance(<span class="keyword">new</span> Configuration());</span><br><span class="line"></span><br><span class="line">        job.setMapOutputKeyClass(Text.class);</span><br><span class="line">        job.setMapOutputValueClass(BytesWritable.class);</span><br><span class="line"></span><br><span class="line">        job.setOutputKeyClass(Text.class);</span><br><span class="line">        job.setOutputValueClass(BytesWritable.class);</span><br><span class="line"></span><br><span class="line">        job.setInputFormatClass(WholeFileInputFormat.class);</span><br><span class="line">        job.setOutputFormatClass(SequenceFileOutputFormat.class);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 我们自定义的InputFormat继承的是FileInputFormat 所以这里用FileInputFormat 如果继承了其他的 这里就换做继承的</span></span><br><span class="line">        FileInputFormat.setInputPaths(job, <span class="keyword">new</span> Path(<span class="string">""</span>));</span><br><span class="line">        FileOutputFormat.setOutputPath(job, <span class="keyword">new</span> Path(<span class="string">""</span>));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span> b = job.waitForCompletion(<span class="keyword">true</span>);</span><br><span class="line">        System.exit(b ? <span class="number">0</span> : <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先看一下我们input文件夹中的文件。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7qworfri6j31iu0dmgnc.jpg" alt=""></p>
+<p>执行之后我们看下output中的信息。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7qwpjdr9zj31ee0hy0w2.jpg" alt=""></p>
+<p>我们可以看到Keyw为路径，Value为文件内容。</p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">Chat with me 🍾</span>
+      <div class="donation-body">
+        <div class="tip text-center">Tell me when you add that you are from the blog</div>
+        <ul>
+        
+          <li class="item">
+            
+            <img src="/images/WechatIMG5.jpeg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/09/27/BD-MapReduce2-MapReduce序列化/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
