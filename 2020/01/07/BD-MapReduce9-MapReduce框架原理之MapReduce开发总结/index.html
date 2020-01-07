@@ -8,7 +8,7 @@
   <meta charset="utf-8">
   <meta name="referrer" content="no-referrer" />
   
-  <title>BD-Yarn-Yarn资源调度器之Yarn工作机制 | MurasakiSeiFu</title>
+  <title>MurasakiSeiFu</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -16,33 +16,19 @@
     <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
   
 
-  <meta name="description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
+  <meta name="description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-09 17:27:36tags:categories:  Hadoop-MR     BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开">
 <meta property="og:type" content="article">
-<meta property="og:title" content="BD-Yarn-Yarn资源调度器之Yarn工作机制">
-<meta property="og:url" content="http://ilovenorth.life/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/index.html">
+<meta property="og:title" content="MurasakiSeiFu">
+<meta property="og:url" content="http://ilovenorth.life/2020/01/07/BD-MapReduce9-MapReduce框架原理之MapReduce开发总结/index.html">
 <meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
+<meta property="og:description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-09 17:27:36tags:categories:  Hadoop-MR     BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开">
 <meta property="og:locale" content="default">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzkzcsenj310z08s0tw.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzo10l7pj311u0k476h.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzrr028wj31130k340y.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yztoedwuj311h0k6jud.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzw8j6trj31180k9whl.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzyjm23oj31100kcq6b.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0296iawj312l0k9djk.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z04xap8gj315l0kajvu.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z07hs168j315t0k7jwb.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0c0sf8tj315g0li0yi.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0f26hyjj315l0lagro.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gdawf3j315s0l80yy.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gywkszj30k40iwgoh.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0lhok8uj30vz0u0qd5.jpg">
-<meta property="og:updated_time" content="2019-11-11T06:53:11.840Z">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+<meta property="og:updated_time" content="2020-01-07T01:19:16.614Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="BD-Yarn-Yarn资源调度器之Yarn工作机制">
-<meta name="twitter:description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
-<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg">
+<meta name="twitter:title" content="MurasakiSeiFu">
+<meta name="twitter:description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-09 17:27:36tags:categories:  Hadoop-MR     BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
 
   
 
@@ -212,20 +198,20 @@ ga('send', 'pageview');
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-Yarn-Yarn资源调度器之Yarn工作机制"><span class="toc-text">BD-Yarn-Yarn资源调度器之Yarn工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基本架构"><span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#工作机制（作业提交流程）"><span class="toc-text">工作机制（作业提交流程）</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><span class="toc-text">BD-MapReduce9-MapReduce框架原理之MapReduce开发总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-text">一、MapReduce工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、MapReduce开发总结"><span class="toc-text">二、MapReduce开发总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-输入数据接口：InputFormat"><span class="toc-text">1. 输入数据接口：InputFormat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-逻辑处理接口：Mapper"><span class="toc-text">2. 逻辑处理接口：Mapper</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Partitioner分区"><span class="toc-text">3. Partitioner分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4．Comparable排序"><span class="toc-text">4．Comparable排序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5．Combiner合并"><span class="toc-text">5．Combiner合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6．Reduce端分组：GroupingComparator"><span class="toc-text">6．Reduce端分组：GroupingComparator</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7．逻辑处理接口：Reducer"><span class="toc-text">7．逻辑处理接口：Reducer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-输出数据接口：OutputFormat"><span class="toc-text">8. 输出数据接口：OutputFormat</span></a></li></ol></li></ol></li></ol>
   </div>
 
 
 
 <div class="content content-post CENTER">
-   <article id="post-BD-Yarn-Yarn资源调度器之Yarn工作机制" class="article article-type-post" itemprop="blogPost">
+   <article id="post-BD-MapReduce9-MapReduce框架原理之MapReduce开发总结" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">BD-Yarn-Yarn资源调度器之Yarn工作机制</h1>
+    <h1 class="post-title">(no title)</h1>
 
     <div class="article-meta">
       <span>
         <i class="icon-calendar"></i>
-        <span>2019.11.07</span>
+        <span>2020.01.07</span>
       </span>
 
       
@@ -236,11 +222,6 @@ ga('send', 'pageview');
       
 
       
-  <span class="article-category">
-    <i class="icon-list"></i>
-    <a class="article-category-link" href="/categories/Hadoop-Yarn/">Hadoop-Yarn</a>
-  </span>
-
 
 
       
@@ -258,39 +239,41 @@ ga('send', 'pageview');
 
   <div class="article-content">
     
-      <meta name="referrer" content="no-referrer">
+      <p>title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结<br>author: MurasakiSeiFu.<br>date: 2019-11-09 17:27:36<br>tags:<br>categories:</p>
+<ul>
+<li>Hadoop-MR</li>
+</ul>
+<hr>
+<meta name="referrer" content="no-referrer">
 
-<h1 id="BD-Yarn-Yarn资源调度器之Yarn工作机制"><a href="#BD-Yarn-Yarn资源调度器之Yarn工作机制" class="headerlink" title="BD-Yarn-Yarn资源调度器之Yarn工作机制"></a>BD-Yarn-Yarn资源调度器之Yarn工作机制</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
-<li>基本架构</li>
-<li>工作机制（作业提交流程）</li>
+<h1 id="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><a href="#BD-MapReduce9-MapReduce框架原理之MapReduce开发总结" class="headerlink" title="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"></a>BD-MapReduce9-MapReduce框架原理之MapReduce开发总结</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h2 id="一、MapReduce工作流程"><a href="#一、MapReduce工作流程" class="headerlink" title="一、MapReduce工作流程"></a>一、MapReduce工作流程</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
+<h2 id="二、MapReduce开发总结"><a href="#二、MapReduce开发总结" class="headerlink" title="二、MapReduce开发总结"></a>二、MapReduce开发总结</h2><h3 id="1-输入数据接口：InputFormat"><a href="#1-输入数据接口：InputFormat" class="headerlink" title="1. 输入数据接口：InputFormat"></a>1. 输入数据接口：InputFormat</h3><ol>
+<li>默认使用的实现类是：TextInputFormat</li>
+<li>TextInputFormat的功能逻辑是：一次读一行文本，然后将该行的起始偏移量作为key，行内容作为value返回。</li>
+<li>KeyValueTextInputFormat每一行均为一条记录，被分隔符分割为key，value。默认分隔符是tab（\t）。</li>
+<li>NlineInputFormat按照指定的行数N来划分切片。</li>
+<li>CombineTextInputFormat可以把多个小文件合并成一个切片处理，提高处理效率。</li>
+<li>用户还可以自定义InputFormat。</li>
 </ol>
-<h2 id="基本架构"><a href="#基本架构" class="headerlink" title="基本架构"></a>基本架构</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg" alt=""></p>
-<h2 id="工作机制（作业提交流程）"><a href="#工作机制（作业提交流程）" class="headerlink" title="工作机制（作业提交流程）"></a>工作机制（作业提交流程）</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzkzcsenj310z08s0tw.jpg" alt=""></p>
-<p>在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzo10l7pj311u0k476h.jpg" alt=""></p>
-<p>提交后，如果是HDFS，我们会看到在根目录生成了一个tmp的文件夹，在我们临时申请的工作目录，会放着这三个文件。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzrr028wj31130k340y.jpg" alt=""></p>
-<p>提交完了以后，就会告诉yarn，job任务提交完了，申请一个AppMaster负责跟进我们的任务</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yztoedwuj311h0k6jud.jpg" alt=""></p>
-<p>所有的自愿申请进入到RM，都会被包装成一个个Task，Yarn收到这些Task之后，就把Task扔到调度队列里（稍后再说），根据自己的调度逻辑来判断到底需不需要执行。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzw8j6trj31180k9whl.jpg" alt=""></p>
-<p>假设按照规则，轮到这个Task执行了，就会找一个NM来接收这个任务。假如我们AppMaster需要2核1G的资源，那么就会找一个有2核1G的NM来接收它。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzyjm23oj31100kcq6b.jpg" alt=""></p>
-<p>NM就会运行Container（2核1G），里面跑着这个AppMaster。AppMaster出现以后，就以任务为己任，因为我们会发现其实Yarn并不管我们跑的是什么任务、什么数据等等，只有AppMaster管。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0296iawj312l0k9djk.jpg" alt=""></p>
-<p>下一步开始，AppMaster下载job资源到本地，然后根据任务切片信息，申请相应数量的MapTask。申请这个过程会被包装成一个Task进入队列，等着调度。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z04xap8gj315l0kajvu.jpg" alt=""></p>
-<p>当轮到这个Task的时候，就会启动相应数量的Container来执行这两个MapTask（假如我们有两个切片），</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z07hs168j315t0k7jwb.jpg" alt=""></p>
-<p>MapTask的执行是由AppMaster把jar包和启动脚本发送过去，然后开始执行。出现了输出文件（0、1为分区），接着就会回收这两个Container。文件出来，RM、NM都不关心这个文件，只有AppMaster关心，AppMaster会一直问这个MapTask执行到哪了。当所有的MapTask执行到100%Lee，也就开始下一步了。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0c0sf8tj315g0li0yi.jpg" alt=""></p>
-<p>根据我们程序里写的ReduceTask的数量，来申请相应数量的ReduceTask。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0f26hyjj315l0lagro.jpg" alt=""></p>
-<p>每个ReduceTask接收相应分区的数据。处理完的结果会写回到HDFS。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gdawf3j315s0l80yy.jpg" alt=""></p>
-<p>都搞定以后，Container就会被回收，AppMaster发现都执行了完了，会向RM注销自己。</p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gywkszj30k40iwgoh.jpg" alt=""></p>
-<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0lhok8uj30vz0u0qd5.jpg" alt=""></p>
+<h3 id="2-逻辑处理接口：Mapper"><a href="#2-逻辑处理接口：Mapper" class="headerlink" title="2. 逻辑处理接口：Mapper"></a>2. 逻辑处理接口：Mapper</h3><p>用户根据业务需求实现其中三个方法：map()   setup()   cleanup () </p>
+<h3 id="3-Partitioner分区"><a href="#3-Partitioner分区" class="headerlink" title="3. Partitioner分区"></a>3. Partitioner分区</h3><ol>
+<li>有默认实现 HashPartitioner，逻辑是根据key的哈希值和numReduces来返回一个分区号；key.hashCode()&amp;Integer.MAXVALUE % numReduces</li>
+<li>如果业务上有特别的需求，可以自定义分区。</li>
+</ol>
+<h3 id="4．Comparable排序"><a href="#4．Comparable排序" class="headerlink" title="4．Comparable排序"></a>4．Comparable排序</h3><ol>
+<li>当我们用自定义的对象作为key来输出时，就必须要实现WritableComparable接口，重写其中的compareTo()方法。</li>
+<li>部分排序：对最终输出的每一个文件进行内部排序。</li>
+<li>全排序：对所有数据进行排序，通常只有一个Reduce。</li>
+<li>二次排序：排序的条件有两个。</li>
+</ol>
+<h3 id="5．Combiner合并"><a href="#5．Combiner合并" class="headerlink" title="5．Combiner合并"></a>5．Combiner合并</h3><p>Combiner合并可以提高程序执行效率，减少IO传输。但是使用时必须不能影响原有的业务处理结果。</p>
+<h3 id="6．Reduce端分组：GroupingComparator"><a href="#6．Reduce端分组：GroupingComparator" class="headerlink" title="6．Reduce端分组：GroupingComparator"></a>6．Reduce端分组：GroupingComparator</h3><p>在Reduce端对key进行分组。应用于：在接收的key为bean对象时，想让一个或几个字段相同（全部字段比较不相同）的key进入到同一个reduce方法时，可以采用分组排序。</p>
+<h3 id="7．逻辑处理接口：Reducer"><a href="#7．逻辑处理接口：Reducer" class="headerlink" title="7．逻辑处理接口：Reducer"></a>7．逻辑处理接口：Reducer</h3><p>用户根据业务需求实现其中三个方法：reduce()   setup()   cleanup () </p>
+<h3 id="8-输出数据接口：OutputFormat"><a href="#8-输出数据接口：OutputFormat" class="headerlink" title="8. 输出数据接口：OutputFormat"></a>8. 输出数据接口：OutputFormat</h3><ol>
+<li>默认实现类是TextOutputFormat，功能逻辑是：将每一个KV对，向目标文本文件输出一行。</li>
+<li>将SequenceFileOutputFormat输出作为后续 MapReduce任务的输入，这便是一种好的输出格式，因为它的格式紧凑，很容易被压缩。</li>
+<li>用户还可以自定义OutputFormat。</li>
+</ol>
 
     
   </div>
@@ -319,10 +302,10 @@ ga('send', 'pageview');
 
    
   <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2019/11/05/BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制/">
+    <a class="show pull-left" href="/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/">
         <i class="icon icon-angle-left"></i>
     </a>
-    <a class="show pull-right" href="/2020/01/07/BD-MapReduce9-MapReduce框架原理之MapReduce开发总结/">
+    <a class="hide pull-right" href="/">
         <i class="icon icon-angle-right"></i>
     </a>
   </div>
