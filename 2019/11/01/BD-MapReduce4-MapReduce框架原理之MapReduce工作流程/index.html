@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>BD-MapReduce3-MapReduce框架原理之MapReduce工作流程 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程主要内容 MapReduce工作流程  一、MapReduce工作流程 上一篇文章我们讲了InputFormat阶段的事情，这篇文章我们重点介绍一下MR的工作流程。  首先，客户端在提交前，会先获取待处理数据的信息，然后根据这些信息，对文件进行切片。  客户端先通知一下Yarn，然后Yarn会返回一个ID，客户端">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程">
+<meta property="og:url" content="http://ilovenorth.life/2019/11/01/BD-MapReduce4-MapReduce框架原理之MapReduce工作流程/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程主要内容 MapReduce工作流程  一、MapReduce工作流程 上一篇文章我们讲了InputFormat阶段的事情，这篇文章我们重点介绍一下MR的工作流程。  首先，客户端在提交前，会先获取待处理数据的信息，然后根据这些信息，对文件进行切片。  客户端先通知一下Yarn，然后Yarn会返回一个ID，客户端">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rq6mvpqej30hx0e8wf9.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rq8wub04j30is0fb75o.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rqemskvxj30h20lgwg9.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rqfrokpuj30i00lh40p.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rqxbyyrfj30h80lemzl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rr2rwrszj30qd0lj77j.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7sw3siitzj315w0le0ww.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7sw76kp3gj315t0lh42z.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7sw98aut0j31600lf798.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swdb0njbj314p0l93zt.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swsuxo3ij31460kvq6t.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swv2rx2cj310d0ksgom.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swzy08hpj315t0kogpp.jpg">
+<meta property="og:updated_time" content="2019-11-11T06:51:27.417Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程">
+<meta name="twitter:description" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程主要内容 MapReduce工作流程  一、MapReduce工作流程 上一篇文章我们讲了InputFormat阶段的事情，这篇文章我们重点介绍一下MR的工作流程。  首先，客户端在提交前，会先获取待处理数据的信息，然后根据这些信息，对文件进行切片。  客户端先通知一下Yarn，然后Yarn会返回一个ID，客户端">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce3-MapReduce框架原理之MapReduce工作流程"><span class="toc-text">BD-MapReduce3-MapReduce框架原理之MapReduce工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-text">一、MapReduce工作流程</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-BD-MapReduce4-MapReduce框架原理之MapReduce工作流程" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">BD-MapReduce3-MapReduce框架原理之MapReduce工作流程</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.11.01</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程"><a href="#BD-MapReduce3-MapReduce框架原理之MapReduce工作流程" class="headerlink" title="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程"></a>BD-MapReduce3-MapReduce框架原理之MapReduce工作流程</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>MapReduce工作流程</li>
+</ol>
+<h2 id="一、MapReduce工作流程"><a href="#一、MapReduce工作流程" class="headerlink" title="一、MapReduce工作流程"></a>一、MapReduce工作流程</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
+<p>上一篇文章我们讲了InputFormat阶段的事情，这篇文章我们重点介绍一下MR的工作流程。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rq6mvpqej30hx0e8wf9.jpg" alt=""></p>
+<p>首先，客户端在提交前，会先获取待处理数据的信息，然后根据这些信息，对文件进行切片。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rq8wub04j30is0fb75o.jpg" alt=""></p>
+<p>客户端先通知一下Yarn，然后Yarn会返回一个ID，客户端再去完成提交信息，包括切片信息、任务配置的xml、自己的jar包。一并提交给Yarn，Yarn是管理资源分配的，所以Yarn根据切片信息得知需要分配多少资源，一个切片对应一个MapTask，所以Yarn就会计算出MapTask的数量。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rqemskvxj30h20lgwg9.jpg" alt=""></p>
+<p>根据切片规则，我们得知会有两个切片，这里我们以第一个切片为例，讲解工作流程。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rqfrokpuj30i00lh40p.jpg" alt=""></p>
+<p>MapTask1拿到第一个切片的数据后，它调用InputFormat生成一个RecordReader，RecordReader就会把这个MapTask处理的这一个切片变成KV值。所以一个切片对应一个MapTask，一个MapTask对应RecordReader，也就是说一个RecordReader只处理一个切片。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rqxbyyrfj30h80lemzl.jpg" alt=""></p>
+<p>生成KV值，交给了Mapper，Mapper中写的是任务的核心逻辑代码，逻辑处理完成以后，通过一步<strong><em>context.write(k,v)</em></strong>写给了框架。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(KEYIN key, VALUEIN value, </span></span></span><br><span class="line"><span class="function"><span class="params">                   Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">  context.write((KEYOUT) key, (VALUEOUT) value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是这种说法很糙，我们具体说一下。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7rr2rwrszj30qd0lj77j.jpg" alt=""></p>
+<p><strong><em>context.write(k,v)</em></strong>经过<strong><em>outputCollector</em></strong>将KV数据写到了环形缓冲区，这个环形缓冲区我们以后会说。这里简单理解，缓冲区就是临时存一下数据，而且缓冲区会存在满了的情况，如果满了就写到磁盘上，把缓冲区再腾出来。</p>
+<p>根据文章最开始的那个图我们知道，从Mapper出来到Reducer的过程叫Shuffle，Shuffle阶段完成的工作就是分组。</p>
+<p>目前这个KV对是散乱的，再到Reducer之前把KV对都分好组，怎么做？<br>最容易想到的就是遍历Key，对于java来说是可以的，但这么做的一个非常重要的前提是：数据必须都在内存里。在大数据背景下，是很难做到把数据都放到内存里。那么MapRudece的思路是什么呢？就是全排序。从Mapper出来的数据，按照Key做了一个全排序，也就自然而然的完成了分组（相同key都在一起，前一个与后一个相等，就在一组）。<br>那么新的问题，大数据背景下，如何全排序？</p>
+<p>因为没法把全部数据都放到内存中进行排序，所以把数据分块对局部进行排序，每个局部都是key有序的，当把这些局部合并成一个整体的时候，用的是归并排序。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7sw3siitzj315w0le0ww.jpg" alt=""></p>
+<p>回到之前说的<strong><em>如果满了就写到磁盘上，把缓冲区再腾出来</em></strong>，当缓冲区满了的时候会开始写磁盘，在写磁盘之前，首先会在内存中完成一次排序工作。分区我们下面的文章会讲。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7sw76kp3gj315t0lh42z.jpg" alt=""></p>
+<p>排序之后，把数据落到一个文件上，这个文件是内部有序的。此时，缓冲区还是在存数据的，依然会满，就会再生成一个文件，以此类推，每一个文件都是内部有序的。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7sw98aut0j31600lf798.jpg" alt=""></p>
+<p>然后进行归并排序。到了这一步，Map所有输入的数据都变成了一个输出文件，这里，我们的MapTask阶段就结束了，他最后生成一个文件，并且这个文件按照Key的大小排好序了。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swdb0njbj314p0l93zt.jpg" alt=""></p>
+<p>到此，我们两个MapTask输出的文件都排好了序，下一步就启动一个Reducer。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swsuxo3ij31460kvq6t.jpg" alt=""></p>
+<p>我们只看上面的Reducer，下面的先不管。MapTask1和MapTask2的文件都发给ReduceTask1，这些文件的特点是有序。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swv2rx2cj310d0ksgom.jpg" alt=""></p>
+<p>接下来，ReduceTask会对这些文件再进行一次排序，合并后的文件依然为Key有序。到此，从Map输入数据开始，到这里全部数据完成了排序。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swzy08hpj315t0kogpp.jpg" alt=""></p>
+<p>下一步就对文件中的Key进行分组输入到Reducer中，Reducer处理完的数据交给OutPutFormat，由OutPutFormat输出到我们要存的文件中。中间省略了很多步骤，之后会进行详细讲解。</p>
+<p><strong>上面的流程是整个MapReduce最全工作流程，但是Shuffle过程只是从第7步开始到第16步结束，具体Shuffle过程详解，如下：</strong></p>
+<ol>
+<li>MapTask收集我们的map()方法输出的kv对，放到内存缓冲区中</li>
+<li>从内存缓冲区不断溢出本地磁盘文件，可能会溢出多个文件</li>
+<li>多个溢出文件会被合并成大的溢出文件</li>
+<li>在溢出过程及合并的过程中，都要调用Partitioner进行分区和针对key进行排序</li>
+<li>ReduceTask根据自己的分区号，去各个MapTask机器上取相应的结果分区数据</li>
+<li>ReduceTask会取到同一个分区的来自不同MapTask的结果文件，ReduceTask会将这些文件再进行合并（归并排序）</li>
+<li>合并成大文件后，Shuffle的过程也就结束了，后面进入ReduceTask的逻辑运算过程（从文件中取出一个一个的键值对Group，调用用户自定义的reduce()方法）</li>
+</ol>
+<p>下一篇文章会对Shuffle机制进行详解，这篇中分区问题就会解决了。</p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">Chat with me 🍾</span>
+      <div class="donation-body">
+        <div class="tip text-center">Tell me when you add that you are from the blog</div>
+        <ul>
+        
+          <li class="item">
+            
+            <img src="/images/WechatIMG5.jpeg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/10/15/BD-MapReduce9-MapReduce框架原理之MapReduce开发总结/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/11/02/BD-MapReduce5-MapReduce框架原理之Shuffle机制/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

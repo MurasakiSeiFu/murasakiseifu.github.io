@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>BD-Yarn-Yarn资源调度器之Yarn工作机制 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-Yarn-Yarn资源调度器之Yarn工作机制">
+<meta property="og:url" content="http://ilovenorth.life/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzkzcsenj310z08s0tw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzo10l7pj311u0k476h.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzrr028wj31130k340y.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yztoedwuj311h0k6jud.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzw8j6trj31180k9whl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzyjm23oj31100kcq6b.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0296iawj312l0k9djk.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z04xap8gj315l0kajvu.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z07hs168j315t0k7jwb.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0c0sf8tj315g0li0yi.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0f26hyjj315l0lagro.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gdawf3j315s0l80yy.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gywkszj30k40iwgoh.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0lhok8uj30vz0u0qd5.jpg">
+<meta property="og:updated_time" content="2019-11-11T06:53:11.840Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-Yarn-Yarn资源调度器之Yarn工作机制">
+<meta name="twitter:description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-Yarn-Yarn资源调度器之Yarn工作机制"><span class="toc-text">BD-Yarn-Yarn资源调度器之Yarn工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基本架构"><span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#工作机制（作业提交流程）"><span class="toc-text">工作机制（作业提交流程）</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-BD-Yarn-Yarn资源调度器之Yarn工作机制" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">BD-Yarn-Yarn资源调度器之Yarn工作机制</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.11.07</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Hadoop-Yarn/">Hadoop-Yarn</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-Yarn-Yarn资源调度器之Yarn工作机制"><a href="#BD-Yarn-Yarn资源调度器之Yarn工作机制" class="headerlink" title="BD-Yarn-Yarn资源调度器之Yarn工作机制"></a>BD-Yarn-Yarn资源调度器之Yarn工作机制</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>基本架构</li>
+<li>工作机制（作业提交流程）</li>
+</ol>
+<h2 id="基本架构"><a href="#基本架构" class="headerlink" title="基本架构"></a>基本架构</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg" alt=""></p>
+<h2 id="工作机制（作业提交流程）"><a href="#工作机制（作业提交流程）" class="headerlink" title="工作机制（作业提交流程）"></a>工作机制（作业提交流程）</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzkzcsenj310z08s0tw.jpg" alt=""></p>
+<p>在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzo10l7pj311u0k476h.jpg" alt=""></p>
+<p>提交后，如果是HDFS，我们会看到在根目录生成了一个tmp的文件夹，在我们临时申请的工作目录，会放着这三个文件。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzrr028wj31130k340y.jpg" alt=""></p>
+<p>提交完了以后，就会告诉yarn，job任务提交完了，申请一个AppMaster负责跟进我们的任务</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yztoedwuj311h0k6jud.jpg" alt=""></p>
+<p>所有的自愿申请进入到RM，都会被包装成一个个Task，Yarn收到这些Task之后，就把Task扔到调度队列里（稍后再说），根据自己的调度逻辑来判断到底需不需要执行。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzw8j6trj31180k9whl.jpg" alt=""></p>
+<p>假设按照规则，轮到这个Task执行了，就会找一个NM来接收这个任务。假如我们AppMaster需要2核1G的资源，那么就会找一个有2核1G的NM来接收它。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzyjm23oj31100kcq6b.jpg" alt=""></p>
+<p>NM就会运行Container（2核1G），里面跑着这个AppMaster。AppMaster出现以后，就以任务为己任，因为我们会发现其实Yarn并不管我们跑的是什么任务、什么数据等等，只有AppMaster管。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0296iawj312l0k9djk.jpg" alt=""></p>
+<p>下一步开始，AppMaster下载job资源到本地，然后根据任务切片信息，申请相应数量的MapTask。申请这个过程会被包装成一个Task进入队列，等着调度。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z04xap8gj315l0kajvu.jpg" alt=""></p>
+<p>当轮到这个Task的时候，就会启动相应数量的Container来执行这两个MapTask（假如我们有两个切片），</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z07hs168j315t0k7jwb.jpg" alt=""></p>
+<p>MapTask的执行是由AppMaster把jar包和启动脚本发送过去，然后开始执行。出现了输出文件（0、1为分区），接着就会回收这两个Container。文件出来，RM、NM都不关心这个文件，只有AppMaster关心，AppMaster会一直问这个MapTask执行到哪了。当所有的MapTask执行到100%Lee，也就开始下一步了。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0c0sf8tj315g0li0yi.jpg" alt=""></p>
+<p>根据我们程序里写的ReduceTask的数量，来申请相应数量的ReduceTask。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0f26hyjj315l0lagro.jpg" alt=""></p>
+<p>每个ReduceTask接收相应分区的数据。处理完的结果会写回到HDFS。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gdawf3j315s0l80yy.jpg" alt=""></p>
+<p>都搞定以后，Container就会被回收，AppMaster发现都执行了完了，会向RM注销自己。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gywkszj30k40iwgoh.jpg" alt=""></p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0lhok8uj30vz0u0qd5.jpg" alt=""></p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">Chat with me 🍾</span>
+      <div class="donation-body">
+        <div class="tip text-center">Tell me when you add that you are from the blog</div>
+        <ul>
+        
+          <li class="item">
+            
+            <img src="/images/WechatIMG5.jpeg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/11/05/BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

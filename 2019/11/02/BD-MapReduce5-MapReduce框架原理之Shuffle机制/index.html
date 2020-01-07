@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>BD-MapReduce3-MapReduce框架原理之Shuffle机制 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="BD-MapReduce3-MapReduce框架原理之Shuffle机制主要内容 MapReduce工作流程 Partition分区 Shuffle 机制  一、MapReduce工作流程 二、Partition分区给数据打标签，告诉数据去哪个ReduceTask。 2.1 问题引出要求将统计结果按照条件输出到不同文件中（分区）。比如：将统计结果按照手机归属地不同省份输出到不同文件中（分区）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce3-MapReduce框架原理之Shuffle机制">
+<meta property="og:url" content="http://ilovenorth.life/2019/11/02/BD-MapReduce5-MapReduce框架原理之Shuffle机制/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce3-MapReduce框架原理之Shuffle机制主要内容 MapReduce工作流程 Partition分区 Shuffle 机制  一、MapReduce工作流程 二、Partition分区给数据打标签，告诉数据去哪个ReduceTask。 2.1 问题引出要求将统计结果按照条件输出到不同文件中（分区）。比如：将统计结果按照手机归属地不同省份输出到不同文件中（分区）">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1vsjh74j30x90ae40t.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1wv0c6wj315o0a441e.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t20lc1q0j315h0lgwiw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24ct26wj315i0ljdkv.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg">
+<meta property="og:updated_time" content="2019-11-11T06:51:26.143Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce3-MapReduce框架原理之Shuffle机制">
+<meta name="twitter:description" content="BD-MapReduce3-MapReduce框架原理之Shuffle机制主要内容 MapReduce工作流程 Partition分区 Shuffle 机制  一、MapReduce工作流程 二、Partition分区给数据打标签，告诉数据去哪个ReduceTask。 2.1 问题引出要求将统计结果按照条件输出到不同文件中（分区）。比如：将统计结果按照手机归属地不同省份输出到不同文件中（分区）">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce3-MapReduce框架原理之Shuffle机制"><span class="toc-text">BD-MapReduce3-MapReduce框架原理之Shuffle机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-text">一、MapReduce工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Partition分区"><span class="toc-text">二、Partition分区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-问题引出"><span class="toc-text">2.1 问题引出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-默认Partitioner分区"><span class="toc-text">2.2 默认Partitioner分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-自定义Partitioner步骤"><span class="toc-text">2.3 自定义Partitioner步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-分区总结"><span class="toc-text">2.4 分区总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-案例分析"><span class="toc-text">2.5 案例分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Shuffle-机制"><span class="toc-text">二、Shuffle 机制</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-BD-MapReduce5-MapReduce框架原理之Shuffle机制" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">BD-MapReduce3-MapReduce框架原理之Shuffle机制</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.11.02</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-MapReduce3-MapReduce框架原理之Shuffle机制"><a href="#BD-MapReduce3-MapReduce框架原理之Shuffle机制" class="headerlink" title="BD-MapReduce3-MapReduce框架原理之Shuffle机制"></a>BD-MapReduce3-MapReduce框架原理之Shuffle机制</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>MapReduce工作流程</li>
+<li>Partition分区</li>
+<li>Shuffle 机制</li>
+</ol>
+<h2 id="一、MapReduce工作流程"><a href="#一、MapReduce工作流程" class="headerlink" title="一、MapReduce工作流程"></a>一、MapReduce工作流程</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
+<h2 id="二、Partition分区"><a href="#二、Partition分区" class="headerlink" title="二、Partition分区"></a>二、Partition分区</h2><p>给数据打标签，告诉数据去哪个ReduceTask。</p>
+<h3 id="2-1-问题引出"><a href="#2-1-问题引出" class="headerlink" title="2.1 问题引出"></a>2.1 问题引出</h3><p>要求将统计结果<font color="red">按照条件输出到不同文件中（分区）</font>。比如：将统计结果按照手机归属地不同省份输出到不同文件中（分区）</p>
+<h3 id="2-2-默认Partitioner分区"><a href="#2-2-默认Partitioner分区" class="headerlink" title="2.2 默认Partitioner分区"></a>2.2 默认Partitioner分区</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HashPartitioner</span>&lt;<span class="title">K</span>, <span class="title">V</span>&gt; <span class="keyword">extends</span> <span class="title">Partitioner</span>&lt;<span class="title">K</span>, <span class="title">V</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getPartition</span><span class="params">(K key, V value, <span class="keyword">int</span> numReduceTasks)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (key.hashCode() &amp; Integer.MAX_VALUE) % numReduceTasks;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>默认分区是根据key的hashCode对ReduceTasks个数取模得到的。用户没法控制哪个key存储到哪个分区。</p>
+<h3 id="2-3-自定义Partitioner步骤"><a href="#2-3-自定义Partitioner步骤" class="headerlink" title="2.3 自定义Partitioner步骤"></a>2.3 自定义Partitioner步骤</h3><ol>
+<li>自定义类继承Partitioner，重写getPartition()方法</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomPartitioner</span> <span class="keyword">extends</span> <span class="title">Partitioner</span>&lt;<span class="title">Text</span>, <span class="title">FlowBean</span>&gt; </span>&#123;</span><br><span class="line"> 	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getPartition</span><span class="params">(Text key, FlowBean value, <span class="keyword">int</span> numPartitions)</span> </span>&#123;</span><br><span class="line">          <span class="comment">// 控制分区代码逻辑</span></span><br><span class="line">    … …</span><br><span class="line">		<span class="keyword">return</span> partition;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>在Job驱动中，设置自定义Partitioner</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">job.setPartitionerClass(CustomPartitioner.class);</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>自定义Partition后，要根据自定义Partitioner的逻辑设置相应数量的ReduceTask</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">job.setNumReduceTasks(<span class="number">5</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="2-4-分区总结"><a href="#2-4-分区总结" class="headerlink" title="2.4 分区总结"></a>2.4 分区总结</h3><ol>
+<li><p>如果ReduceTask的数量&gt; getPartition的结果数，则会多产生几个空的输出文件part-r-000xx；</p>
+</li>
+<li><p>如果1&lt;ReduceTask的数量&lt;getPartition的结果数，则有一部分分区数据无处安放，会Exception；</p>
+</li>
+<li><p>如果ReduceTask的数量=1，则不管MapTask端输出多少个分区文件，最终结果都交给这一个ReduceTask，最终也就只会产生一个结果文件 part-r-00000；</p>
+</li>
+<li><p>分区号必须从零开始，逐一累加。</p>
+</li>
+</ol>
+<h3 id="2-5-案例分析"><a href="#2-5-案例分析" class="headerlink" title="2.5 案例分析"></a>2.5 案例分析</h3><p>例如：假设自定义分区数为5，则</p>
+<ol>
+<li>job.setNumReduceTasks(1);=======&gt;会正常运行，只不过会产生一个输出文件</li>
+<li>job.setNumReduceTasks(2);=======&gt;会报错</li>
+<li>job.setNumReduceTasks(6);=======&gt;大于5，程序会正常运行，会产生空文件</li>
+</ol>
+<h2 id="二、Shuffle-机制"><a href="#二、Shuffle-机制" class="headerlink" title="二、Shuffle 机制"></a>二、Shuffle 机制</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg" alt=""></p>
+<p>我们知道，缓冲区会存在满了的情况，如果满了就写到磁盘上，把缓冲区再腾出来。在落盘之前会完成<strong><em>分区和排序的工作。</em></strong></p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg" alt=""></p>
+<p>分区文件的特点：分区且区内有序。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1vsjh74j30x90ae40t.jpg" alt=""></p>
+<p>多次满了落盘的时候，会生成多个分区文件。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1wv0c6wj315o0a441e.jpg" alt=""></p>
+<p>按照分区进行归并排序。（Combiner我们回头再说）</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg" alt=""></p>
+<p>归并完了的输出文件特点是依然是分区且区内有序（就是一个MapTask的输出）。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t20lc1q0j315h0lgwiw.jpg" alt=""></p>
+<p>多个MapTask就会生成多个分区且区内有序的输出文件。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24ct26wj315i0ljdkv.jpg" alt=""></p>
+<p>分区1的文件会交给ReduceTask1，同样MapTask2的分区1的文件也会交给ReduceTask1。分区2同理，这里就不展示了。<br>ReduceTask1拿到文件的特点是，每个文件都是有序的。而且这些文件首先是放在Reduce端的内存缓存中的，如果缓存满了才用磁盘。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg" alt=""></p>
+<p>ReduceTask1接着对文件进行归并排序合成一整个输出文件（按照Key有序）、分组、输出到Reduce方法里，通过OutPutFormat输出到分区文件中。如果我们有两个ReduceTask，也就会输出两个分区文件，一个ReduceTask对应一个输出文件</p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">Chat with me 🍾</span>
+      <div class="donation-body">
+        <div class="tip text-center">Tell me when you add that you are from the blog</div>
+        <ul>
+        
+          <li class="item">
+            
+            <img src="/images/WechatIMG5.jpeg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/11/01/BD-MapReduce4-MapReduce框架原理之MapReduce工作流程/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

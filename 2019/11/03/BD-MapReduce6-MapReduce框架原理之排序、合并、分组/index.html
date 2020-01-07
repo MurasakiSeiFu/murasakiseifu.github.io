@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>BD-MapReduce6-MapReduce框架原理之排序、合并、分组 | MurasakiSeiFu</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
+  
+
+  <meta name="description" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组主要内容 WritableComparable排序 Combiner合并 GroupingComparator分组 Shuffle机制查缺补漏  一、WritableComparable排序1.1 排序概述排序是MapReduce框架中最重要的操作之一。 MapTask和ReduceTask均会对数据按照key进行排序。该">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组">
+<meta property="og:url" content="http://ilovenorth.life/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组主要内容 WritableComparable排序 Combiner合并 GroupingComparator分组 Shuffle机制查缺补漏  一、WritableComparable排序1.1 排序概述排序是MapReduce框架中最重要的操作之一。 MapTask和ReduceTask均会对数据按照key进行排序。该">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u3rgstmcj31600llwjj.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u43e5ibkj30qr0913zi.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u84ilt40j30bb098q3i.jpg">
+<meta property="og:updated_time" content="2019-11-11T06:51:44.247Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组">
+<meta name="twitter:description" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组主要内容 WritableComparable排序 Combiner合并 GroupingComparator分组 Shuffle机制查缺补漏  一、WritableComparable排序1.1 排序概述排序是MapReduce框架中最重要的操作之一。 MapTask和ReduceTask均会对数据按照key进行排序。该">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-86660611-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">🍆</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/atom.xml"
+            rel="noopener noreferrer"
+            target="_blank"
+            >
+            RSS
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><span class="toc-text">BD-MapReduce6-MapReduce框架原理之排序、合并、分组</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、WritableComparable排序"><span class="toc-text">一、WritableComparable排序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-排序概述"><span class="toc-text">1.1 排序概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-排序分类"><span class="toc-text">1.2 排序分类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Combiner合并"><span class="toc-text">二、Combiner合并</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、GroupingComparator分组"><span class="toc-text">三、GroupingComparator分组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、Shuffle机制查缺补漏"><span class="toc-text">四、Shuffle机制查缺补漏</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-BD-MapReduce6-MapReduce框架原理之排序、合并、分组" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">BD-MapReduce6-MapReduce框架原理之排序、合并、分组</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.11.03</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>MurasakiSeiFu.</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><a href="#BD-MapReduce6-MapReduce框架原理之排序、合并、分组" class="headerlink" title="BD-MapReduce6-MapReduce框架原理之排序、合并、分组"></a>BD-MapReduce6-MapReduce框架原理之排序、合并、分组</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>WritableComparable排序</li>
+<li>Combiner合并</li>
+<li>GroupingComparator分组</li>
+<li>Shuffle机制查缺补漏</li>
+</ol>
+<h2 id="一、WritableComparable排序"><a href="#一、WritableComparable排序" class="headerlink" title="一、WritableComparable排序"></a>一、WritableComparable排序</h2><h3 id="1-1-排序概述"><a href="#1-1-排序概述" class="headerlink" title="1.1 排序概述"></a>1.1 排序概述</h3><p><strong><font color="red">排序是MapReduce框架中最重要的操作之一。<br></font></strong></p>
+<p>MapTask和ReduceTask均会对数据<font color="red">按照key</font>进行排序。该操作属于Hadoop的默认行为。<font color="red">任何应用程序中的数据均会被排序，而不管逻辑上是否需要。</font></p>
+<p>默认排序是按照<font color="red">字典顺序排序</font>，且实现该排序的方法是<font color="red">快速排序.</font></p>
+<p>对于MapTask，它会将处理的结果暂时放到环形缓冲区中，<font color="red">当环形缓冲区使用率达到一定阈值后，再对缓冲区中的数据进行一次快速排序</font>，并将这些有序数据溢写到磁盘上，而当数据处理完毕后，它会<font color="red">对磁盘上所有文件进行归并排序。</font></p>
+<p>对于ReduceTask，它从每个MapTask上远程拷贝相应的数据文件，如果文件大小超过一定阈值，则溢写磁盘上，否则存储在内存中。如果磁盘上文件数目达到一定阈值，则进行一次归并排序以生成一个更大文件；如果内存中文件大小或者数目超过一定阈值，则进行一次合并后将数据溢写到磁盘上。当所有数据拷贝完毕后，<font color="red">ReduceTask统一对内存和磁盘上的所有数据进行一次归并排序。</font></p>
+<h3 id="1-2-排序分类"><a href="#1-2-排序分类" class="headerlink" title="1.2 排序分类"></a>1.2 排序分类</h3><p><strong>1. 部分排序：</strong>MapReduce根据输入记录的键对数据集排序。保证输出的每个文件内部有序。<br><strong>2. 全排序：</strong>最终输出结果只有一个文件，且文件内部有序。实现方式是只设置一个ReduceTask。但该方法在处理大型文件时效率极低，因为一台机器处理所有文件，完全丧失了MapReduce所提供的并行架构。<br><strong>3. 辅助排序：（GroupingComparator分组）：</strong>在Reduce端对key进行分组。应用于：在接收的key为bean对象时，想让一个或几个字段相同（全部字段比较不相同）的key进入到同一个reduce方法时，可以采用分组排序。</p>
+<p><strong>4. 二次排序：</strong>在自定义排序过程中，如果compareTo中的判断条件为两个即为二次排序。</p>
+<h2 id="二、Combiner合并"><a href="#二、Combiner合并" class="headerlink" title="二、Combiner合并"></a>二、Combiner合并</h2><ol>
+<li>Combiner是MR程序中Mapper和Reducer之外的一种组件。</li>
+<li>Combiner组件的父类就是Reducer。</li>
+<li>Combiner和Reducer的区别在于运行的位置<ul>
+<li><font color="red">Combiner是在每一个MapTask所在的节点运行;</font></li>
+<li><font color="red">Reducer是接收全局所有Mapper的输出结果；</font></li>
+</ul>
+</li>
+<li>Combiner的意义就是对每一个MapTask的输出进行局部汇总，以减小网络传输量。</li>
+<li><font color="red">Combiner能够应用的前提是不能影响最终的业务逻辑，</font>而且，Combiner的输出kv应该跟Reducer的输入kv类型要对应起来。<font color="red">Combiner输入输出类型必须一样。</font>
+
+</li>
+</ol>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg" alt=""></p>
+<h2 id="三、GroupingComparator分组"><a href="#三、GroupingComparator分组" class="headerlink" title="三、GroupingComparator分组"></a>三、GroupingComparator分组</h2><p>对Reduce阶段的数据根据某一个或几个字段进行分组。</p>
+<h2 id="四、Shuffle机制查缺补漏"><a href="#四、Shuffle机制查缺补漏" class="headerlink" title="四、Shuffle机制查缺补漏"></a>四、Shuffle机制查缺补漏</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg" alt=""></p>
+<p>我们知道Map方法出来的数据，首先写到环形缓冲区，当缓冲区满了就会发生溢写，溢写之前要先发生分区和排序。<br>数据进入缓冲区之前是&lt;K,V&gt;，当数据进入缓冲区的时候会获得一个分区号P，显示为&lt;K,V,P&gt;，然后这个数据进入缓冲区，注意，此时只是获得分区号，并没有进行物理分区。    </p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg" alt=""></p>
+<p>物理的分区发生在缓冲区满了需要写磁盘的时候，先按照分区号进行排序，分区号相同的再按Key进行排序(实际上分区排序是一个过程，也就是二次排序)。排完的结果是相同的分区在一起并且区内又序。</p>
+<p>分区排序后，在落盘前，如果我们启用了Combiner，这个数据在落盘前会先到Combiner中进行合并（把Key值相同的合并，\&lt;a,1&gt; \&lt;a,1&gt; —-&gt; \&lt;a,2&gt;），合并完成后再真正的落盘。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg" alt=""></p>
+<p>会多次放生溢写生成的文件会通过归并排序之后，在Combiner中合并（压缩以后再说），最终落到磁盘上。这就是MapTask最终的输出文件，这个文件的特点就是分区且区内有序。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u3rgstmcj31600llwjj.jpg" alt=""></p>
+<p>图片上有两个，假设我们有N个MapTask，每个MapTask分了3个区（1区、2区、3区），最后生成了N个文件，每个文件3个qu且区内有序。然后启用3个ReduceTask，ReduceTask与MapTask数量并没有直接关系。<font color="red">每个ReduceTask都会处理所有MapTask相应分区的数据。</font>ReduceTask在Reduce端有一个内存缓存，这些数据以序列化的形式（文件）最开始都放在内存缓存中，如果缓存满了才用磁盘。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg" alt=""></p>
+<p>最后我们把这是文件进行了归并排序，合成了一整个的输出文件，这个文件的特点就是按照Key有序，下一步对文件进行分组（自定义规则，注意排序的粒度一定要比分组的粒度细），并放到Reduce方法中，</p>
+<p><strong>接下来说一下缓冲区</strong>    </p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u43e5ibkj30qr0913zi.jpg" alt=""></p>
+<p>所谓的环形缓冲区，好处是没头没尾，从哪里写入都一样。假如我们中正中间开始写，顺时针写KV，逆时针写索引。<br><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u84ilt40j30bb098q3i.jpg" alt=""></p>
+<p>这个索引就是KV在环形缓冲区的位置索引。一直写，直到写到80%的时候就开始溢写，在溢写的时候，同样会有新的数据会进入缓冲区，这时就会从缓冲区剩下的20%中选择一点写入缓冲区。逆时针写KV，顺时针写索引。80%的数据在溢写腾空缓冲区的速度还是挺快的。而且这个大小是可以根据实际情况进行设置的，默认是100M的0.8。</p>
+<p>排序就发生在环形缓冲区。在排序的时候，如果KV1和KV2通过比较需要交换顺序，不直接移动右侧的数据，而是交换他们的索引值，因为索引占用很小，这样可以节省IO。排好序后，根据索引的序列开始落盘，通过索引找到对应的数据。</p>
+<p>学会手画。</p>
+
+    
+  </div>
+
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">Chat with me 🍾</span>
+      <div class="donation-body">
+        <div class="tip text-center">Tell me when you add that you are from the blog</div>
+        <ul>
+        
+          <li class="item">
+            
+            <img src="/images/WechatIMG5.jpeg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/11/02/BD-MapReduce5-MapReduce框架原理之Shuffle机制/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/atom.xml"
+              rel="noopener noreferrer"
+              target="_blank"
+              >
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+    <div id="comment" class="vcomment" ></div>
+    <script>
+        var notify = 'false' == true ? true : false;
+        var verify = 'false' == true ? true : false;
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+            return GUEST_INFO.indexOf(item) > -1
+        });
+        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+        window.valine = new Valine({
+            el: '.vcomment',
+            notify: notify,
+            verify: verify,
+            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
+            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
+            avatar:'mm',
+            placeholder: "Talk to me ^_^",
+            guest_info:guest_info,
+            pageSize:'10'
+        });
+    </script>
+  
+    
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
