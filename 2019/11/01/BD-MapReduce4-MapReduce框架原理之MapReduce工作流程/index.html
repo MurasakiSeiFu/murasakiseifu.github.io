@@ -8,7 +8,7 @@
   <meta charset="utf-8">
   <meta name="referrer" content="no-referrer" />
   
-  <title>BD-MapReduce3-MapReduce框架原理之MapReduce工作流程 | MurasakiSeiFu</title>
+  <title>BD-MapReduce4-MapReduce框架原理之MapReduce工作流程 | MurasakiSeiFu</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -18,7 +18,7 @@
 
   <meta name="description" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程主要内容 MapReduce工作流程  一、MapReduce工作流程 上一篇文章我们讲了InputFormat阶段的事情，这篇文章我们重点介绍一下MR的工作流程。  首先，客户端在提交前，会先获取待处理数据的信息，然后根据这些信息，对文件进行切片。  客户端先通知一下Yarn，然后Yarn会返回一个ID，客户端">
 <meta property="og:type" content="article">
-<meta property="og:title" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程">
+<meta property="og:title" content="BD-MapReduce4-MapReduce框架原理之MapReduce工作流程">
 <meta property="og:url" content="http://ilovenorth.life/2019/11/01/BD-MapReduce4-MapReduce框架原理之MapReduce工作流程/index.html">
 <meta property="og:site_name" content="MurasakiSeiFu">
 <meta property="og:description" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程主要内容 MapReduce工作流程  一、MapReduce工作流程 上一篇文章我们讲了InputFormat阶段的事情，这篇文章我们重点介绍一下MR的工作流程。  首先，客户端在提交前，会先获取待处理数据的信息，然后根据这些信息，对文件进行切片。  客户端先通知一下Yarn，然后Yarn会返回一个ID，客户端">
@@ -37,9 +37,9 @@
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swsuxo3ij31460kvq6t.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swv2rx2cj310d0ksgom.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7swzy08hpj315t0kogpp.jpg">
-<meta property="og:updated_time" content="2019-11-11T06:51:27.417Z">
+<meta property="og:updated_time" content="2020-01-07T01:16:44.794Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程">
+<meta name="twitter:title" content="BD-MapReduce4-MapReduce框架原理之MapReduce工作流程">
 <meta name="twitter:description" content="BD-MapReduce3-MapReduce框架原理之MapReduce工作流程主要内容 MapReduce工作流程  一、MapReduce工作流程 上一篇文章我们讲了InputFormat阶段的事情，这篇文章我们重点介绍一下MR的工作流程。  首先，客户端在提交前，会先获取待处理数据的信息，然后根据这些信息，对文件进行切片。  客户端先通知一下Yarn，然后Yarn会返回一个ID，客户端">
 <meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
 
@@ -219,7 +219,7 @@ ga('send', 'pageview');
 <div class="content content-post CENTER">
    <article id="post-BD-MapReduce4-MapReduce框架原理之MapReduce工作流程" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">BD-MapReduce3-MapReduce框架原理之MapReduce工作流程</h1>
+    <h1 class="post-title">BD-MapReduce4-MapReduce框架原理之MapReduce工作流程</h1>
 
     <div class="article-meta">
       <span>
