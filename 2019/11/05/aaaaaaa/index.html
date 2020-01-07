@@ -8,7 +8,7 @@
   <meta charset="utf-8">
   <meta name="referrer" content="no-referrer" />
   
-  <title>BD-MapReduce7-MapReduce框架原理之MapTask工作机制 | MurasakiSeiFu</title>
+  <title>BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制 | MurasakiSeiFu</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -16,19 +16,19 @@
     <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
   
 
-  <meta name="description" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制主要内容一、MapReduce工作流程 二、MapTask工作机制 1. Read 阶段MapTask通过用户编写的RecordReader，从输入InputSplit中解析出一个个key/value。 2. Map 阶段该节点主要是将解析出的key/value交给用户编写map()函数处理，并产生一系列新的key/">
+  <meta name="description" content="BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制主要内容一、MapReduce工作流程 二、ReduceTask工作机制 Copy 阶段ReduceTask从各个MapTask上远程拷贝一片数据，并针对某一片数据，如果其大小超过一定阈值，则写到磁盘上，否则直接放到内存中。 Merge阶段在远程拷贝数据的同时，ReduceTask启动了两个后台线程对内存和磁盘">
 <meta property="og:type" content="article">
-<meta property="og:title" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制">
-<meta property="og:url" content="http://ilovenorth.life/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/index.html">
+<meta property="og:title" content="BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制">
+<meta property="og:url" content="http://ilovenorth.life/2019/11/05/aaaaaaa/index.html">
 <meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制主要内容一、MapReduce工作流程 二、MapTask工作机制 1. Read 阶段MapTask通过用户编写的RecordReader，从输入InputSplit中解析出一个个key/value。 2. Map 阶段该节点主要是将解析出的key/value交给用户编写map()函数处理，并产生一系列新的key/">
+<meta property="og:description" content="BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制主要内容一、MapReduce工作流程 二、ReduceTask工作机制 Copy 阶段ReduceTask从各个MapTask上远程拷贝一片数据，并针对某一片数据，如果其大小超过一定阈值，则写到磁盘上，否则直接放到内存中。 Merge阶段在远程拷贝数据的同时，ReduceTask启动了两个后台线程对内存和磁盘">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yvis2mmtj30sd0emq64.jpg">
-<meta property="og:updated_time" content="2019-11-11T06:52:05.390Z">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yvt99jhxj30sp0dkq5n.jpg">
+<meta property="og:updated_time" content="2019-11-11T06:52:21.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制">
-<meta name="twitter:description" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制主要内容一、MapReduce工作流程 二、MapTask工作机制 1. Read 阶段MapTask通过用户编写的RecordReader，从输入InputSplit中解析出一个个key/value。 2. Map 阶段该节点主要是将解析出的key/value交给用户编写map()函数处理，并产生一系列新的key/">
+<meta name="twitter:title" content="BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制">
+<meta name="twitter:description" content="BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制主要内容一、MapReduce工作流程 二、ReduceTask工作机制 Copy 阶段ReduceTask从各个MapTask上远程拷贝一片数据，并针对某一片数据，如果其大小超过一定阈值，则写到磁盘上，否则直接放到内存中。 Merge阶段在远程拷贝数据的同时，ReduceTask启动了两个后台线程对内存和磁盘">
 <meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
 
   
@@ -199,20 +199,20 @@ ga('send', 'pageview');
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><span class="toc-text">BD-MapReduce7-MapReduce框架原理之MapTask工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-text">一、MapReduce工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、MapTask工作机制"><span class="toc-text">二、MapTask工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Read-阶段"><span class="toc-text">1. Read 阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Map-阶段"><span class="toc-text">2. Map 阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Collect-收集阶段"><span class="toc-text">3. Collect 收集阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Spill-阶段"><span class="toc-text">4. Spill 阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#溢写阶段详情："><span class="toc-text">溢写阶段详情：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-Combine-阶段"><span class="toc-text">5. Combine 阶段</span></a></li></ol></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制"><span class="toc-text">BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-text">一、MapReduce工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、ReduceTask工作机制"><span class="toc-text">二、ReduceTask工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Copy-阶段"><span class="toc-text">Copy 阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Merge阶段"><span class="toc-text">Merge阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Sort阶段"><span class="toc-text">Sort阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Reduce阶段"><span class="toc-text">Reduce阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置ReduceTask并行度（个数）"><span class="toc-text">设置ReduceTask并行度（个数）</span></a></li></ol></li></ol></li></ol>
   </div>
 
 
 
 <div class="content content-post CENTER">
-   <article id="post-BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出" class="article article-type-post" itemprop="blogPost">
+   <article id="post-aaaaaaa" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">BD-MapReduce7-MapReduce框架原理之MapTask工作机制</h1>
+    <h1 class="post-title">BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制</h1>
 
     <div class="article-meta">
       <span>
         <i class="icon-calendar"></i>
-        <span>2019.11.04</span>
+        <span>2019.11.05</span>
       </span>
 
       
@@ -247,24 +247,14 @@ ga('send', 'pageview');
     
       <meta name="referrer" content="no-referrer">
 
-<h1 id="BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><a href="#BD-MapReduce7-MapReduce框架原理之MapTask工作机制" class="headerlink" title="BD-MapReduce7-MapReduce框架原理之MapTask工作机制"></a>BD-MapReduce7-MapReduce框架原理之MapTask工作机制</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h2 id="一、MapReduce工作流程"><a href="#一、MapReduce工作流程" class="headerlink" title="一、MapReduce工作流程"></a>一、MapReduce工作流程</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
-<h2 id="二、MapTask工作机制"><a href="#二、MapTask工作机制" class="headerlink" title="二、MapTask工作机制"></a>二、MapTask工作机制</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yvis2mmtj30sd0emq64.jpg" alt=""></p>
-<h3 id="1-Read-阶段"><a href="#1-Read-阶段" class="headerlink" title="1. Read 阶段"></a>1. Read 阶段</h3><p>MapTask通过用户编写的RecordReader，从输入InputSplit中解析出一个个key/value。</p>
-<h3 id="2-Map-阶段"><a href="#2-Map-阶段" class="headerlink" title="2. Map 阶段"></a>2. Map 阶段</h3><p>该节点主要是将解析出的key/value交给用户编写map()函数处理，并产生一系列新的key/value。</p>
-<h3 id="3-Collect-收集阶段"><a href="#3-Collect-收集阶段" class="headerlink" title="3. Collect 收集阶段"></a>3. Collect 收集阶段</h3><p>在用户编写map()函数中，当数据处理完成后，一般会调用OutputCollector.collect()输出结果。在该函数内部，它会将生成的key/value分区（调用Partitioner），并写入一个环形内存缓冲区中。</p>
-<h3 id="4-Spill-阶段"><a href="#4-Spill-阶段" class="headerlink" title="4. Spill 阶段"></a>4. Spill 阶段</h3><p>即“溢写”，当环形缓冲区满后，MapReduce会将数据写到本地磁盘上，生成一个临时文件。需要注意的是，将数据写入本地磁盘之前，先要对数据进行一次本地排序，并在必要时对数据进行合并、压缩等操作。</p>
-<h4 id="溢写阶段详情："><a href="#溢写阶段详情：" class="headerlink" title="溢写阶段详情："></a>溢写阶段详情：</h4><ol>
-<li><p>利用快速排序算法对缓存区内的数据进行排序，排序方式是，先按照分区编号Partition进行排序，然后按照key进行排序。这样，经过排序后，数据以分区为单位聚集在一起，且同一分区内所有数据按照key有序。</p>
-</li>
-<li><p>按照分区编号由小到大依次将每个分区中的数据写入任务工作目录下的临时文件output/spillN.out（N表示当前溢写次数）中。如果用户设置了Combiner，则写入文件之前，对每个分区中的数据进行一次聚集操作。</p>
-</li>
-<li><p>将分区数据的元信息写到内存索引数据结构SpillRecord中，其中每个分区的元信息包括在临时文件中的偏移量、压缩前数据大小和压缩后数据大小。如果当前内存索引大小超过1MB，则将内存索引写到文件output/spillN.out.index中。</p>
-</li>
-</ol>
-<h3 id="5-Combine-阶段"><a href="#5-Combine-阶段" class="headerlink" title="5. Combine 阶段"></a>5. Combine 阶段</h3><p>当所有数据处理完成后，MapTask对所有临时文件进行一次合并，以确保最终只会生成一个数据文件。</p>
-<p>当所有数据处理完后，MapTask会将所有临时文件合并成一个大文件，并保存到文件output/file.out中，同时生成相应的索引文件output/file.out.index。</p>
-<p>在进行文件合并过程中，MapTask以分区为单位进行合并。对于某个分区，它将采用多轮递归合并的方式。每轮合并io.sort.factor（默认10）个文件，并将产生的文件重新加入待合并列表中，对文件排序后，重复以上过程，直到最终得到一个大文件。</p>
-<p>让每个MapTask最终只生成一个数据文件，可避免同时打开大量文件和同时读取大量小文件产生的随机读取带来的开销。</p>
+<h1 id="BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制"><a href="#BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制" class="headerlink" title="BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制"></a>BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h2 id="一、MapReduce工作流程"><a href="#一、MapReduce工作流程" class="headerlink" title="一、MapReduce工作流程"></a>一、MapReduce工作流程</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
+<h2 id="二、ReduceTask工作机制"><a href="#二、ReduceTask工作机制" class="headerlink" title="二、ReduceTask工作机制"></a>二、ReduceTask工作机制</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yvt99jhxj30sp0dkq5n.jpg" alt=""></p>
+<h3 id="Copy-阶段"><a href="#Copy-阶段" class="headerlink" title="Copy 阶段"></a>Copy 阶段</h3><p>ReduceTask从各个MapTask上远程拷贝一片数据，并针对某一片数据，如果其大小超过一定阈值，则写到磁盘上，否则直接放到内存中。</p>
+<h3 id="Merge阶段"><a href="#Merge阶段" class="headerlink" title="Merge阶段"></a>Merge阶段</h3><p>在远程拷贝数据的同时，ReduceTask启动了两个后台线程对内存和磁盘上的文件进行合并，以防止内存使用过多或磁盘上文件过多。</p>
+<h3 id="Sort阶段"><a href="#Sort阶段" class="headerlink" title="Sort阶段"></a>Sort阶段</h3><p>按照MapReduce语义，用户编写reduce()函数输入数据是按key进行聚集的一组数据。为了将key相同的数据聚在一起，Hadoop采用了基于排序的策略。由于各个MapTask已经实现对自己的处理结果进行了局部排序，因此，ReduceTask只需对所有数据进行一次归并排序即可。</p>
+<h3 id="Reduce阶段"><a href="#Reduce阶段" class="headerlink" title="Reduce阶段"></a>Reduce阶段</h3><p>reduce()函数将计算结果写到HDFS上。</p>
+<h3 id="设置ReduceTask并行度（个数）"><a href="#设置ReduceTask并行度（个数）" class="headerlink" title="设置ReduceTask并行度（个数）"></a>设置ReduceTask并行度（个数）</h3><p>ReduceTask的并行度同样影响整个Job的执行并发度和执行效率，但与MapTask的并发数由切片数决定不同，ReduceTask数量的决定是可以直接手动设置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 默认值是1，手动设置为4</span></span><br><span class="line">job.setNumReduceTasks(<span class="number">4</span>);</span><br></pre></td></tr></table></figure>
 
     
   </div>
@@ -293,10 +283,10 @@ ga('send', 'pageview');
 
    
   <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/">
+    <a class="show pull-left" href="/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/">
         <i class="icon icon-angle-left"></i>
     </a>
-    <a class="show pull-right" href="/2019/11/05/aaaaaaa/">
+    <a class="show pull-right" href="/2019/11/05/BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制/">
         <i class="icon icon-angle-right"></i>
     </a>
   </div>
