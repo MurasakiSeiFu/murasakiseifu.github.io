@@ -16,18 +16,18 @@
     <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
   
 
-  <meta name="description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-09 17:27:36tags:categories:  Hadoop-MR     BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开">
+  <meta name="description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-010 17:27:36tags:categories:  Hadoop-MR      BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduc">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MurasakiSeiFu">
 <meta property="og:url" content="http://ilovenorth.life/2020/01/07/BD-MapReduce9-MapReduce框架原理之MapReduce开发总结/index.html">
 <meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-09 17:27:36tags:categories:  Hadoop-MR     BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开">
+<meta property="og:description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-010 17:27:36tags:categories:  Hadoop-MR      BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduc">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
-<meta property="og:updated_time" content="2020-01-07T01:19:16.614Z">
+<meta property="og:updated_time" content="2020-01-07T01:23:12.435Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MurasakiSeiFu">
-<meta name="twitter:description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-09 17:27:36tags:categories:  Hadoop-MR     BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开">
+<meta name="twitter:description" content="title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结author: MurasakiSeiFu.date: 2019-11-010 17:27:36tags:categories:  Hadoop-MR      BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduc">
 <meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
 
   
@@ -239,12 +239,13 @@ ga('send', 'pageview');
 
   <div class="article-content">
     
-      <p>title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结<br>author: MurasakiSeiFu.<br>date: 2019-11-09 17:27:36<br>tags:<br>categories:</p>
+      <p>title: BD-MapReduce9-MapReduce框架原理之MapReduce开发总结<br>author: MurasakiSeiFu.<br>date: 2019-11-010 17:27:36<br>tags:<br>categories:</p>
 <ul>
 <li>Hadoop-MR</li>
 </ul>
 <hr>
 <meta name="referrer" content="no-referrer">
+
 
 <h1 id="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><a href="#BD-MapReduce9-MapReduce框架原理之MapReduce开发总结" class="headerlink" title="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"></a>BD-MapReduce9-MapReduce框架原理之MapReduce开发总结</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h2 id="一、MapReduce工作流程"><a href="#一、MapReduce工作流程" class="headerlink" title="一、MapReduce工作流程"></a>一、MapReduce工作流程</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
 <h2 id="二、MapReduce开发总结"><a href="#二、MapReduce开发总结" class="headerlink" title="二、MapReduce开发总结"></a>二、MapReduce开发总结</h2><h3 id="1-输入数据接口：InputFormat"><a href="#1-输入数据接口：InputFormat" class="headerlink" title="1. 输入数据接口：InputFormat"></a>1. 输入数据接口：InputFormat</h3><ol>
