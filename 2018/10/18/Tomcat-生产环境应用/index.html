@@ -93,7 +93,7 @@ function activateLightMode(){
 <ul>
 <li>Server 和 Service    <ul>
 <li>Server：指Tomcat的服务器。</li>
-<li>Service：指Tomcat的服务，毕竟服务是对外的，那么对外提供服务的介质就是连接器—Connector。</li>
+<li>Service：指Tomcat的服务，毕竟服务是对外的，那么对外提供服务的介质就是连接器–Connector。</li>
 </ul>
 </li>
 <li>Connector 连接器：帮我们把客户端的请求连接到Tomcat。<ul>
@@ -129,7 +129,6 @@ function activateLightMode(){
 <li>启动过程中war 包会被自动解压装载。</li>
 </ol>
 <p>但是我们在 Eclipse 或 idea 中启动 WEB 项目的时候，也是把War包复制到 webapps 目录解压吗？显然不是，其真正做法是在Tomcat程序文件之外创建了一个部署目录，在一般生产环境中也是这么做的，即：Tomcat 程序目录和部署目录分开。<br>我们只需要在启动时指定 CATALINA_HOME 与 CATALINA_BASE 参数即可实现。</p>
-<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -164,7 +163,6 @@ function activateLightMode(){
 </tr>
 </tbody>
 </table>
-</div>
 <p>可以编写一个脚本 来实现自定义配置：<br><strong>安装Tomcat</strong><br>1.下载 Tomcat 8.5.34    </p>
 <pre><code>https://tomcat.apache.org/download-80.cgi#8.5.34
 </code></pre><p>2.发送到我们的虚拟机</p>
@@ -244,8 +242,7 @@ curl 127.0.0.1:8080
 <li>Tomcat支持的IO模型说明</li>
 <li>BIO与NIO的区别</li>
 </ol>
-<h3 id="1-Tomcat支持的IO模型说明"><a href="#1-Tomcat支持的IO模型说明" class="headerlink" title="1.Tomcat支持的IO模型说明"></a>1.Tomcat支持的IO模型说明</h3><div class="table-container">
-<table>
+<h3 id="1-Tomcat支持的IO模型说明"><a href="#1-Tomcat支持的IO模型说明" class="headerlink" title="1.Tomcat支持的IO模型说明"></a>1.Tomcat支持的IO模型说明</h3><table>
 <thead>
 <tr>
 <th style="text-align:left">IO</th>
@@ -271,7 +268,6 @@ curl 127.0.0.1:8080
 </tr>
 </tbody>
 </table>
-</div>
 <p><strong>使用指定IO模型的配置方式:</strong><br>配置 server.xml。</p>
 <pre><code>&lt;Connector protocol=&quot;HTTP/1.1&quot;&gt; 
 </code></pre><p>默认配置 8.0：protocol=“HTTP/1.1”  8.0之前是BIO，8.0之后是NIO。</p>
@@ -284,7 +280,6 @@ curl 127.0.0.1:8080
 </code></pre><p><strong>APR</strong>    </p>
 <pre><code>protocol=”org.apache.coyote.http11.Http11AprProtocol“
 </code></pre><h3 id="2-BIO与NIO有什么区别"><a href="#2-BIO与NIO有什么区别" class="headerlink" title="2.BIO与NIO有什么区别"></a>2.BIO与NIO有什么区别</h3><p><strong>在高并发场景下BIO与NIO的线程数的变化</strong><br><strong>演示数据：</strong>    </p>
-<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -318,7 +313,6 @@ curl 127.0.0.1:8080
 </tr>
 </tbody>
 </table>
-</div>
 <p><strong>结论：</strong><br>表格中的线程指的是我们的work业务线程，业务线程就是处理servlet服务代码的线程，我们实验的生产环境是在实验环境的基础上人为阻塞了2s，BIO模型下，work业务线程同样也会阻塞。为了达到200的并发，就会继续创建线程来达到并发量。    </p>
 <p><strong>BIO 线程模型</strong><br><a href="https://ws1.sinaimg.cn/large/006tNbRwly1fwdiqnjbsij30tf0dmq40.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws1.sinaimg.cn/large/006tNbRwly1fwdiqnjbsij30tf0dmq40.jpg" class="lazyload"></a><br>当客户端和服务端通过Acceptor建立完连接之后，要交给线程池来处理，也就是work线程，这个work线程除了要处理IO的读和写，还要处理我们的业务执行(数据库的增删改查)，当work处理IO的读和写时，我们在这里阻塞了2s，所以work线程也要阻塞，因为它和IO线程一一对应的。</p>
 <p><strong>NIO 线程模型</strong><br><a href="https://ws2.sinaimg.cn/large/006tNbRwly1fwdiqpqdgpj31350fc76n.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws2.sinaimg.cn/large/006tNbRwly1fwdiqpqdgpj31350fc76n.jpg" class="lazyload"></a><br>IO线程和work线程已经分开了，当work线程处理业务时，处理的是IO线程发送过来的已经打包好的Http包，就可以直接从内存里取了。<br>IO线程一直轮询整个请求列表，看哪些请求已经完整过来了。</p>

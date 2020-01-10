@@ -90,7 +90,7 @@ function activateLightMode(){
 <h3 id="第二步"><a href="#第二步" class="headerlink" title="第二步"></a>第二步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7br92hd3rj312y0u079u.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7br92hd3rj312y0u079u.jpg" class="lazyload"></a></p>
 <p>加载完了以后就可以正常工作了。这时，来了一条元数据的增删改请求。</p>
 <h3 id="第三步"><a href="#第三步" class="headerlink" title="第三步"></a>第三步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7breiswt0j310i0u00z4.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7breiswt0j310i0u00z4.jpg" class="lazyload"></a></p>
-<p>此时面临一个选择：我们是先更新内存再更新文件？还是先更新文件再更新内存？因为HDFS对数据安全性较高，所以会选择先更新文件再更新内存，当文件更新完了就会通知客户端，如果此时断点，也不会丢失更新的部分。因此，将更新的操作日志记录在edits_inprogress_001中（3—-&gt;4）</p>
+<p>此时面临一个选择：我们是先更新内存再更新文件？还是先更新文件再更新内存？因为HDFS对数据安全性较高，所以会选择先更新文件再更新内存，当文件更新完了就会通知客户端，如果此时断点，也不会丢失更新的部分。因此，将更新的操作日志记录在edits_inprogress_001中（3—&gt;4）</p>
 <h3 id="第四步"><a href="#第四步" class="headerlink" title="第四步"></a>第四步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7brosqqh2j31ms0u0gu8.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7brosqqh2j31ms0u0gu8.jpg" class="lazyload"></a></p>
 <p>随着edits_inprogress_001记录的操作越来越多，使得这个文件越来越大，需要合并到，这时候2NN就登场了。首先，2NN每隔一段时间就会问NN一次，需不需要合并，注意并不是这个间隔时间到了之后一定要合并，而是进行询问是否需要合并。</p>
 <h3 id="第五步"><a href="#第五步" class="headerlink" title="第五步"></a>第五步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7brvs9k5cj31ms0u0k1a.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7brvs9k5cj31ms0u0k1a.jpg" class="lazyload"></a></p>
@@ -130,7 +130,7 @@ function activateLightMode(){
 </li>
 <li><p>Edits文件：存放HDFS文件系统的所有更新操作的路径，文件系统客户端执行的所有写操作首先会被记录到Edits文件中。</p>
 </li>
-<li><p>seen<em>txid文件保存的是一个数字，就是最后一个edits\</em>的数字</p>
+<li><p>seen_txid文件保存的是一个数字，就是最后一个edits_的数字</p>
 </li>
 <li><p>每次NameNode启动的时候都会将Fsimage文件读入内存，加载Edits里面的更新操作，保证内存中的元数据信息是最新的、同步的，可以看成NameNode启动的时候就将Fsimage和Edits文件进行了合并。</p>
 </li>
@@ -140,11 +140,11 @@ function activateLightMode(){
 <li>查看oiv和oev命令</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">oiv                  apply the offline fsimage viewer to an fsimage</span><br><span class="line">oiv_legacy           apply the offline fsimage viewer to an legacy fsimage</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="2">
 <li>基本语法</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop001 current]$ hdfs oiv</span><br><span class="line">Usage: bin/hdfs oiv [OPTIONS] -i INPUTFILE -o OUTPUTFILE</span><br><span class="line"></span><br><span class="line">hdfs oiv -p 文件类型 -i镜像文件 -o 转换后文件输出路径</span><br><span class="line"></span><br><span class="line">-p,--processor &lt;arg&gt;   Select which type of processor to apply</span><br><span class="line">                       against image file. (XML|FileDistribution|Web|Delimited)</span><br><span class="line">                       (Web by default)</span><br><span class="line">选择要应用于文件的处理器类型，一般我们都选择XML。</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="3">
 <li>这里我们转一下。</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop001 current]$ hdfs oiv -p XML -i fsimage_0000000000000000441 -o fsimage.xml</span><br><span class="line">[fzz001@hadoop001 current]$ cat fsimage.xml</span><br></pre></td></tr></table></figure></div>
@@ -156,7 +156,7 @@ function activateLightMode(){
 <li>基本语法和oiv一样</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hdfs oev -p 文件类型 -i编辑日志 -o 转换后文件输出路径</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="2">
 <li>同样，我们也转一下。</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop001 current]$ hdfs oev -p XML -i edits_0000000000000000110-0000000000000000210 -o edits.xml</span><br></pre></td></tr></table></figure></div>
@@ -193,7 +193,7 @@ function activateLightMode(){
 </ol>
 <p><strong><em>hdfs-default.xml</em></strong></p>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;dfs.namenode.checkpoint.period&lt;/name&gt;</span><br><span class="line">  &lt;value&gt;3600&lt;/value&gt;</span><br><span class="line">&lt;/property&gt;</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="2">
 <li>一分钟检查一次操作次数，当操作次数达到1百万时，SecondaryNameNode执行一次。</li>
 </ol>
 <p><strong><em>hdfs-default.xml</em></strong></p>
@@ -217,11 +217,11 @@ function activateLightMode(){
 </li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop001 hadoop-2.7.2]$ rm -rf /opt/module/hadoop-2.7.2/data/tmp/dfs/name/*</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="3">
 <li>拷贝SecondaryNameNode中数据到原NameNode存储数据目录</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop001 dfs]$ scp -r atguigu@hadoop104:/opt/module/hadoop-2.7.2/data/tmp/dfs/namesecondary/* ./name/</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="4">
 <li>重新启动NameNode</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop001 hadoop-2.7.2]$ sbin/hadoop-daemon.sh start namenode</span><br></pre></td></tr></table></figure></div>
@@ -229,22 +229,22 @@ function activateLightMode(){
 <li>修改hdfs-site.xml</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;dfs.namenode.checkpoint.period&lt;/name&gt;</span><br><span class="line">  &lt;value&gt;120&lt;/value&gt;</span><br><span class="line">&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">&lt;property&gt;</span><br><span class="line">  &lt;name&gt;dfs.namenode.name.dir&lt;/name&gt;</span><br><span class="line">  &lt;value&gt;/opt/module/hadoop-2.7.2/data/tmp/dfs/name&lt;/value&gt;</span><br><span class="line">&lt;/property&gt;</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="2">
 <li><p>kill -9 NameNode进程</p>
 </li>
 <li><p>删除NameNode存储的数据（/opt/module/hadoop-2.7.2/data/tmp/dfs/name）</p>
 </li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop002 hadoop-2.7.2]$ rm -rf /opt/module/hadoop-2.7.2/data/tmp/dfs/name/*</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="4">
 <li>如果SecondaryNameNode不和NameNode在一个主机节点上，需要将SecondaryNameNode存储数据的目录拷贝到 NameNode存储数据的平级目录，并删除in_use.lock文件</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop002 dfs]$ scp -r atguigu@hadoop104:/opt/module/hadoop-2.7.2/data/tmp/dfs/namesecondary ./</span><br><span class="line"></span><br><span class="line">[fzz001@hadoop002 namesecondary]$ rm -rf in_use.lock</span><br><span class="line"></span><br><span class="line">[fzz001@hadoop002 dfs]$ pwd</span><br><span class="line">/opt/module/hadoop-2.7.2/data/tmp/dfs</span><br><span class="line"></span><br><span class="line">[fzz001@hadoop002 dfs]$ ls</span><br><span class="line">data  name  namesecondary</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="5">
 <li>导入检查点数据（等待一会ctrl+c结束掉）</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop002 hadoop-2.7.2]$ bin/hdfs namenode -importCheckpoint</span><br></pre></td></tr></table></figure></div>
-<ol>
+<ol start="6">
 <li>启动NameNode</li>
 </ol>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[fzz001@hadoop002 hadoop-2.7.2]$ sbin/hadoop-daemon.sh start namenode</span><br></pre></td></tr></table></figure></div>

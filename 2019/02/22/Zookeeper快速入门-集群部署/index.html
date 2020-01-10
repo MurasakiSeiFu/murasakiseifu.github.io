@@ -77,53 +77,52 @@ function activateLightMode(){
 <h1 id="Zookeeper快速入门-amp-集群部署"><a href="#Zookeeper快速入门-amp-集群部署" class="headerlink" title="Zookeeper快速入门&amp;集群部署"></a>Zookeeper快速入门&amp;集群部署</h1><h2 id="单机模式的环境搭建"><a href="#单机模式的环境搭建" class="headerlink" title="单机模式的环境搭建"></a>单机模式的环境搭建</h2><ol>
 <li>官网下载</li>
 </ol>
-<pre><code>    http://mirrors.shu.edu.cn/apache/zookeeper/zookeeper-3.4.10/
-</code></pre><ol>
+<pre><code>http://mirrors.shu.edu.cn/apache/zookeeper/zookeeper-3.4.10/
+</code></pre><ol start="2">
 <li>上传到服务器</li>
 </ol>
-<pre><code>    scp zookeeper-3.4.10.tar.gz 用户名@服务器IP:上传至的目录
+<pre><code>scp zookeeper-3.4.10.tar.gz 用户名@服务器IP:上传至的目录
 </code></pre><p><strong>eg.</strong> 目标端和源端两台服务器都安装了scp命令之后，才可以通过scp命令互相传输。</p>
-<pre><code>    安装scp命令：
-    yum -y install openssh-clients
-</code></pre><ol>
+<pre><code>安装scp命令：
+yum -y install openssh-clients
+</code></pre><ol start="3">
 <li>解压压缩包 zookeeper-3.4.10.tar.gz </li>
 </ol>
-<pre><code>    tar -zxvf zookeeper-3.4.10.tar.gz
-</code></pre><ol>
+<pre><code>tar -zxvf zookeeper-3.4.10.tar.gz
+</code></pre><ol start="4">
 <li>进入 zookeeper-3.4.10 目录下的conf文件夹，重命名zoo_simple.cfg</li>
 </ol>
-<pre><code>    mv zoo_sample.cfg zoo.cfg
-</code></pre><ol>
+<pre><code>mv zoo_sample.cfg zoo.cfg
+</code></pre><ol start="5">
 <li>启动：进入 zookeeper-3.4.10 目录下的bin文件夹</li>
 </ol>
-<pre><code>    sh zkServer.sh start
+<pre><code>sh zkServer.sh start
 
-    显示如下信息则为启动成功：
-    ZooKeeper JMX enabled by default
-    Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
-    Starting zookeeper ... STARTED
-</code></pre><ol>
+显示如下信息则为启动成功：
+ZooKeeper JMX enabled by default
+Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+</code></pre><ol start="6">
 <li>验证一下，同样是 zookeeper-3.4.10 目录下的conf文件夹</li>
 </ol>
-<pre><code>    sh zkServer.sh status
+<pre><code>sh zkServer.sh status
 
-    显示如下信息则为启动成功：
-    ZooKeeper JMX enabled by default
-    Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
-    Mode: standalone #单机模式
-</code></pre><ol>
+显示如下信息则为启动成功：
+ZooKeeper JMX enabled by default
+Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
+Mode: standalone #单机模式
+</code></pre><ol start="7">
 <li>连接客户端，同样是 zookeeper-3.4.10 目录下的conf文件夹</li>
 </ol>
-<pre><code>    sh zkCli.sh
+<pre><code>sh zkCli.sh
 </code></pre><h2 id="集群模式搭建"><a href="#集群模式搭建" class="headerlink" title="集群模式搭建"></a>集群模式搭建</h2><ol>
 <li>启动3台服务器，修改zoo.cfg配置文件</li>
 </ol>
-<pre><code>    在配置文档的末尾加上：
-    server.1=192.168.187.200:2188:2888
-    server.2=192.168.187.201:2188:2888
-    server.3=192.168.187.202:2188:2888
+<pre><code>在配置文档的末尾加上：
+server.1=192.168.187.200:2188:2888
+server.2=192.168.187.201:2188:2888
+server.3=192.168.187.202:2188:2888
 </code></pre><p><strong>zoo.cfg 参数</strong>    </p>
-<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -158,33 +157,32 @@ function activateLightMode(){
 </tr>
 <tr>
 <td style="text-align:left">Server.A=B:C:D</td>
-<td style="text-align:left">A:第几号服务器&lt;/br&gt;B:服务IP&lt;/br&gt;C:代表Leader和follower通讯端口&lt;/br&gt;D:备用选leader端口</td>
+<td style="text-align:left">A:第几号服务器<br>B:服务IP<br>C:代表Leader和follower通讯端口<br>D:备用选leader端口</td>
 </tr>
 </tbody>
 </table>
-</div>
-<ol>
+<ol start="2">
 <li>根据自己配置的dataDir目录，在三台服务器中添加myid文件，这个myid为投票选举的标志id，同时也是告诉zk这是哪台服务器，细节后面再讲。</li>
 </ol>
-<pre><code>    echo &quot;1&quot; &gt; /usr/local/zookeeper/myid
-    echo &quot;2&quot; &gt; /usr/local/zookeeper/myid
-    echo &quot;3&quot; &gt; /usr/local/zookeeper/myid
-</code></pre><ol>
+<pre><code>echo &quot;1&quot; &gt; /usr/local/zookeeper/myid
+echo &quot;2&quot; &gt; /usr/local/zookeeper/myid
+echo &quot;3&quot; &gt; /usr/local/zookeeper/myid
+</code></pre><ol start="3">
 <li>然后依次启动就好，控制台会打印出一下信息。</li>
 </ol>
-<pre><code>    ZooKeeper JMX enabled by default
-    Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
-    Mode: follower
+<pre><code>ZooKeeper JMX enabled by default
+Using config: /root/zookeeper-3.4.10/bin/../conf/zoo.cfg
+Mode: follower
 </code></pre><p><strong>注意：</strong>    </p>
 <ul>
 <li>集群模式，服务器之前互相通讯，所以要关闭防火墙。</li>
 <li>集群模式需要Java环境。</li>
 </ul>
-<pre><code>    # 关闭防火墙
-    service iptables stop
+<pre><code># 关闭防火墙
+service iptables stop
 
-    # 如果提示 iptables unrecognized service，则需要安装：
-    yum install -y iptables
+# 如果提示 iptables unrecognized service，则需要安装：
+yum install -y iptables
 </code></pre><h2 id="集群模式介绍"><a href="#集群模式介绍" class="headerlink" title="集群模式介绍"></a>集群模式介绍</h2><h3 id="角色"><a href="#角色" class="headerlink" title="角色"></a>角色</h3><hr>
 <p><strong>Leader ：</strong></p>
 <p>   Leader作为整个ZooKeeper集群的主节点，负责响应所有对ZooKeeper状态变更的请求。它会将每个状态更新请求进行排序和编号，<font color="red">以便保证整个集群内部消息处理的FIFO（先进先出），写操作都走leader，zk里面leader只有一个。</font></p>
@@ -193,7 +191,6 @@ function activateLightMode(){
 <p><strong>Observer ：</strong>    </p>
 <p>   如果ZooKeeper集群的读取负载很高，或者客户端多到跨机房，可以设置一些observer服务器，以提高读取的吞吐量。Observer和Follower比较相似，只有一些小区别：首先observer不属于法定人数，即不参加选举也不响应提议；其次是observer不需要将事务持久化到磁盘，一旦observer被重启，需要从leader重新同步整个名字空间。 <font color="red">没有投票权利，可以处理读请求。</font></p>
 <h3 id="zookeeper命令介绍"><a href="#zookeeper命令介绍" class="headerlink" title="zookeeper命令介绍"></a>zookeeper命令介绍</h3><hr>
-<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -240,7 +237,6 @@ function activateLightMode(){
 </tr>
 </tbody>
 </table>
-</div>
 </div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">MurasakiSeiFu.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://ilovenorth.life/2019/02/22/Zookeeper快速入门-集群部署/">http://ilovenorth.life/2019/02/22/Zookeeper快速入门-集群部署/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-button button--primary button--animated"> <i class="fa fa-qrcode"></i> Donate<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/wechat.jpg" alt="微信"><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/alipay.jpg" alt="支付寶"><div class="post-qr-code__desc">支付寶</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="prev-post pull_left"><a href="/2019/02/27/zookeeper客户端详解/"><img class="prev_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Previous Post</div><div class="prev_info"><span>zookeeper客户端详解</span></div></a></div><div class="next-post pull_right"><a href="/2019/01/22/HashMap源码分析-md/"><img class="next_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Next Post</div><div class="next_info"><span>HashMap源码分析</span></div></a></div></nav><hr><div id="post-comment"><div class="comment_headling"><i class="fa fa-comments fa-fw" aria-hidden="true"></i><span> Comment</span></div><div class="vcomment" id="vcomment"></div><script src="https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js"></script><script>var notify = false == true ? true : false;
 var verify = false == true ? true : false;
 var GUEST_INFO = ['nick','mail','link'];
