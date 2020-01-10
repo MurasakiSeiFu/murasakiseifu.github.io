@@ -1,260 +1,78 @@
-<!DOCTYPE html>
+<!DOCTYPE html><html lang="default" data-theme="light"><head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5"><title>redis 集群原理分析 | MurasakiSeiFu</title><meta name="description" content="redis 集群原理分析"><meta name="author" content="MurasakiSeiFu."><meta name="copyright" content="MurasakiSeiFu."><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="https://fonts.googleapis.com" crossorigin=""><link rel="preconnect" href="//busuanzi.ibruce.info"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="redis 集群原理分析"><meta name="twitter:description" content="redis 集群原理分析"><meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png"><meta property="og:type" content="article"><meta property="og:title" content="redis 集群原理分析"><meta property="og:url" content="http://ilovenorth.life/2019/03/13/redis-集群原理分析/"><meta property="og:site_name" content="MurasakiSeiFu"><meta property="og:description" content="redis 集群原理分析"><meta property="og:image" content="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><script src="https://cdn.jsdelivr.net/npm/js-cookie/dist/js.cookie.min.js"></script><script>const autoChangeMode = 'false'
+var t = Cookies.get("theme");
+if (autoChangeMode == '1'){
+const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
+const isLightMode = window.matchMedia("(prefers-color-scheme: light)").matches
+const isNotSpecified = window.matchMedia("(prefers-color-scheme: no-preference)").matches
+const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+if (t === undefined){
+  if (isLightMode) activateLightMode()
+  else if (isDarkMode) activateDarkMode()
+  else if (isNotSpecified || hasNoSupport){
+    console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+    now = new Date();
+    hour = now.getHours();
+    isNight = hour < 6 || hour >= 18
+    isNight ? activateDarkMode() : activateLightMode()
+}
+} else if (t == 'light') activateLightMode()
+else activateDarkMode()
 
 
-  <html class="dark page-post">
+} else if (autoChangeMode == '2'){
+  now = new Date();
+  hour = now.getHours();
+  isNight = hour < 6 || hour >= 18
+  if(t === undefined) isNight? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode() 
+} else {
+  if ( t == 'dark' ) activateDarkMode()
+  else if ( t == 'light') activateLightMode()
+}
 
-
-<head>
-  <meta charset="utf-8">
-  <meta name="referrer" content="no-referrer" />
+function activateDarkMode(){
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#000')
+  }
+}
+function activateLightMode(){
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+  document.querySelector('meta[name="theme-color"]').setAttribute('content','#fff')
+  }
+}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="canonical" href="http://ilovenorth.life/2019/03/13/redis-集群原理分析/"><link rel="prev" title="并发编程专题--现代计算机理论模型与工作原理" href="http://ilovenorth.life/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/"><link rel="next" title="redis 高可用集群搭建" href="http://ilovenorth.life/2019/03/12/redis-高可用集群搭建/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"cookieDomain":"https://xxx/","msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  bookmark: {
+    title: 'Snackbar.bookmark.title',
+    message_prev: 'Press',
+    message_next: 'to bookmark this page'
+  },
+  runtime_unit: 'days',
+  runtime: true,
+  copyright: undefined,
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  baiduPush: false,
+  isHome: false,
+  isPost: true
   
-  <title>redis 集群原理分析 | MurasakiSeiFu</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-  
-    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
-  
-
-  <meta name="description" content="redis 集群原理分析原理分析Redis Cluster 将所有数据划分为 16384 的 slots(槽位)，每个节点负责其中一部分槽位。槽位的信息存储于每个节点中。只有master节点才有槽位。 1234567192.168.187.200:8001&amp;gt; cluster nodes9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187">
-<meta property="og:type" content="article">
-<meta property="og:title" content="redis 集群原理分析">
-<meta property="og:url" content="http://ilovenorth.life/2019/03/13/redis-集群原理分析/index.html">
-<meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="redis 集群原理分析原理分析Redis Cluster 将所有数据划分为 16384 的 slots(槽位)，每个节点负责其中一部分槽位。槽位的信息存储于每个节点中。只有master节点才有槽位。 1234567192.168.187.200:8001&amp;gt; cluster nodes9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187">
-<meta property="og:locale" content="default">
-<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg">
-<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg">
-<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg">
-<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg">
-<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg">
-<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg">
-<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg">
-<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg">
-<meta property="og:updated_time" content="2019-04-29T01:57:10.740Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="redis 集群原理分析">
-<meta name="twitter:description" content="redis 集群原理分析原理分析Redis Cluster 将所有数据划分为 16384 的 slots(槽位)，每个节点负责其中一部分槽位。槽位的信息存储于每个节点中。只有master节点才有槽位。 1234567192.168.187.200:8001&amp;gt; cluster nodes9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187">
-<meta name="twitter:image" content="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg">
-
-  
-
-  
-    <link rel="icon" href="/images/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
-
-
-  
-    <link rel="stylesheet" href="/css/personal-style.css">
-  
-
-  
-<!-- Google Analytics -->
-<script type="text/javascript">
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-ga('create', 'UA-86660611-1', 'auto');
-ga('send', 'pageview');
-
-</script>
-<!-- End Google Analytics -->
-
-
-  
-  <script type="text/javascript">
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
-
-
-  
-  <script type="text/javascript">
-	(function(){
-	    var bp = document.createElement('script');
-	    var curProtocol = window.location.protocol.split(':')[0];
-	    if (curProtocol === 'https') {
-	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-	    }
-	    else {
-	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-	    }
-	    var s = document.getElementsByTagName("script")[0];
-	    s.parentNode.insertBefore(bp, s);
-	})();
-  </script>
-
-
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-</head>
-
-<body>
-
-
-  
-    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
-  
-
-  <div class="post-header CENTER">
-   
-  <div class="toolbox">
-    <a class="toolbox-entry" href="/">
-      <span class="toolbox-entry-text">🍆</span>
-      <i class="icon-angle-down"></i>
-      <i class="icon-home"></i>
-    </a>
-    <ul class="list-toolbox">
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/archives/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            博客
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/categories/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            分类
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/tag/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            标签
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/link/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            友链
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/about/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            关于
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/atom.xml"
-            rel="noopener noreferrer"
-            target="_blank"
-            >
-            RSS
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/search/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            搜索
-          </a>
-        </li>
-      
-    </ul>
-  </div>
-
-
-</div>
-
-
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#redis-集群原理分析"><span class="toc-text">redis 集群原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#原理分析"><span class="toc-text">原理分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#槽位定位算法"><span class="toc-text">槽位定位算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#跳转重定位"><span class="toc-text">跳转重定位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#水平扩展"><span class="toc-text">水平扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-启动集群"><span class="toc-text">1.启动集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-集群操作"><span class="toc-text">2.集群操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis集群选举原理分析"><span class="toc-text">Redis集群选举原理分析</span></a></li></ol></li></ol>
-  </div>
-
-
-
-<div class="content content-post CENTER">
-   <article id="post-redis-集群原理分析" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">redis 集群原理分析</h1>
-
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2019.03.13</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>MurasakiSeiFu.</span>
-        </span>
-      
-
-      
-  <span class="article-category">
-    <i class="icon-list"></i>
-    <a class="article-category-link" href="/categories/分布式专题/">分布式专题</a>
-  </span>
-
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
-    
-      <meta name="referrer" content="no-referrer">
+}</script></head><body><header> <div id="page-header"><span class="pull_left" id="blog_name"><a class="blog_title" id="site-name" href="/">MurasakiSeiFu</a></span><span class="toggle-menu pull_right close"><a class="site-page"><i class="fa fa-bars fa-fw" aria-hidden="true"></i></a></span><span class="pull_right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> List</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> Music</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> Movie</span></a></li></ul></div></div></span></div></header><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">Articles</div><div class="length_num">49</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">Tags</div><div class="length_num">1</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">Categories</div><div class="length_num">11</div></a></div></div></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> List</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> Music</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> Movie</span></a></li></ul></div></div></div><div id="mobile-sidebar-toc"><div class="toc_mobile_headline">Catalog</div><div class="sidebar-toc__content"><ol class="toc_mobile_items"><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#redis-集群原理分析"><span class="toc_mobile_items-number">1.</span> <span class="toc_mobile_items-text">redis 集群原理分析</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#原理分析"><span class="toc_mobile_items-number">1.1.</span> <span class="toc_mobile_items-text">原理分析</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#槽位定位算法"><span class="toc_mobile_items-number">1.2.</span> <span class="toc_mobile_items-text">槽位定位算法</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#跳转重定位"><span class="toc_mobile_items-number">1.3.</span> <span class="toc_mobile_items-text">跳转重定位</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#水平扩展"><span class="toc_mobile_items-number">1.4.</span> <span class="toc_mobile_items-text">水平扩展</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#1-启动集群"><span class="toc_mobile_items-number">1.4.1.</span> <span class="toc_mobile_items-text">1.启动集群</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#2-集群操作"><span class="toc_mobile_items-number">1.4.2.</span> <span class="toc_mobile_items-text">2.集群操作</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#Redis集群选举原理分析"><span class="toc_mobile_items-number">1.5.</span> <span class="toc_mobile_items-text">Redis集群选举原理分析</span></a></li></ol></li></ol></div></div></div><div id="body-wrap"><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true">     </i><div class="auto_open" id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#redis-集群原理分析"><span class="toc-number">1.</span> <span class="toc-text">redis 集群原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#原理分析"><span class="toc-number">1.1.</span> <span class="toc-text">原理分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#槽位定位算法"><span class="toc-number">1.2.</span> <span class="toc-text">槽位定位算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#跳转重定位"><span class="toc-number">1.3.</span> <span class="toc-text">跳转重定位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#水平扩展"><span class="toc-number">1.4.</span> <span class="toc-text">水平扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-启动集群"><span class="toc-number">1.4.1.</span> <span class="toc-text">1.启动集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-集群操作"><span class="toc-number">1.4.2.</span> <span class="toc-text">2.集群操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis集群选举原理分析"><span class="toc-number">1.5.</span> <span class="toc-text">Redis集群选举原理分析</span></a></li></ol></li></ol></div></div></div><main id="content-outer"><div id="top-container" style="background-image: url(https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png)"><div id="post-info"><div id="post-title"><div class="posttitle">redis 集群原理分析</div></div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar fa-fw" aria-hidden="true"></i> Created 2019-03-13<span class="post-meta__separator">|</span><i class="fa fa-history fa-fw" aria-hidden="true"></i> Updated 2019-04-29</time><span class="post-meta__separator">|</span><span><i class="fa fa-inbox post-meta__icon fa-fw" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/分布式专题/">分布式专题</a></span><div class="post-meta-wordcount"><div class="post-meta-pv-cv"><span><i class="fa fa-eye post-meta__icon fa-fw" aria-hidden="true"> </i>Post View:</span><span id="busuanzi_value_page_pv"></span></div></div></div></div></div><div class="layout layout_post" id="content-inner">   <article id="post"><div class="article-container" id="post-content"><meta name="referrer" content="no-referrer">
 
 <h1 id="redis-集群原理分析"><a href="#redis-集群原理分析" class="headerlink" title="redis 集群原理分析"></a>redis 集群原理分析</h1><h2 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h2><p>Redis Cluster 将所有数据划分为 16384 的 slots(槽位)，每个节点负责其中一部分槽位。槽位的信息存储于每个节点中。只有master节点才有槽位。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">192.168.187.200:8001&gt; cluster nodes</span><br><span class="line">9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187.201:8005@18005 slave b79e767ee587656222e24b0e2605213345a91c9c 0 1551146483000 5 connected</span><br><span class="line">3f60a2638aacb3a6a51dad4536e0062005b80d66 192.168.187.202:8006@18006 master - 0 1551146484100 7 connected 0-5460</span><br><span class="line">b79e767ee587656222e24b0e2605213345a91c9c 192.168.187.202:8003@18003 master - 0 1551146483595 3 connected 10923-16383</span><br><span class="line">b61e5639764a954054d5d5690f72dca33f83b7cf 192.168.187.200:8001@18001 myself,slave 3f60a2638aacb3a6a51dad4536e0062005b80d66 0 1551146484000 1 connected</span><br><span class="line">3f3a3707957b23b9c1b0ffb28ec2a2d57845a130 192.168.187.201:8002@18002 master - 0 1551146483595 11 connected 5461-10922</span><br><span class="line">4641fe0918cb54a280b5f4d63e22cc672d6919d0 192.168.187.200:8004@18004 slave 3f3a3707957b23b9c1b0ffb28ec2a2d57845a130 0 1551146484608 11 connected</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">192.168.187.200:8001&gt; cluster nodes</span><br><span class="line">9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187.201:8005@18005 slave b79e767ee587656222e24b0e2605213345a91c9c 0 1551146483000 5 connected</span><br><span class="line">3f60a2638aacb3a6a51dad4536e0062005b80d66 192.168.187.202:8006@18006 master - 0 1551146484100 7 connected 0-5460</span><br><span class="line">b79e767ee587656222e24b0e2605213345a91c9c 192.168.187.202:8003@18003 master - 0 1551146483595 3 connected 10923-16383</span><br><span class="line">b61e5639764a954054d5d5690f72dca33f83b7cf 192.168.187.200:8001@18001 myself,slave 3f60a2638aacb3a6a51dad4536e0062005b80d66 0 1551146484000 1 connected</span><br><span class="line">3f3a3707957b23b9c1b0ffb28ec2a2d57845a130 192.168.187.201:8002@18002 master - 0 1551146483595 11 connected 5461-10922</span><br><span class="line">4641fe0918cb54a280b5f4d63e22cc672d6919d0 192.168.187.200:8004@18004 slave 3f3a3707957b23b9c1b0ffb28ec2a2d57845a130 0 1551146484608 11 connected</span><br></pre></td></tr></table></figure></div>
 <ul>
 <li>0-5460</li>
 <li>5461-10922</li>
@@ -266,29 +84,29 @@ ga('send', 'pageview');
 <font color="red">HASH_SLOT = CRC16(key) mod 16384</font>
 
 <h2 id="跳转重定位"><a href="#跳转重定位" class="headerlink" title="跳转重定位"></a>跳转重定位</h2><p><strong>注意：redis-cli是没有定位算法的，jedis是有定位算法的</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">192.168.187.200:8001&gt; get name</span><br><span class="line">-&gt; Redirected to slot [5798] located at 192.168.187.201:8002</span><br><span class="line">&quot;fzz&quot;</span><br><span class="line">192.168.187.201:8002&gt;</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">192.168.187.200:8001&gt; get name</span><br><span class="line">-&gt; Redirected to slot [5798] located at 192.168.187.201:8002</span><br><span class="line">&quot;fzz&quot;</span><br><span class="line">192.168.187.201:8002&gt;</span><br></pre></td></tr></table></figure></div>
 <p>我们刚才通过redis-cli连接上了8001这台机器，我们执行一下get命令，看着日志就会很清晰的明白：我们在8001机器上执行get命令，通过redis发现name这个key的槽位是5798，根据一开始打印的集群节点信息 </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">192.168.187.201:8002@18002 master - 0 1551146483595 11 connected 5461-10922</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">192.168.187.201:8002@18002 master - 0 1551146483595 11 connected 5461-10922</span><br></pre></td></tr></table></figure></div>
 <p>我们发现5798在5461-10922之间，所以redis集群帮我们重定向到8002这台机器，并输出了key的value值：fzz。</p>
 <p>当客户端向一个错误的节点发出了指令，该节点会发现指令的 key 所在的槽位并不归自己管理，这时它会向客户端发送一个特殊的跳转指令携带目标操作的节点地址，告诉客户端去连这个节点去获取数据。客户端收到指令后除了跳转到正确的节点上去操作，还会同步更新纠正本地的槽位映射表缓存，后续所有 key 将使用新的槽位映射表。</p>
 <h2 id="水平扩展"><a href="#水平扩展" class="headerlink" title="水平扩展"></a>水平扩展</h2><p>Redis3.0以后的版本虽然有了集群功能，提供了比之前版本的哨兵模式更高的性能与可用性，但是集群的水平扩展却比较麻烦，今天就来带大家看看redis高可用集群如何做水平扩展，<font color="red">原始集群(见下图)由6个节点组成，6个节点分布在三台机器上，采用三主三从的模式</font></p>
-<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg" alt=""></p>
+<p><a href="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg" alt="" title=""></a></p>
 <h3 id="1-启动集群"><a href="#1-启动集群" class="headerlink" title="1.启动集群"></a>1.启动集群</h3><ul>
 <li>启动整个集群</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8001/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8002/redis.conf</span><br><span class="line">/usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8003/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8004/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8005/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8006/redis.conf</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8001/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8002/redis.conf</span><br><span class="line">/usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8003/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8004/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8005/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8006/redis.conf</span><br></pre></td></tr></table></figure></div>
 <ul>
 <li>客户端连接8001端口的redis实例</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-cli -a fzz -c -h 192.168.0.61 -p 8001</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-cli -a fzz -c -h 192.168.0.61 -p 8001</span><br></pre></td></tr></table></figure></div>
 <ul>
 <li>查看集群状态</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">192.168.0.61:8001&gt; cluster  nodes</span><br></pre></td></tr></table></figure>
-<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg" alt=""></p>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">192.168.0.61:8001&gt; cluster  nodes</span><br></pre></td></tr></table></figure></div>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg" alt="" title=""></a></p>
 <p> 从上图可以看出，整个集群运行正常，三个master节点和三个slave节点，8001端口的实例节点存储0-5460这些hash槽，8002端口的实例节点存储5461-10922这些hash槽，8003端口的实例节点存储10923-16383这些hash槽，这三个master节点存储的所有hash槽组成redis集群的存储槽位，slave点是每个主节点的备份从节点，不显示存储槽位 </p>
 <h3 id="2-集群操作"><a href="#2-集群操作" class="headerlink" title="2.集群操作"></a>2.集群操作</h3><p>我们在原始集群基础上再增加一主(8007)一从(8008)，增加节点后的集群参见下图，新增节点用虚线框表示</p>
-<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg" alt=""></p>
+<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg" alt="" title=""></a></p>
 <ul>
 <li><p><font color="green">增加redis实例</font><br>方式在上一遍已经介绍完了，大家按以前自行配置就好。</p>
 </li>
@@ -296,8 +114,8 @@ ga('send', 'pageview');
 
 </li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local/redis-5.0.2</span><br><span class="line">src/redis-cli --cluster help</span><br></pre></td></tr></table></figure>
-<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg" alt=""></p>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local/redis-5.0.2</span><br><span class="line">src/redis-cli --cluster help</span><br></pre></td></tr></table></figure></div>
+<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg" alt="" title=""></a></p>
 <ol>
 <li>create：创建一个集群环境host1:port1 … hostN:portN</li>
 <li>call：可以执行redis命令</li>
@@ -312,15 +130,15 @@ ga('send', 'pageview');
 </li>
 </ul>
 <p>使用add-node命令新增一个主节点8007(master)，绿色为新增节点，红色为已知存在节点，看到日志最后有”[OK] New node added correctly”提示代表新节点加入成功</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">src/redis-cli --cluster add-node 192.168.0.64:8007 192.168.0.61:8001</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">src/redis-cli --cluster add-node 192.168.0.64:8007 192.168.0.61:8001</span><br></pre></td></tr></table></figure></div>
 <p>查看集群状态</p>
-<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg" alt=""></p>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg" alt="" title=""></a></p>
 <font color="red">注意：当添加节点成功以后，新增的节点不会有任何数据，因为它还没有分配任何的slot(hash槽)，我们需要为新节点手工分配hash槽</font>    
 
 <p>使用redis-cli命令为8007分配hash槽，找到集群中的任意一个主节点(红色位置表示集群中的任意一个主节点)，对其进行重新分片工作。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-cli --cluster reshard 192.168.0.61:8001</span><br><span class="line">输出如下：</span><br><span class="line">... ...</span><br><span class="line">How many slots do you want to move (from 1 to 16384)? 600</span><br><span class="line">(ps:需要多少个槽移动到新的节点上，自己设置，比如600个hash槽)</span><br><span class="line">What is the receiving node ID? eb57a5700ee6f9ff099b3ce0d03b1a50ff247c3c</span><br><span class="line">(ps:把这600个hash槽移动到哪个节点上去，需要指定节点id)</span><br><span class="line">Please enter all the source node IDs.</span><br><span class="line">  Type 'all' to use all the nodes as source nodes for the hash slots.</span><br><span class="line">  Type 'done' once you entered all the source nodes IDs.</span><br><span class="line">Source node 1:all</span><br><span class="line">(ps:输入all为从所有主节点(8001,8002,8003)中分别抽取相应的槽数指定到新节点中，抽取的总槽数为600个)</span><br><span class="line"> ... ...</span><br><span class="line">Do you want to proceed with the proposed reshard plan (yes/no)? yes</span><br><span class="line">(ps:输入yes确认开始执行分片任务)</span><br><span class="line">... ...</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-cli --cluster reshard 192.168.0.61:8001</span><br><span class="line">输出如下：</span><br><span class="line">... ...</span><br><span class="line">How many slots do you want to move (from 1 to 16384)? 600</span><br><span class="line">(ps:需要多少个槽移动到新的节点上，自己设置，比如600个hash槽)</span><br><span class="line">What is the receiving node ID? eb57a5700ee6f9ff099b3ce0d03b1a50ff247c3c</span><br><span class="line">(ps:把这600个hash槽移动到哪个节点上去，需要指定节点id)</span><br><span class="line">Please enter all the source node IDs.</span><br><span class="line">  Type 'all' to use all the nodes as source nodes for the hash slots.</span><br><span class="line">  Type 'done' once you entered all the source nodes IDs.</span><br><span class="line">Source node 1:all</span><br><span class="line">(ps:输入all为从所有主节点(8001,8002,8003)中分别抽取相应的槽数指定到新节点中，抽取的总槽数为600个)</span><br><span class="line"> ... ...</span><br><span class="line">Do you want to proceed with the proposed reshard plan (yes/no)? yes</span><br><span class="line">(ps:输入yes确认开始执行分片任务)</span><br><span class="line">... ...</span><br></pre></td></tr></table></figure></div>
 <p>查看下最新的集群状态    </p>
-<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg" alt=""></p>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg" alt="" title=""></a></p>
 <font color="red">如上图所示，现在我们的8007已经有hash槽了，也就是说可以在8007上进行读写数据啦！到此为止我们的8007已经加入到集群中，并且是主节点(Master)</font>    
 
 <ul>
@@ -329,12 +147,12 @@ ga('send', 'pageview');
 </li>
 </ul>
 <p>添加从节点8008到集群中去并查看集群状态    </p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">src/redis-cli --cluster add-node 192.168.0.64:8008 192.168.0.61:8001</span><br></pre></td></tr></table></figure>
-<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg" alt=""></p>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">src/redis-cli --cluster add-node 192.168.0.64:8008 192.168.0.61:8001</span><br></pre></td></tr></table></figure></div>
+<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg" alt="" title=""></a></p>
 <p>如图所示，还是一个master节点，没有被分配任何的hash槽。<br>我们需要执行replicate命令来指定当前节点(从节点)的主节点id为哪个,首先需要连接新加的8008节点的客户端，然后使用集群命令进行操作，把当前的8008(slave)节点指定到一个主节点下(这里使用之前创建的8007主节点，红色表示节点id)</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src/redis-cli -c -h 192.168.0.64 -p 8008</span><br><span class="line">192.168.0.61:8008&gt; cluster replicate eb57a5700ee6f9ff099b3ce0d03b1a50ff247c3c</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src/redis-cli -c -h 192.168.0.64 -p 8008</span><br><span class="line">192.168.0.61:8008&gt; cluster replicate eb57a5700ee6f9ff099b3ce0d03b1a50ff247c3c</span><br></pre></td></tr></table></figure></div>
 <p>查看集群状态，8008节点已成功添加为8007节点的从节点</p>
-<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg" alt=""></p>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg" alt="" title=""></a></p>
 <h2 id="Redis集群选举原理分析"><a href="#Redis集群选举原理分析" class="headerlink" title="Redis集群选举原理分析"></a>Redis集群选举原理分析</h2><p>当slave发现自己的master变为FAIL状态时，便尝试进行Failover，以期成为新的master。由于挂掉的master可能会有多个slave，从而存在多个slave竞争成为master节点的过程，其过程如下：</p>
 <ol>
 <li>slave发现自己的master变为FAIL</li>
@@ -354,223 +172,4 @@ ga('send', 'pageview');
 <ul>
 <li>SLAVE_RANK表示此slave已经从master复制数据的总量的rank。Rank越小代表已复制的数据越新。这种方式下，持有最新数据的slave将会首先发起选举（理论上）。</li>
 </ul>
-
-    
-  </div>
-
-</article>
-
-
-   
-  <div class="text-center donation">
-    <div class="inner-donation">
-      <span class="btn-donation">Chat with me 🍾</span>
-      <div class="donation-body">
-        <div class="tip text-center">Tell me when you add that you are from the blog</div>
-        <ul>
-        
-          <li class="item">
-            
-            <img src="/images/WechatIMG5.jpeg" alt="">
-          </li>
-        
-        </ul>
-      </div>
-    </div>
-  </div>
-
-
-   
-  <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2019/03/12/redis-高可用集群搭建/">
-        <i class="icon icon-angle-left"></i>
-    </a>
-    <a class="show pull-right" href="/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/">
-        <i class="icon icon-angle-right"></i>
-    </a>
-  </div>
-
-
-
-
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
-
-
-  <div class="modal" id="modal">
-  <span id="cover" class="cover hide"></span>
-  <div id="modal-dialog" class="modal-dialog hide-dialog">
-    <div class="modal-header">
-      <span id="close" class="btn-close">关闭</span>
-    </div>
-    <hr>
-    <div class="modal-body">
-      <ul class="list-toolbox">
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/archives/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              博客
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/categories/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              分类
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/tag/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              标签
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/link/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              友链
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/about/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              关于
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/atom.xml"
-              rel="noopener noreferrer"
-              target="_blank"
-              >
-              RSS
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/search/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              搜索
-            </a>
-          </li>
-        
-      </ul>
-
-    </div>
-  </div>
-</div>
-
-
-
-  
-      <div class="fexo-comments comments-post">
-    
-
-    
-
-    
-    
-
-    
-
-    
-    
-
-    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
-    <div id="comment" class="vcomment" ></div>
-    <script>
-        var notify = 'false' == true ? true : false;
-        var verify = 'false' == true ? true : false;
-        var GUEST_INFO = ['nick','mail','link'];
-        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
-            return GUEST_INFO.indexOf(item) > -1
-        });
-        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
-        window.valine = new Valine({
-            el: '.vcomment',
-            notify: notify,
-            verify: verify,
-            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
-            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
-            avatar:'mm',
-            placeholder: "Talk to me ^_^",
-            guest_info:guest_info,
-            pageSize:'10'
-        });
-    </script>
-  
-    
-
-  </div>
-
-  
-
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
-
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
-    }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
-    });
-  }
-</script>
-
-</body>
-</html>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">MurasakiSeiFu.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://ilovenorth.life/2019/03/13/redis-集群原理分析/">http://ilovenorth.life/2019/03/13/redis-集群原理分析/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-button button--primary button--animated"> <i class="fa fa-qrcode"></i> Donate<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/wechat.jpg" alt="微信"><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/alipay.jpg" alt="支付寶"><div class="post-qr-code__desc">支付寶</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="prev-post pull_left"><a href="/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/"><img class="prev_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Previous Post</div><div class="prev_info"><span>并发编程专题--现代计算机理论模型与工作原理</span></div></a></div><div class="next-post pull_right"><a href="/2019/03/12/redis-高可用集群搭建/"><img class="next_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Next Post</div><div class="next_info"><span>redis 高可用集群搭建</span></div></a></div></nav></div></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2020 By MurasakiSeiFu.</div><div class="framework-info"><span>Driven </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>Theme </span><a href="https://github.com/jerryc127/hexo-theme-butterfly"><span>Butterfly</span></a></div></div></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><i class="fa fa-book" id="readmode" title="Read Mode"></i><i class="fa fa-plus" id="font_plus" title="Increase font size"></i><i class="fa fa-minus" id="font_minus" title="Decrease font size"></i><a class="translate_chn_to_cht" id="translateLink" href="javascript:translatePage();" title="Traditional Chinese and Simplified Chinese Conversion" target="_self">繁</a><i class="darkmode fa fa-moon-o" id="darkmode" title="Dark Mode"></i></div><div id="rightside-config-show"><div id="rightside_config" title="Setting"><i class="fa fa-cog" aria-hidden="true"></i></div><i class="fa fa-list-ul close" id="mobile-toc-button" title="Table of Contents" aria-hidden="true"></i><i class="fa fa-arrow-up" id="go-up" title="Back to top" aria-hidden="true"></i></div></section><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@latest/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/lazysizes@latest/lazysizes.min.js" async></script></body></html>

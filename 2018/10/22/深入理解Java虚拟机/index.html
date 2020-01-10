@@ -1,261 +1,75 @@
-<!DOCTYPE html>
+<!DOCTYPE html><html lang="default" data-theme="light"><head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5"><title>深入理解Java虚拟机 | MurasakiSeiFu</title><meta name="description" content="深入理解Java虚拟机"><meta name="author" content="MurasakiSeiFu."><meta name="copyright" content="MurasakiSeiFu."><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="https://fonts.googleapis.com" crossorigin=""><link rel="preconnect" href="//busuanzi.ibruce.info"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="深入理解Java虚拟机"><meta name="twitter:description" content="深入理解Java虚拟机"><meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png"><meta property="og:type" content="article"><meta property="og:title" content="深入理解Java虚拟机"><meta property="og:url" content="http://ilovenorth.life/2018/10/22/深入理解Java虚拟机/"><meta property="og:site_name" content="MurasakiSeiFu"><meta property="og:description" content="深入理解Java虚拟机"><meta property="og:image" content="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><script src="https://cdn.jsdelivr.net/npm/js-cookie/dist/js.cookie.min.js"></script><script>const autoChangeMode = 'false'
+var t = Cookies.get("theme");
+if (autoChangeMode == '1'){
+const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
+const isLightMode = window.matchMedia("(prefers-color-scheme: light)").matches
+const isNotSpecified = window.matchMedia("(prefers-color-scheme: no-preference)").matches
+const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+if (t === undefined){
+  if (isLightMode) activateLightMode()
+  else if (isDarkMode) activateDarkMode()
+  else if (isNotSpecified || hasNoSupport){
+    console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+    now = new Date();
+    hour = now.getHours();
+    isNight = hour < 6 || hour >= 18
+    isNight ? activateDarkMode() : activateLightMode()
+}
+} else if (t == 'light') activateLightMode()
+else activateDarkMode()
 
 
-  <html class="dark page-post">
+} else if (autoChangeMode == '2'){
+  now = new Date();
+  hour = now.getHours();
+  isNight = hour < 6 || hour >= 18
+  if(t === undefined) isNight? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode() 
+} else {
+  if ( t == 'dark' ) activateDarkMode()
+  else if ( t == 'light') activateLightMode()
+}
 
-
-<head>
-  <meta charset="utf-8">
-  <meta name="referrer" content="no-referrer" />
+function activateDarkMode(){
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#000')
+  }
+}
+function activateLightMode(){
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+  document.querySelector('meta[name="theme-color"]').setAttribute('content','#fff')
+  }
+}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="canonical" href="http://ilovenorth.life/2018/10/22/深入理解Java虚拟机/"><link rel="prev" title="JVM指令集" href="http://ilovenorth.life/2018/10/23/JVM指令集/"><link rel="next" title="Tomcat 生产环境应用" href="http://ilovenorth.life/2018/10/18/Tomcat-生产环境应用/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"cookieDomain":"https://xxx/","msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  bookmark: {
+    title: 'Snackbar.bookmark.title',
+    message_prev: 'Press',
+    message_next: 'to bookmark this page'
+  },
+  runtime_unit: 'days',
+  runtime: true,
+  copyright: undefined,
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  baiduPush: false,
+  isHome: false,
+  isPost: true
   
-  <title>深入理解Java虚拟机 | MurasakiSeiFu</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-  
-    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
-  
-
-  <meta name="description" content="深入理解Java虚拟机 PS : 也是最近对Java虚拟机很着迷，听了图灵学院诸葛老师的课，特此记录一下学习笔记，感谢诸葛老师，研究技术总会忘了时间的。 JVM ：首先我们介绍一下JVM，虚拟机指以软件的方式模拟具有完整硬件系统功能、运行在一个完全隔离环境中的完整计算机系统 ，是物理机的软件实现。常用的虚拟机有VMWare，Virtual Box，Java Virtual Machine。">
-<meta property="og:type" content="article">
-<meta property="og:title" content="深入理解Java虚拟机">
-<meta property="og:url" content="http://ilovenorth.life/2018/10/22/深入理解Java虚拟机/index.html">
-<meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="深入理解Java虚拟机 PS : 也是最近对Java虚拟机很着迷，听了图灵学院诸葛老师的课，特此记录一下学习笔记，感谢诸葛老师，研究技术总会忘了时间的。 JVM ：首先我们介绍一下JVM，虚拟机指以软件的方式模拟具有完整硬件系统功能、运行在一个完全隔离环境中的完整计算机系统 ，是物理机的软件实现。常用的虚拟机有VMWare，Virtual Box，Java Virtual Machine。">
-<meta property="og:locale" content="default">
-<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwgurvt9onj30ki0jsjtk.jpg">
-<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwgykbyxskj316u0p8wi6.jpg">
-<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tNbRwly1fwgyn0ukj3j30v20j8qeg.jpg">
-<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwgytilsm2j31hi0sq0xj.jpg">
-<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwgyzlp1w5j31go0rgtdl.jpg">
-<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tNbRwly1fwgz0o8xrjj31gk0rmjwk.jpg">
-<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwgz68yklxj31g40quafq.jpg">
-<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwh17qawstj31gm0ssq9m.jpg">
-<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tNbRwly1fwh1hw19kdj31gm0t87cb.jpg">
-<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tNbRwly1fwh2iht1tdj30zk0fg76f.jpg">
-<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwh2n0tgl2j31gk0tewn1.jpg">
-<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwh2z2ir5qj30zk0bwwfv.jpg">
-<meta property="og:updated_time" content="2019-04-29T02:02:13.200Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="深入理解Java虚拟机">
-<meta name="twitter:description" content="深入理解Java虚拟机 PS : 也是最近对Java虚拟机很着迷，听了图灵学院诸葛老师的课，特此记录一下学习笔记，感谢诸葛老师，研究技术总会忘了时间的。 JVM ：首先我们介绍一下JVM，虚拟机指以软件的方式模拟具有完整硬件系统功能、运行在一个完全隔离环境中的完整计算机系统 ，是物理机的软件实现。常用的虚拟机有VMWare，Virtual Box，Java Virtual Machine。">
-<meta name="twitter:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwgurvt9onj30ki0jsjtk.jpg">
-
-  
-
-  
-    <link rel="icon" href="/images/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
-
-
-  
-    <link rel="stylesheet" href="/css/personal-style.css">
-  
-
-  
-<!-- Google Analytics -->
-<script type="text/javascript">
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-ga('create', 'UA-86660611-1', 'auto');
-ga('send', 'pageview');
-
-</script>
-<!-- End Google Analytics -->
-
-
-  
-  <script type="text/javascript">
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
-
-
-  
-  <script type="text/javascript">
-	(function(){
-	    var bp = document.createElement('script');
-	    var curProtocol = window.location.protocol.split(':')[0];
-	    if (curProtocol === 'https') {
-	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-	    }
-	    else {
-	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-	    }
-	    var s = document.getElementsByTagName("script")[0];
-	    s.parentNode.insertBefore(bp, s);
-	})();
-  </script>
-
-
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-</head>
-
-<body>
-
-
-  
-    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
-  
-
-  <div class="post-header CENTER">
-   
-  <div class="toolbox">
-    <a class="toolbox-entry" href="/">
-      <span class="toolbox-entry-text">🍆</span>
-      <i class="icon-angle-down"></i>
-      <i class="icon-home"></i>
-    </a>
-    <ul class="list-toolbox">
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/archives/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            博客
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/categories/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            分类
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/tag/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            标签
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/link/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            友链
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/about/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            关于
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/atom.xml"
-            rel="noopener noreferrer"
-            target="_blank"
-            >
-            RSS
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/search/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            搜索
-          </a>
-        </li>
-      
-    </ul>
-  </div>
-
-
-</div>
-
-
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#深入理解Java虚拟机"><span class="toc-text">深入理解Java虚拟机</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-text">主要内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Java栈"><span class="toc-text">Java栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#class-字节码"><span class="toc-text">class 字节码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#本地方法栈"><span class="toc-text">本地方法栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方法区"><span class="toc-text">方法区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆"><span class="toc-text">堆</span></a></li></ol></li></ol></li></ol>
-  </div>
-
-
-
-<div class="content content-post CENTER">
-   <article id="post-深入理解Java虚拟机" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">深入理解Java虚拟机</h1>
-
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2018.10.22</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>MurasakiSeiFu.</span>
-        </span>
-      
-
-      
-  <span class="article-category">
-    <i class="icon-list"></i>
-    <a class="article-category-link" href="/categories/虚拟机专题/">虚拟机专题</a>
-  </span>
-
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
-    
-      <meta name="referrer" content="no-referrer">
+}</script></head><body><header> <div id="page-header"><span class="pull_left" id="blog_name"><a class="blog_title" id="site-name" href="/">MurasakiSeiFu</a></span><span class="toggle-menu pull_right close"><a class="site-page"><i class="fa fa-bars fa-fw" aria-hidden="true"></i></a></span><span class="pull_right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> List</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> Music</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> Movie</span></a></li></ul></div></div></span></div></header><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">Articles</div><div class="length_num">49</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">Tags</div><div class="length_num">1</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">Categories</div><div class="length_num">11</div></a></div></div></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> List</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> Music</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> Movie</span></a></li></ul></div></div></div><div id="mobile-sidebar-toc"><div class="toc_mobile_headline">Catalog</div><div class="sidebar-toc__content"><ol class="toc_mobile_items"><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#深入理解Java虚拟机"><span class="toc_mobile_items-number">1.</span> <span class="toc_mobile_items-text">深入理解Java虚拟机</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#主要内容"><span class="toc_mobile_items-number">1.1.</span> <span class="toc_mobile_items-text">主要内容</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#Java栈"><span class="toc_mobile_items-number">1.1.1.</span> <span class="toc_mobile_items-text">Java栈</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#class-字节码"><span class="toc_mobile_items-number">1.1.2.</span> <span class="toc_mobile_items-text">class 字节码</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#本地方法栈"><span class="toc_mobile_items-number">1.1.3.</span> <span class="toc_mobile_items-text">本地方法栈</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#方法区"><span class="toc_mobile_items-number">1.1.4.</span> <span class="toc_mobile_items-text">方法区</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#堆"><span class="toc_mobile_items-number">1.1.5.</span> <span class="toc_mobile_items-text">堆</span></a></li></ol></li></ol></li></ol></div></div></div><div id="body-wrap"><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true">     </i><div class="auto_open" id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#深入理解Java虚拟机"><span class="toc-number">1.</span> <span class="toc-text">深入理解Java虚拟机</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Java栈"><span class="toc-number">1.1.1.</span> <span class="toc-text">Java栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#class-字节码"><span class="toc-number">1.1.2.</span> <span class="toc-text">class 字节码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#本地方法栈"><span class="toc-number">1.1.3.</span> <span class="toc-text">本地方法栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方法区"><span class="toc-number">1.1.4.</span> <span class="toc-text">方法区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆"><span class="toc-number">1.1.5.</span> <span class="toc-text">堆</span></a></li></ol></li></ol></li></ol></div></div></div><main id="content-outer"><div id="top-container" style="background-image: url(https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png)"><div id="post-info"><div id="post-title"><div class="posttitle">深入理解Java虚拟机</div></div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar fa-fw" aria-hidden="true"></i> Created 2018-10-22<span class="post-meta__separator">|</span><i class="fa fa-history fa-fw" aria-hidden="true"></i> Updated 2019-04-29</time><span class="post-meta__separator">|</span><span><i class="fa fa-inbox post-meta__icon fa-fw" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/虚拟机专题/">虚拟机专题</a></span><div class="post-meta-wordcount"><div class="post-meta-pv-cv"><span><i class="fa fa-eye post-meta__icon fa-fw" aria-hidden="true"> </i>Post View:</span><span id="busuanzi_value_page_pv"></span></div></div></div></div></div><div class="layout layout_post" id="content-inner">   <article id="post"><div class="article-container" id="post-content"><meta name="referrer" content="no-referrer">
 
 <h1 id="深入理解Java虚拟机"><a href="#深入理解Java虚拟机" class="headerlink" title="深入理解Java虚拟机"></a>深入理解Java虚拟机</h1><hr>
 <p>PS : 也是最近对Java虚拟机很着迷，听了图灵学院诸葛老师的课，特此记录一下学习笔记，感谢诸葛老师，研究技术总会忘了时间的。</p>
@@ -267,7 +81,7 @@ ga('send', 'pageview');
 2. 运行时数据区（内存结构）
 
 3. 执行引擎
-</code></pre><p>今天主要记录一下运行时数据区（内存结构），从这里入手，也是比较容易理解。<br>首先我们先来看一下java类加载的过程。<br><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwgurvt9onj30ki0jsjtk.jpg" alt=""></p>
+</code></pre><p>今天主要记录一下运行时数据区（内存结构），从这里入手，也是比较容易理解。<br>首先我们先来看一下java类加载的过程。<br><a href="https://ws2.sinaimg.cn/large/006tNbRwly1fwgurvt9onj30ki0jsjtk.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwgurvt9onj30ki0jsjtk.jpg" alt="" title=""></a></p>
 <p>当我们执行一个xxx.java文件时，通过javac命令会把Java文件编译成class字节码文件，然后类装载子系统把字节码文件load到java内存里去，也就是我们运行时数据区。<br>我们知道，当我们执行代码时，其实是启动一个Java进程，然后Java进程执行里面的Java线程，最简单的就是main()方法，对于运行时数据区，分为线程私有和线程共享。</p>
 <ul>
 <li>线程共享 ： 方法区、堆。</li>
@@ -276,38 +90,38 @@ ga('send', 'pageview');
 <p>我们这里不解释这5个区的具体意思，网上有很多，我们还是根据代码一点一点的分析，结合理论会更容易理解。</p>
 <h3 id="Java栈"><a href="#Java栈" class="headerlink" title="Java栈"></a>Java栈</h3><hr>
 <p>我们简化一下上面的那张图。</p>
-<p><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwgykbyxskj316u0p8wi6.jpg" alt=""></p>
+<p><a href="https://ws2.sinaimg.cn/large/006tNbRwly1fwgykbyxskj316u0p8wi6.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwgykbyxskj316u0p8wi6.jpg" alt="" title=""></a></p>
 <p>1.实例代码</p>
-<p><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fwgyn0ukj3j30v20j8qeg.jpg" alt=""></p>
+<p><a href="https://ws3.sinaimg.cn/large/006tNbRwly1fwgyn0ukj3j30v20j8qeg.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fwgyn0ukj3j30v20j8qeg.jpg" alt="" title=""></a></p>
 <p>一个很简单的运算函数，接下来我们演示java栈是如何处理这段代码的。</p>
 <p>每一个线程都存在三个线程私有的模块：Java栈、本地方法栈、程序计数器。这个我们已经知道了，所以当我们执行这个java程序时，线程1就拥有了它私有的Java栈、本地方法栈、程序计数器。<br>如下图所示。</p>
-<p><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwgytilsm2j31hi0sq0xj.jpg" alt=""></p>
+<p><a href="https://ws1.sinaimg.cn/large/006tNbRwly1fwgytilsm2j31hi0sq0xj.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwgytilsm2j31hi0sq0xj.jpg" alt="" title=""></a></p>
 <p>一个线程中每个方法在执行的同时都会创建一个栈帧（用于存储局部变量表，操作数栈，动态链接，方法出口等信息），不存在垃圾回收问题，只要线程一结束该栈就释放，生命周期和线程一致，因为是线程私有的。    </p>
-<p>所以，对于我们上面的实例代码，当我们执行的时候，一共会执行两个方法：main()方法、math()方法。因此会创建两个栈帧，我们都知道栈的数据结构是后入先出，所以当线程1执行程序的时候，java栈的执行过程是这样的。<br><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwgyzlp1w5j31go0rgtdl.jpg" alt=""><br><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fwgz0o8xrjj31gk0rmjwk.jpg" alt=""><br>完善一下这个图，最终是这个样子。<br><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwgz68yklxj31g40quafq.jpg" alt=""></p>
+<p>所以，对于我们上面的实例代码，当我们执行的时候，一共会执行两个方法：main()方法、math()方法。因此会创建两个栈帧，我们都知道栈的数据结构是后入先出，所以当线程1执行程序的时候，java栈的执行过程是这样的。<br><a href="https://ws1.sinaimg.cn/large/006tNbRwly1fwgyzlp1w5j31go0rgtdl.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwgyzlp1w5j31go0rgtdl.jpg" alt="" title=""></a><br><a href="https://ws4.sinaimg.cn/large/006tNbRwly1fwgz0o8xrjj31gk0rmjwk.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fwgz0o8xrjj31gk0rmjwk.jpg" alt="" title=""></a><br>完善一下这个图，最终是这个样子。<br><a href="https://ws1.sinaimg.cn/large/006tNbRwly1fwgz68yklxj31g40quafq.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwgz68yklxj31g40quafq.jpg" alt="" title=""></a></p>
 <h3 id="class-字节码"><a href="#class-字节码" class="headerlink" title="class 字节码"></a>class 字节码</h3><hr>
 <p>再去了解java栈里面的知识，就需要去看class的字节码文件了。当我们用javac xxx.java时就会生成字节码文件，实例代码的字节码文件如下所示。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">cafe babe 0000 0034 0025 0a00 0900 1407</span><br><span class="line">0015 0a00 0200 1409 0016 0017 0a00 0200</span><br><span class="line">180a 0019 001a 0800 1b0a 0019 001c 0700</span><br><span class="line">1d01 0006 3c69 6e69 743e 0100 0328 2956</span><br><span class="line">0100 0443 6f64 6501 000f 4c69 6e65 4e75</span><br><span class="line">6d62 6572 5461 626c 6501 0004 6d61 7468</span><br><span class="line">0100 0328 2949 0100 046d 6169 6e01 0016</span><br><span class="line">285b 4c6a 6176 612f 6c61 6e67 2f53 7472</span><br><span class="line">696e 673b 2956 0100 0a53 6f75 7263 6546</span><br><span class="line">696c 6501 0009 4d61 7468 2e6a 6176 610c</span><br><span class="line">000a 000b 0100 1463 6f6d 2f6f 7373 2f53</span><br><span class="line">444b 5465 7374 2f4d 6174 6807 001e 0c00</span><br><span class="line">1f00 200c 000e 000f 0700 210c 0022 0023</span><br><span class="line">0100 0365 6e64 0c00 2200 2401 0010 6a61</span><br><span class="line">7661 2f6c 616e 672f 4f62 6a65 6374 0100</span><br><span class="line">106a 6176 612f 6c61 6e67 2f53 7973 7465</span><br><span class="line">6d01 0003 6f75 7401 0015 4c6a 6176 612f</span><br><span class="line">696f 2f50 7269 6e74 5374 7265 616d 3b01</span><br><span class="line">0013 6a61 7661 2f69 6f2f 5072 696e 7453</span><br><span class="line">7472 6561 6d01 0007 7072 696e 746c 6e01</span><br><span class="line">0004 2849 2956 0100 1528 4c6a 6176 612f</span><br><span class="line">6c61 6e67 2f53 7472 696e 673b 2956 0020</span><br><span class="line">0002 0009 0000 0000 0003 0000 000a 000b</span><br><span class="line">0001 000c 0000 001d 0001 0001 0000 0005</span><br><span class="line">2ab7 0001 b100 0000 0100 0d00 0000 0600</span><br><span class="line">0100 0000 0900 0100 0e00 0f00 0100 0c00</span><br><span class="line">0000 3100 0200 0400 0000 0d04 3c05 3d1b</span><br><span class="line">1c60 100a 683e 1dac 0000 0001 000d 0000</span><br><span class="line">0012 0004 0000 000c 0002 000d 0004 000e</span><br><span class="line">000b 000f 0009 0010 0011 0001 000c 0000</span><br><span class="line">003f 0002 0002 0000 001b bb00 0259 b700</span><br><span class="line">034c b200 042b b600 05b6 0006 b200 0412</span><br><span class="line">07b6 0008 b100 0000 0100 0d00 0000 1200</span><br><span class="line">0400 0000 1300 0800 1400 1200 1500 1a00</span><br><span class="line">1600 0100 1200 0000 0200 13</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">cafe babe 0000 0034 0025 0a00 0900 1407</span><br><span class="line">0015 0a00 0200 1409 0016 0017 0a00 0200</span><br><span class="line">180a 0019 001a 0800 1b0a 0019 001c 0700</span><br><span class="line">1d01 0006 3c69 6e69 743e 0100 0328 2956</span><br><span class="line">0100 0443 6f64 6501 000f 4c69 6e65 4e75</span><br><span class="line">6d62 6572 5461 626c 6501 0004 6d61 7468</span><br><span class="line">0100 0328 2949 0100 046d 6169 6e01 0016</span><br><span class="line">285b 4c6a 6176 612f 6c61 6e67 2f53 7472</span><br><span class="line">696e 673b 2956 0100 0a53 6f75 7263 6546</span><br><span class="line">696c 6501 0009 4d61 7468 2e6a 6176 610c</span><br><span class="line">000a 000b 0100 1463 6f6d 2f6f 7373 2f53</span><br><span class="line">444b 5465 7374 2f4d 6174 6807 001e 0c00</span><br><span class="line">1f00 200c 000e 000f 0700 210c 0022 0023</span><br><span class="line">0100 0365 6e64 0c00 2200 2401 0010 6a61</span><br><span class="line">7661 2f6c 616e 672f 4f62 6a65 6374 0100</span><br><span class="line">106a 6176 612f 6c61 6e67 2f53 7973 7465</span><br><span class="line">6d01 0003 6f75 7401 0015 4c6a 6176 612f</span><br><span class="line">696f 2f50 7269 6e74 5374 7265 616d 3b01</span><br><span class="line">0013 6a61 7661 2f69 6f2f 5072 696e 7453</span><br><span class="line">7472 6561 6d01 0007 7072 696e 746c 6e01</span><br><span class="line">0004 2849 2956 0100 1528 4c6a 6176 612f</span><br><span class="line">6c61 6e67 2f53 7472 696e 673b 2956 0020</span><br><span class="line">0002 0009 0000 0000 0003 0000 000a 000b</span><br><span class="line">0001 000c 0000 001d 0001 0001 0000 0005</span><br><span class="line">2ab7 0001 b100 0000 0100 0d00 0000 0600</span><br><span class="line">0100 0000 0900 0100 0e00 0f00 0100 0c00</span><br><span class="line">0000 3100 0200 0400 0000 0d04 3c05 3d1b</span><br><span class="line">1c60 100a 683e 1dac 0000 0001 000d 0000</span><br><span class="line">0012 0004 0000 000c 0002 000d 0004 000e</span><br><span class="line">000b 000f 0009 0010 0011 0001 000c 0000</span><br><span class="line">003f 0002 0002 0000 001b bb00 0259 b700</span><br><span class="line">034c b200 042b b600 05b6 0006 b200 0412</span><br><span class="line">07b6 0008 b100 0000 0100 0d00 0000 1200</span><br><span class="line">0400 0000 1300 0800 1400 1200 1500 1a00</span><br><span class="line">1600 0100 1200 0000 0200 13</span><br></pre></td></tr></table></figure></div>
 <p>每一个4位字节码对应一个指令，我们这么看是肯定看不懂的，所以我们通过javap -c 来反编译一下字节码文件，并把它写到.txt文件中。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">javap</span><br><span class="line">用法: javap &lt;options&gt; &lt;classes&gt;</span><br><span class="line">其中, 可能的选项包括:</span><br><span class="line">  -help  --help  -?        输出此用法消息</span><br><span class="line">  -version                 版本信息</span><br><span class="line">  -v  -verbose             输出附加信息</span><br><span class="line">  -l                       输出行号和本地变量表</span><br><span class="line">  -public                  仅显示公共类和成员</span><br><span class="line">  -protected               显示受保护的/公共类和成员</span><br><span class="line">  -package                 显示程序包/受保护的/公共类</span><br><span class="line">                           和成员 (默认)</span><br><span class="line">  -p  -private             显示所有类和成员</span><br><span class="line">  -c                       对代码进行反汇编</span><br><span class="line">  -s                       输出内部类型签名</span><br><span class="line">  -sysinfo                 显示正在处理的类的</span><br><span class="line">                           系统信息 (路径, 大小, 日期, MD5 散列)</span><br><span class="line">  -constants               显示最终常量</span><br><span class="line">  -classpath &lt;path&gt;        指定查找用户类文件的位置</span><br><span class="line">  -cp &lt;path&gt;               指定查找用户类文件的位置</span><br><span class="line"> 	  -bootclasspath &lt;path&gt;    覆盖引导类文件的位置</span><br><span class="line"></span><br><span class="line">javap -c Math.class &gt; math.txt</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">javap</span><br><span class="line">用法: javap &lt;options&gt; &lt;classes&gt;</span><br><span class="line">其中, 可能的选项包括:</span><br><span class="line">  -help  --help  -?        输出此用法消息</span><br><span class="line">  -version                 版本信息</span><br><span class="line">  -v  -verbose             输出附加信息</span><br><span class="line">  -l                       输出行号和本地变量表</span><br><span class="line">  -public                  仅显示公共类和成员</span><br><span class="line">  -protected               显示受保护的/公共类和成员</span><br><span class="line">  -package                 显示程序包/受保护的/公共类</span><br><span class="line">                           和成员 (默认)</span><br><span class="line">  -p  -private             显示所有类和成员</span><br><span class="line">  -c                       对代码进行反汇编</span><br><span class="line">  -s                       输出内部类型签名</span><br><span class="line">  -sysinfo                 显示正在处理的类的</span><br><span class="line">                           系统信息 (路径, 大小, 日期, MD5 散列)</span><br><span class="line">  -constants               显示最终常量</span><br><span class="line">  -classpath &lt;path&gt;        指定查找用户类文件的位置</span><br><span class="line">  -cp &lt;path&gt;               指定查找用户类文件的位置</span><br><span class="line"> 	  -bootclasspath &lt;path&gt;    覆盖引导类文件的位置</span><br><span class="line"></span><br><span class="line">javap -c Math.class &gt; math.txt</span><br></pre></td></tr></table></figure></div>
 <p>反编译生成的.txt如下所示。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">Compiled from &quot;Math.java&quot;</span><br><span class="line"></span><br><span class="line">class com.oss.SDKTest.Math &#123;</span><br><span class="line"></span><br><span class="line">  com.oss.SDKTest.Math();</span><br><span class="line">    Code:</span><br><span class="line">       0: aload_0</span><br><span class="line">       1: invokespecial #1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">       4: return</span><br><span class="line"></span><br><span class="line">  public int math();</span><br><span class="line">    Code:</span><br><span class="line">       0: iconst_1</span><br><span class="line">       1: istore_1</span><br><span class="line">       2: iconst_2</span><br><span class="line">       3: istore_2</span><br><span class="line">       4: iload_1</span><br><span class="line">       5: iload_2</span><br><span class="line">       6: iadd</span><br><span class="line">       7: bipush        10</span><br><span class="line">       9: imul</span><br><span class="line">      10: istore_3</span><br><span class="line">      11: iload_3</span><br><span class="line">      12: ireturn</span><br><span class="line"></span><br><span class="line">  public static void main(java.lang.String[]);</span><br><span class="line">    Code:</span><br><span class="line">       0: new           #2                  // class com/oss/SDKTest/Math</span><br><span class="line">       3: dup</span><br><span class="line">       4: invokespecial #3                  // Method &quot;&lt;init&gt;&quot;:()V</span><br><span class="line">       7: astore_1</span><br><span class="line">       8: getstatic     #4                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">      11: aload_1</span><br><span class="line">      12: invokevirtual #5                  // Method math:()I</span><br><span class="line">      15: invokevirtual #6                  // Method java/io/PrintStream.println:(I)V</span><br><span class="line">      18: getstatic     #4                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">      21: ldc           #7                  // String end</span><br><span class="line">      23: invokevirtual #8                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">      26: return</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">Compiled from &quot;Math.java&quot;</span><br><span class="line"></span><br><span class="line">class com.oss.SDKTest.Math &#123;</span><br><span class="line"></span><br><span class="line">  com.oss.SDKTest.Math();</span><br><span class="line">    Code:</span><br><span class="line">       0: aload_0</span><br><span class="line">       1: invokespecial #1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">       4: return</span><br><span class="line"></span><br><span class="line">  public int math();</span><br><span class="line">    Code:</span><br><span class="line">       0: iconst_1</span><br><span class="line">       1: istore_1</span><br><span class="line">       2: iconst_2</span><br><span class="line">       3: istore_2</span><br><span class="line">       4: iload_1</span><br><span class="line">       5: iload_2</span><br><span class="line">       6: iadd</span><br><span class="line">       7: bipush        10</span><br><span class="line">       9: imul</span><br><span class="line">      10: istore_3</span><br><span class="line">      11: iload_3</span><br><span class="line">      12: ireturn</span><br><span class="line"></span><br><span class="line">  public static void main(java.lang.String[]);</span><br><span class="line">    Code:</span><br><span class="line">       0: new           #2                  // class com/oss/SDKTest/Math</span><br><span class="line">       3: dup</span><br><span class="line">       4: invokespecial #3                  // Method &quot;&lt;init&gt;&quot;:()V</span><br><span class="line">       7: astore_1</span><br><span class="line">       8: getstatic     #4                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">      11: aload_1</span><br><span class="line">      12: invokevirtual #5                  // Method math:()I</span><br><span class="line">      15: invokevirtual #6                  // Method java/io/PrintStream.println:(I)V</span><br><span class="line">      18: getstatic     #4                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">      21: ldc           #7                  // String end</span><br><span class="line">      23: invokevirtual #8                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">      26: return</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
 <p>我们一点点来看这段代码。这段代码对应的就是我们math()方法，左侧的0~12编号，就是说是按从上到下执行的。我把每一行的意思写到注释里。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public int math();</span><br><span class="line">	    Code:</span><br><span class="line">	       0: iconst_1 //将int类型常量1压入栈--操作数栈(一个临时存放操作数的栈)   程序计数器为1(存的是下一条要执行执行代码的地址，可以理解为指针)</span><br><span class="line">	       </span><br><span class="line">	       1: istore_1 //将int类型值存入局部变量1,也就是a = 1 --局部变量表,此时操作数栈的常量1出栈   程序计数器为2</span><br><span class="line">	       </span><br><span class="line">	       2: iconst_2 //将int类型常量2压入栈--操作数栈   程序计数器为3</span><br><span class="line">	       </span><br><span class="line">	       3: istore_2 //将int类型值存入局部变量2,也就是b = 2,此时此时操作数栈的常量2出栈   程序计数器为4</span><br><span class="line">	       </span><br><span class="line">	       4: iload_1  //从局部变量1中装载int类型值,也就是把局部变量表中的a=1整体压入到操作数栈中</span><br><span class="line">	       </span><br><span class="line">	       5: iload_2  //从局部变量2中装载int类型值,也就是把局部变量表中的b=2也整体压入到操作数栈中</span><br><span class="line">	       </span><br><span class="line">	       6: iadd     //执行int类型的加法--先从操作数栈中弹出栈顶元素2，再探出挨着栈顶元素的第二个元素1，做相加2+1，把运算完的结果3重新压入到操作数栈，此时操作数栈中只有元素3</span><br><span class="line">	       </span><br><span class="line">	       7: bipush        10   //将一个8位带符号整数压入栈，也就是把10压入到操作数栈，为什么编号没有8?因为我们的10也占了个地址，0~12并不是真正的编号，而是地址的代称，所以我们的程序计数器存的就是地址。</span><br><span class="line">	       </span><br><span class="line">	       9: imul     //执行int类型的乘法--和iadd的操作一样，最后操作数栈中只有元素30</span><br><span class="line">	       </span><br><span class="line">	      10: istore_3 //将int类型值存入局部变量3，也就是c = 30	      </span><br><span class="line">	      11: iload_3  //从局部变量3中装载int类型值，把c = 30压入到操作数栈</span><br><span class="line">	      </span><br><span class="line">	      12: ireturn  //从操作数栈中返回int类型的数据</span><br></pre></td></tr></table></figure>
-<p>最后对应如图。<br><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwh17qawstj31gm0ssq9m.jpg" alt=""></p>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public int math();</span><br><span class="line">	    Code:</span><br><span class="line">	       0: iconst_1 //将int类型常量1压入栈--操作数栈(一个临时存放操作数的栈)   程序计数器为1(存的是下一条要执行执行代码的地址，可以理解为指针)</span><br><span class="line">	       </span><br><span class="line">	       1: istore_1 //将int类型值存入局部变量1,也就是a = 1 --局部变量表,此时操作数栈的常量1出栈   程序计数器为2</span><br><span class="line">	       </span><br><span class="line">	       2: iconst_2 //将int类型常量2压入栈--操作数栈   程序计数器为3</span><br><span class="line">	       </span><br><span class="line">	       3: istore_2 //将int类型值存入局部变量2,也就是b = 2,此时此时操作数栈的常量2出栈   程序计数器为4</span><br><span class="line">	       </span><br><span class="line">	       4: iload_1  //从局部变量1中装载int类型值,也就是把局部变量表中的a=1整体压入到操作数栈中</span><br><span class="line">	       </span><br><span class="line">	       5: iload_2  //从局部变量2中装载int类型值,也就是把局部变量表中的b=2也整体压入到操作数栈中</span><br><span class="line">	       </span><br><span class="line">	       6: iadd     //执行int类型的加法--先从操作数栈中弹出栈顶元素2，再探出挨着栈顶元素的第二个元素1，做相加2+1，把运算完的结果3重新压入到操作数栈，此时操作数栈中只有元素3</span><br><span class="line">	       </span><br><span class="line">	       7: bipush        10   //将一个8位带符号整数压入栈，也就是把10压入到操作数栈，为什么编号没有8?因为我们的10也占了个地址，0~12并不是真正的编号，而是地址的代称，所以我们的程序计数器存的就是地址。</span><br><span class="line">	       </span><br><span class="line">	       9: imul     //执行int类型的乘法--和iadd的操作一样，最后操作数栈中只有元素30</span><br><span class="line">	       </span><br><span class="line">	      10: istore_3 //将int类型值存入局部变量3，也就是c = 30	      </span><br><span class="line">	      11: iload_3  //从局部变量3中装载int类型值，把c = 30压入到操作数栈</span><br><span class="line">	      </span><br><span class="line">	      12: ireturn  //从操作数栈中返回int类型的数据</span><br></pre></td></tr></table></figure></div>
+<p>最后对应如图。<br><a href="https://ws1.sinaimg.cn/large/006tNbRwly1fwh17qawstj31gm0ssq9m.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwh17qawstj31gm0ssq9m.jpg" alt="" title=""></a></p>
 <p>实际上，我们main()方法也是有局部变量表，局部变量就是我们的 math对象。方法出口指向我们main()方法。</p>
-<p><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fwh1hw19kdj31gm0t87cb.jpg" alt=""></p>
+<p><a href="https://ws3.sinaimg.cn/large/006tNbRwly1fwh1hw19kdj31gm0t87cb.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fwh1hw19kdj31gm0t87cb.jpg" alt="" title=""></a></p>
 <p><strong>动态链接</strong></p>
 <p>我们现在对于程序计数器、局部变量表、方法出口有了直观的了解，但是动态链接是做什么用的？</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, String&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">map.put(&quot;test&quot;, &quot;test&quot;);</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, String&gt; map = new HashMap&lt;&gt;();</span><br><span class="line">map.put(&quot;test&quot;, &quot;test&quot;);</span><br></pre></td></tr></table></figure></div>
 <p>我们声明一个map，我们在定义的时候是一个map接口，我们真正调用的时候实际上是HashMap的put方法，这也是多态的特性，我们HashMap也是在堆里，尽管我们变量的类型是一个map接口，map变量最终要找的是HashMap，但hashmap是另外一个类，所以我们需要一个关联，也就是动态链接。</p>
 <hr>
 <h3 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h3><hr>
 <p>接下来我们讲一下本地方法栈。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new Thread().start();</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new Thread().start();</span><br></pre></td></tr></table></figure></div>
 <p>我们都知道，当我们调用线程start()方法时，线程并不是直接启动的，而是让CPU做一个准备，就绪之后才能执行。下面是start()方法的源码，我们可以看出，先定义个started状态为false，当执行完start0()，started状态为true。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">public synchronized void start() &#123;</span><br><span class="line">       /**</span><br><span class="line">        * This method is not invoked for the main method thread or &quot;system&quot;</span><br><span class="line">        * group threads created/set up by the VM. Any new functionality added</span><br><span class="line">        * to this method in the future may have to also be added to the VM.</span><br><span class="line">        *</span><br><span class="line">        * A zero status value corresponds to state &quot;NEW&quot;.</span><br><span class="line">        */</span><br><span class="line">       if (threadStatus != 0)</span><br><span class="line">           throw new IllegalThreadStateException();</span><br><span class="line"></span><br><span class="line">       /* Notify the group that this thread is about to be started</span><br><span class="line">        * so that it can be added to the group&apos;s list of threads</span><br><span class="line">        * and the group&apos;s unstarted count can be decremented. */</span><br><span class="line">       group.add(this);</span><br><span class="line"></span><br><span class="line">       boolean started = false;</span><br><span class="line">       try &#123;</span><br><span class="line">           start0();</span><br><span class="line">           started = true;</span><br><span class="line">       &#125; finally &#123;</span><br><span class="line">           try &#123;</span><br><span class="line">               if (!started) &#123;</span><br><span class="line">                   group.threadStartFailed(this);</span><br><span class="line">               &#125;</span><br><span class="line">           &#125; catch (Throwable ignore) &#123;</span><br><span class="line">               /* do nothing. If start0 threw a Throwable then</span><br><span class="line">                 it will be passed up the call stack */</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">public synchronized void start() &#123;</span><br><span class="line">       /**</span><br><span class="line">        * This method is not invoked for the main method thread or &quot;system&quot;</span><br><span class="line">        * group threads created/set up by the VM. Any new functionality added</span><br><span class="line">        * to this method in the future may have to also be added to the VM.</span><br><span class="line">        *</span><br><span class="line">        * A zero status value corresponds to state &quot;NEW&quot;.</span><br><span class="line">        */</span><br><span class="line">       if (threadStatus != 0)</span><br><span class="line">           throw new IllegalThreadStateException();</span><br><span class="line"></span><br><span class="line">       /* Notify the group that this thread is about to be started</span><br><span class="line">        * so that it can be added to the group&apos;s list of threads</span><br><span class="line">        * and the group&apos;s unstarted count can be decremented. */</span><br><span class="line">       group.add(this);</span><br><span class="line"></span><br><span class="line">       boolean started = false;</span><br><span class="line">       try &#123;</span><br><span class="line">           start0();</span><br><span class="line">           started = true;</span><br><span class="line">       &#125; finally &#123;</span><br><span class="line">           try &#123;</span><br><span class="line">               if (!started) &#123;</span><br><span class="line">                   group.threadStartFailed(this);</span><br><span class="line">               &#125;</span><br><span class="line">           &#125; catch (Throwable ignore) &#123;</span><br><span class="line">               /* do nothing. If start0 threw a Throwable then</span><br><span class="line">                 it will be passed up the call stack */</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></div>
 <p>我们再去看看start0()方法做了什么。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private native void start0();</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private native void start0();</span><br></pre></td></tr></table></figure></div>
 <p>这个方法看起来好像是个接口，需要实现?    </p>
 <p>这个实际就是本地方法接口，native修饰，他的底层实现是c语言写的，我们java出现的时候是1995年，之前都是c和c++的天下，所以java刚出现时不可能一下子就全部替换，肯定要和c语言写的接口进行交互，所以java就是用这种方式来和c语言接口进行交互。现在这种本地方法使用已经非常少了。<br>当我们调用这个方法时，这个本地方法就是压入到我们的本地方法栈，我们执行引擎就会去调用c语言库，类似于.dll后缀的文件。</p>
 <hr>
@@ -317,10 +131,10 @@ ga('send', 'pageview');
 <p>类的所有字段和方法<font color="orange">字节码</font>，以及一些特殊方法如构造函数，接口代码也在此定义。简单说，所有定义的方法的信息都保存在该区域，<font color="orange">静态变量+常量+类信息(构造方法/接口定义)+运行时常量池</font>都存在方法区中，虽然Java虚拟机规范把方法区描述为堆的一个逻辑部分，但是它却有一个别名叫做 Non-Heap（非堆），目的应该是与 Java 堆区分开来。</p>
 <p><strong>栈+堆+方法区的交互关系</strong></p>
 <p>我们现在知道Java栈中存放着局部变量，当我们创建一个对象时，比如我们new一个Math对象。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Math math1 = new Math();</span><br><span class="line">Math math2 = new Math();</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Math math1 = new Math();</span><br><span class="line">Math math2 = new Math();</span><br></pre></td></tr></table></figure></div>
 <p>我们这个Math对象是根据字节码的模板new出来的，math1和math2用的都是同一个Math类模板，而类模板是存放在方法区里的，也就是说，两个math对象的实例数据，都存放在方法区中。在java堆中存放着两个对象指向类模板信息的指针。</p>
-<p><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fwh2iht1tdj30zk0fg76f.jpg" alt=""></p>
-<p>对应之前的图，就是这个样子。<br><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwh2n0tgl2j31gk0tewn1.jpg" alt=""><br>但是在方法区里就不是.class文件了啊，在方法区这些静态常量啊之类的都会被模块化的。</p>
+<p><a href="https://ws4.sinaimg.cn/large/006tNbRwly1fwh2iht1tdj30zk0fg76f.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fwh2iht1tdj30zk0fg76f.jpg" alt="" title=""></a></p>
+<p>对应之前的图，就是这个样子。<br><a href="https://ws2.sinaimg.cn/large/006tNbRwly1fwh2n0tgl2j31gk0tewn1.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwh2n0tgl2j31gk0tewn1.jpg" alt="" title=""></a><br>但是在方法区里就不是.class文件了啊，在方法区这些静态常量啊之类的都会被模块化的。</p>
 <hr>
 <h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3><hr>
 <p>最后我们简单介绍一下堆，之后的笔记将会针对堆做一系列的分析。</p>
@@ -328,7 +142,7 @@ ga('send', 'pageview');
 <p>虚拟机启动时创建，用于存放对象实例，几乎所有的对象（包含常量池）都在堆上分配内存，当对象无法再该空间申请到内存时将抛出<font color="red">OutOfMemoryError</font>异常。同时也是<strong>垃圾收集器管理的主要区域</strong>。可通过 -Xmx –Xms 参数来分别指定最大堆和最小堆。</p>
 <p>我们知道Java栈、本地方法栈、程序计数器是在Java线程里的，一旦线程结束，相应的这些都会被销毁，意味着这三个模块的内存不会占太多，所以我们的垃圾收集器最照顾的就是堆里的内容，其次就是方法区，因此堆占的内存是最多的。</p>
 <p><strong>堆的结构</strong></p>
-<p><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwh2z2ir5qj30zk0bwwfv.jpg" alt=""></p>
+<p><a href="https://ws2.sinaimg.cn/large/006tNbRwly1fwh2z2ir5qj30zk0bwwfv.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwh2z2ir5qj30zk0bwwfv.jpg" alt="" title=""></a></p>
 <p>通过图片最下面的Heap大括号我们可以看出来，一个有三个区域 : Eden(伊甸区)、Survivor Space、Tenured Space。Eden(伊甸区)、Survivor Space组成了我们的新生代，Tenured Space 是我们的老年代，下面的几分之几就是他们在堆上默认所占用的空间。MetaData是元空间，在JDK8出现的，也就是我们的永久代，之前永久代是在堆里面的，我们可以理解元空间就是我们方法区的实现，方法区是抽象的东西。</p>
 <p>我们知道所有的new出来的对象我们都存放在堆中，一开始就是放在Eden区中，程序在运行时，会有不断new出来的对象，Eden总会放满的时候，一放满就会触发轻GC（GC分为轻GC和full GC，full GC对于性能的影响是很大的，要尽量避免），把无用的对象(没有任何引用的对象，没有被任何指针指向的对象)通过垃圾回收器清掉，把还在用的对象放到Suivivor区的From区，周而复始，From区也会满，满的时候依然做轻GC，把From区中无用的清掉，把还在用的放到To区中，这时候，To和From互换了，To变为From区，From区变为To区，当new的对象又放满Eden区时，轻GC之后，还在用的对象就会放到新的From区中，依次轮询。</p>
 <p>可以对轮询设置次数，假如我们设置的是15次，交替15次之后，如果To区域还有存活的对象，在我们做完轻GC之后，就会把这些存活的对象放到老年代，这是程序还在运行，总有一天老年代也会放满，老年代一放满，就会触发full GC。</p>
@@ -365,223 +179,4 @@ ga('send', 'pageview');
 <p>元数据区的动态扩展，默认–XX:MetaspaceSize值为21MB的高水位线。一旦触及则Full GC将被触发并卸载没有用的类（类对应的类加载器不再存活），然后高水位线将会重置。新的高水位线的值取决于GC后释放的元空间。如果释放的空间少，这个高水位线则上升。如果释放空间过多，则高水位线下降。    </p>
 <p>为什么jdk1.8用元数据区取代了永久代？    </p>
 <p>官方解释：移除永久代是为融合HotSpot JVM与 JRockit VM而做出的努力，因为JRockit没有永久代，不需要配置永久代</p>
-
-    
-  </div>
-
-</article>
-
-
-   
-  <div class="text-center donation">
-    <div class="inner-donation">
-      <span class="btn-donation">Chat with me 🍾</span>
-      <div class="donation-body">
-        <div class="tip text-center">Tell me when you add that you are from the blog</div>
-        <ul>
-        
-          <li class="item">
-            
-            <img src="/images/WechatIMG5.jpeg" alt="">
-          </li>
-        
-        </ul>
-      </div>
-    </div>
-  </div>
-
-
-   
-  <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2018/10/18/Tomcat-生产环境应用/">
-        <i class="icon icon-angle-left"></i>
-    </a>
-    <a class="show pull-right" href="/2018/10/23/JVM指令集/">
-        <i class="icon icon-angle-right"></i>
-    </a>
-  </div>
-
-
-
-
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
-
-
-  <div class="modal" id="modal">
-  <span id="cover" class="cover hide"></span>
-  <div id="modal-dialog" class="modal-dialog hide-dialog">
-    <div class="modal-header">
-      <span id="close" class="btn-close">关闭</span>
-    </div>
-    <hr>
-    <div class="modal-body">
-      <ul class="list-toolbox">
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/archives/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              博客
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/categories/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              分类
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/tag/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              标签
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/link/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              友链
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/about/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              关于
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/atom.xml"
-              rel="noopener noreferrer"
-              target="_blank"
-              >
-              RSS
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/search/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              搜索
-            </a>
-          </li>
-        
-      </ul>
-
-    </div>
-  </div>
-</div>
-
-
-
-  
-      <div class="fexo-comments comments-post">
-    
-
-    
-
-    
-    
-
-    
-
-    
-    
-
-    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
-    <div id="comment" class="vcomment" ></div>
-    <script>
-        var notify = 'false' == true ? true : false;
-        var verify = 'false' == true ? true : false;
-        var GUEST_INFO = ['nick','mail','link'];
-        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
-            return GUEST_INFO.indexOf(item) > -1
-        });
-        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
-        window.valine = new Valine({
-            el: '.vcomment',
-            notify: notify,
-            verify: verify,
-            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
-            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
-            avatar:'mm',
-            placeholder: "Talk to me ^_^",
-            guest_info:guest_info,
-            pageSize:'10'
-        });
-    </script>
-  
-    
-
-  </div>
-
-  
-
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
-
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
-    }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
-    });
-  }
-</script>
-
-</body>
-</html>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">MurasakiSeiFu.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://ilovenorth.life/2018/10/22/深入理解Java虚拟机/">http://ilovenorth.life/2018/10/22/深入理解Java虚拟机/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-button button--primary button--animated"> <i class="fa fa-qrcode"></i> Donate<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/wechat.jpg" alt="微信"><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/alipay.jpg" alt="支付寶"><div class="post-qr-code__desc">支付寶</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="prev-post pull_left"><a href="/2018/10/23/JVM指令集/"><img class="prev_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Previous Post</div><div class="prev_info"><span>JVM指令集</span></div></a></div><div class="next-post pull_right"><a href="/2018/10/18/Tomcat-生产环境应用/"><img class="next_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Next Post</div><div class="next_info"><span>Tomcat 生产环境应用</span></div></a></div></nav></div></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2020 By MurasakiSeiFu.</div><div class="framework-info"><span>Driven </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>Theme </span><a href="https://github.com/jerryc127/hexo-theme-butterfly"><span>Butterfly</span></a></div></div></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><i class="fa fa-book" id="readmode" title="Read Mode"></i><i class="fa fa-plus" id="font_plus" title="Increase font size"></i><i class="fa fa-minus" id="font_minus" title="Decrease font size"></i><a class="translate_chn_to_cht" id="translateLink" href="javascript:translatePage();" title="Traditional Chinese and Simplified Chinese Conversion" target="_self">繁</a><i class="darkmode fa fa-moon-o" id="darkmode" title="Dark Mode"></i></div><div id="rightside-config-show"><div id="rightside_config" title="Setting"><i class="fa fa-cog" aria-hidden="true"></i></div><i class="fa fa-list-ul close" id="mobile-toc-button" title="Table of Contents" aria-hidden="true"></i><i class="fa fa-arrow-up" id="go-up" title="Back to top" aria-hidden="true"></i></div></section><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@latest/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/lazysizes@latest/lazysizes.min.js" async></script></body></html>

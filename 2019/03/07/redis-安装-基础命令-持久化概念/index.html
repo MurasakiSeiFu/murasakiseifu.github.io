@@ -1,276 +1,98 @@
-<!DOCTYPE html>
+<!DOCTYPE html><html lang="default" data-theme="light"><head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5"><title>redis 安装&amp;基础命令&amp;持久化概念 | MurasakiSeiFu</title><meta name="description" content="redis 安装&amp;基础命令&amp;持久化概念"><meta name="author" content="MurasakiSeiFu."><meta name="copyright" content="MurasakiSeiFu."><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="https://fonts.googleapis.com" crossorigin=""><link rel="preconnect" href="//busuanzi.ibruce.info"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="redis 安装&amp;基础命令&amp;持久化概念"><meta name="twitter:description" content="redis 安装&amp;基础命令&amp;持久化概念"><meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png"><meta property="og:type" content="article"><meta property="og:title" content="redis 安装&amp;基础命令&amp;持久化概念"><meta property="og:url" content="http://ilovenorth.life/2019/03/07/redis-安装-基础命令-持久化概念/"><meta property="og:site_name" content="MurasakiSeiFu"><meta property="og:description" content="redis 安装&amp;基础命令&amp;持久化概念"><meta property="og:image" content="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><script src="https://cdn.jsdelivr.net/npm/js-cookie/dist/js.cookie.min.js"></script><script>const autoChangeMode = 'false'
+var t = Cookies.get("theme");
+if (autoChangeMode == '1'){
+const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
+const isLightMode = window.matchMedia("(prefers-color-scheme: light)").matches
+const isNotSpecified = window.matchMedia("(prefers-color-scheme: no-preference)").matches
+const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+if (t === undefined){
+  if (isLightMode) activateLightMode()
+  else if (isDarkMode) activateDarkMode()
+  else if (isNotSpecified || hasNoSupport){
+    console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+    now = new Date();
+    hour = now.getHours();
+    isNight = hour < 6 || hour >= 18
+    isNight ? activateDarkMode() : activateLightMode()
+}
+} else if (t == 'light') activateLightMode()
+else activateDarkMode()
 
 
-  <html class="dark page-post">
+} else if (autoChangeMode == '2'){
+  now = new Date();
+  hour = now.getHours();
+  isNight = hour < 6 || hour >= 18
+  if(t === undefined) isNight? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode() 
+} else {
+  if ( t == 'dark' ) activateDarkMode()
+  else if ( t == 'light') activateLightMode()
+}
 
-
-<head>
-  <meta charset="utf-8">
-  <meta name="referrer" content="no-referrer" />
+function activateDarkMode(){
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#000')
+  }
+}
+function activateLightMode(){
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+  document.querySelector('meta[name="theme-color"]').setAttribute('content','#fff')
+  }
+}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="canonical" href="http://ilovenorth.life/2019/03/07/redis-安装-基础命令-持久化概念/"><link rel="prev" title="redis 高可用集群搭建" href="http://ilovenorth.life/2019/03/12/redis-高可用集群搭建/"><link rel="next" title="zookeeper java-api 介绍" href="http://ilovenorth.life/2019/03/04/zookeeper-java-api-介绍/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"cookieDomain":"https://xxx/","msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  bookmark: {
+    title: 'Snackbar.bookmark.title',
+    message_prev: 'Press',
+    message_next: 'to bookmark this page'
+  },
+  runtime_unit: 'days',
+  runtime: true,
+  copyright: undefined,
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  baiduPush: false,
+  isHome: false,
+  isPost: true
   
-  <title>redis 安装&amp;基础命令&amp;持久化概念 | MurasakiSeiFu</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-  
-    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
-  
-
-  <meta name="description" content="redis 安装&amp;amp;基础命令安装目前，redis官网的最新版本为5.0，在官网下也有着简单的安装命令。  下载redis安装包，然后解压编译。 1234$ wget http://download.redis.io/releases/redis-5.0.2.tar.gz$ tar xzf redis-5.0.2.tar.gz$ cd redis-5.0.2$ make 编译异常解决1.执">
-<meta property="og:type" content="article">
-<meta property="og:title" content="redis 安装&amp;基础命令&amp;持久化概念">
-<meta property="og:url" content="http://ilovenorth.life/2019/03/07/redis-安装-基础命令-持久化概念/index.html">
-<meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="redis 安装&amp;amp;基础命令安装目前，redis官网的最新版本为5.0，在官网下也有着简单的安装命令。  下载redis安装包，然后解压编译。 1234$ wget http://download.redis.io/releases/redis-5.0.2.tar.gz$ tar xzf redis-5.0.2.tar.gz$ cd redis-5.0.2$ make 编译异常解决1.执">
-<meta property="og:locale" content="default">
-<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tKfTcly1g0queg5314j31370u0thk.jpg">
-<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tKfTcly1g0rovtq9iwj30qc0f60vs.jpg">
-<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tKfTcly1g0u9zsb4elj31ce0powhx.jpg">
-<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g0ub6ljp1sj30bj073dr2.jpg">
-<meta property="og:updated_time" content="2019-04-29T01:57:10.740Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="redis 安装&amp;基础命令&amp;持久化概念">
-<meta name="twitter:description" content="redis 安装&amp;amp;基础命令安装目前，redis官网的最新版本为5.0，在官网下也有着简单的安装命令。  下载redis安装包，然后解压编译。 1234$ wget http://download.redis.io/releases/redis-5.0.2.tar.gz$ tar xzf redis-5.0.2.tar.gz$ cd redis-5.0.2$ make 编译异常解决1.执">
-<meta name="twitter:image" content="https://ws1.sinaimg.cn/large/006tKfTcly1g0queg5314j31370u0thk.jpg">
-
-  
-
-  
-    <link rel="icon" href="/images/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
-
-
-  
-    <link rel="stylesheet" href="/css/personal-style.css">
-  
-
-  
-<!-- Google Analytics -->
-<script type="text/javascript">
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-ga('create', 'UA-86660611-1', 'auto');
-ga('send', 'pageview');
-
-</script>
-<!-- End Google Analytics -->
-
-
-  
-  <script type="text/javascript">
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
-
-
-  
-  <script type="text/javascript">
-	(function(){
-	    var bp = document.createElement('script');
-	    var curProtocol = window.location.protocol.split(':')[0];
-	    if (curProtocol === 'https') {
-	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-	    }
-	    else {
-	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-	    }
-	    var s = document.getElementsByTagName("script")[0];
-	    s.parentNode.insertBefore(bp, s);
-	})();
-  </script>
-
-
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-</head>
-
-<body>
-
-
-  
-    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
-  
-
-  <div class="post-header CENTER">
-   
-  <div class="toolbox">
-    <a class="toolbox-entry" href="/">
-      <span class="toolbox-entry-text">🍆</span>
-      <i class="icon-angle-down"></i>
-      <i class="icon-home"></i>
-    </a>
-    <ul class="list-toolbox">
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/archives/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            博客
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/categories/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            分类
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/tag/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            标签
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/link/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            友链
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/about/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            关于
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/atom.xml"
-            rel="noopener noreferrer"
-            target="_blank"
-            >
-            RSS
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/search/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            搜索
-          </a>
-        </li>
-      
-    </ul>
-  </div>
-
-
-</div>
-
-
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#redis-安装-amp-基础命令"><span class="toc-text">redis 安装&amp;基础命令</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装"><span class="toc-text">安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#编译异常解决"><span class="toc-text">编译异常解决</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动"><span class="toc-text">启动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基础命令"><span class="toc-text">基础命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#核心原理"><span class="toc-text">核心原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis的单线程与高性能"><span class="toc-text">Redis的单线程与高性能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持久化"><span class="toc-text">持久化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB快照（snapshot）"><span class="toc-text">RDB快照（snapshot）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB快照原理"><span class="toc-text">RDB快照原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#AOF持久化"><span class="toc-text">AOF持久化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB-和-AOF-，我应该用哪一个？"><span class="toc-text">RDB 和 AOF ，我应该用哪一个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis-4-0-混合持久化"><span class="toc-text">Redis 4.0 混合持久化</span></a></li></ol></li></ol></li></ol>
-  </div>
-
-
-
-<div class="content content-post CENTER">
-   <article id="post-redis-安装-基础命令-持久化概念" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">redis 安装&amp;基础命令&amp;持久化概念</h1>
-
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2019.03.07</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>MurasakiSeiFu.</span>
-        </span>
-      
-
-      
-  <span class="article-category">
-    <i class="icon-list"></i>
-    <a class="article-category-link" href="/categories/分布式专题/">分布式专题</a>
-  </span>
-
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
-    
-      <meta name="referrer" content="no-referrer">
+}</script></head><body><header> <div id="page-header"><span class="pull_left" id="blog_name"><a class="blog_title" id="site-name" href="/">MurasakiSeiFu</a></span><span class="toggle-menu pull_right close"><a class="site-page"><i class="fa fa-bars fa-fw" aria-hidden="true"></i></a></span><span class="pull_right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> List</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> Music</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> Movie</span></a></li></ul></div></div></span></div></header><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">Articles</div><div class="length_num">49</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">Tags</div><div class="length_num">1</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">Categories</div><div class="length_num">11</div></a></div></div></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> List</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> Music</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> Movie</span></a></li></ul></div></div></div><div id="mobile-sidebar-toc"><div class="toc_mobile_headline">Catalog</div><div class="sidebar-toc__content"><ol class="toc_mobile_items"><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#redis-安装-amp-基础命令"><span class="toc_mobile_items-number">1.</span> <span class="toc_mobile_items-text">redis 安装&amp;基础命令</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#安装"><span class="toc_mobile_items-number">1.1.</span> <span class="toc_mobile_items-text">安装</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#编译异常解决"><span class="toc_mobile_items-number">1.1.1.</span> <span class="toc_mobile_items-text">编译异常解决</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#启动"><span class="toc_mobile_items-number">1.1.2.</span> <span class="toc_mobile_items-text">启动</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#基础命令"><span class="toc_mobile_items-number">1.2.</span> <span class="toc_mobile_items-text">基础命令</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#核心原理"><span class="toc_mobile_items-number">1.3.</span> <span class="toc_mobile_items-text">核心原理</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#Redis的单线程与高性能"><span class="toc_mobile_items-number">1.3.1.</span> <span class="toc_mobile_items-text">Redis的单线程与高性能</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#持久化"><span class="toc_mobile_items-number">1.4.</span> <span class="toc_mobile_items-text">持久化</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#RDB快照（snapshot）"><span class="toc_mobile_items-number">1.4.1.</span> <span class="toc_mobile_items-text">RDB快照（snapshot）</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#RDB快照原理"><span class="toc_mobile_items-number">1.4.2.</span> <span class="toc_mobile_items-text">RDB快照原理</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#AOF持久化"><span class="toc_mobile_items-number">1.4.3.</span> <span class="toc_mobile_items-text">AOF持久化</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#RDB-和-AOF-，我应该用哪一个？"><span class="toc_mobile_items-number">1.4.4.</span> <span class="toc_mobile_items-text">RDB 和 AOF ，我应该用哪一个？</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#Redis-4-0-混合持久化"><span class="toc_mobile_items-number">1.4.5.</span> <span class="toc_mobile_items-text">Redis 4.0 混合持久化</span></a></li></ol></li></ol></li></ol></div></div></div><div id="body-wrap"><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true">     </i><div class="auto_open" id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#redis-安装-amp-基础命令"><span class="toc-number">1.</span> <span class="toc-text">redis 安装&amp;基础命令</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装"><span class="toc-number">1.1.</span> <span class="toc-text">安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#编译异常解决"><span class="toc-number">1.1.1.</span> <span class="toc-text">编译异常解决</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动"><span class="toc-number">1.1.2.</span> <span class="toc-text">启动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基础命令"><span class="toc-number">1.2.</span> <span class="toc-text">基础命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#核心原理"><span class="toc-number">1.3.</span> <span class="toc-text">核心原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis的单线程与高性能"><span class="toc-number">1.3.1.</span> <span class="toc-text">Redis的单线程与高性能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持久化"><span class="toc-number">1.4.</span> <span class="toc-text">持久化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB快照（snapshot）"><span class="toc-number">1.4.1.</span> <span class="toc-text">RDB快照（snapshot）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB快照原理"><span class="toc-number">1.4.2.</span> <span class="toc-text">RDB快照原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#AOF持久化"><span class="toc-number">1.4.3.</span> <span class="toc-text">AOF持久化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB-和-AOF-，我应该用哪一个？"><span class="toc-number">1.4.4.</span> <span class="toc-text">RDB 和 AOF ，我应该用哪一个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis-4-0-混合持久化"><span class="toc-number">1.4.5.</span> <span class="toc-text">Redis 4.0 混合持久化</span></a></li></ol></li></ol></li></ol></div></div></div><main id="content-outer"><div id="top-container" style="background-image: url(https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png)"><div id="post-info"><div id="post-title"><div class="posttitle">redis 安装&amp;基础命令&amp;持久化概念</div></div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar fa-fw" aria-hidden="true"></i> Created 2019-03-07<span class="post-meta__separator">|</span><i class="fa fa-history fa-fw" aria-hidden="true"></i> Updated 2019-04-29</time><span class="post-meta__separator">|</span><span><i class="fa fa-inbox post-meta__icon fa-fw" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/分布式专题/">分布式专题</a></span><div class="post-meta-wordcount"><div class="post-meta-pv-cv"><span><i class="fa fa-eye post-meta__icon fa-fw" aria-hidden="true"> </i>Post View:</span><span id="busuanzi_value_page_pv"></span></div></div></div></div></div><div class="layout layout_post" id="content-inner">   <article id="post"><div class="article-container" id="post-content"><meta name="referrer" content="no-referrer">
 
 <h1 id="redis-安装-amp-基础命令"><a href="#redis-安装-amp-基础命令" class="headerlink" title="redis 安装&amp;基础命令"></a>redis 安装&amp;基础命令</h1><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>目前，redis官网的最新版本为5.0，在官网下也有着简单的安装命令。</p>
-<p><img src="https://ws1.sinaimg.cn/large/006tKfTcly1g0queg5314j31370u0thk.jpg" alt=""></p>
+<p><a href="https://ws1.sinaimg.cn/large/006tKfTcly1g0queg5314j31370u0thk.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws1.sinaimg.cn/large/006tKfTcly1g0queg5314j31370u0thk.jpg" alt="" title=""></a></p>
 <p>下载redis安装包，然后解压编译。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://download.redis.io/releases/redis-5.0.2.tar.gz</span><br><span class="line">$ tar xzf redis-5.0.2.tar.gz</span><br><span class="line">$ cd redis-5.0.2</span><br><span class="line">$ make</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://download.redis.io/releases/redis-5.0.2.tar.gz</span><br><span class="line">$ tar xzf redis-5.0.2.tar.gz</span><br><span class="line">$ cd redis-5.0.2</span><br><span class="line">$ make</span><br></pre></td></tr></table></figure></div>
 <h3 id="编译异常解决"><a href="#编译异常解决" class="headerlink" title="编译异常解决"></a>编译异常解决</h3><p>1.执行make之后</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bin/sh: cc: command not found</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bin/sh: cc: command not found</span><br></pre></td></tr></table></figure></div>
 <p>这是由于系统没有安装gcc环境，因此在进行编译时才会出现上面提示，当安装好gcc后再进行编译时，上面错误提示将消失。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install gcc</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install gcc</span><br></pre></td></tr></table></figure></div>
 <p>2.make之后</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">zmalloc.h:50:31: error: jemalloc/jemalloc.h: No such file or directory</span><br><span class="line">zmalloc.h:55:2: error: #error &quot;Newer version of jemalloc required&quot;</span><br><span class="line">make[1]: *** [adlist.o] Error 1</span><br><span class="line">make[1]: Leaving directory `/data0/src/redis-2.6.2/src&apos;</span><br><span class="line">make: *** [all] Error 2</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">zmalloc.h:50:31: error: jemalloc/jemalloc.h: No such file or directory</span><br><span class="line">zmalloc.h:55:2: error: #error &quot;Newer version of jemalloc required&quot;</span><br><span class="line">make[1]: *** [adlist.o] Error 1</span><br><span class="line">make[1]: Leaving directory `/data0/src/redis-2.6.2/src&apos;</span><br><span class="line">make: *** [all] Error 2</span><br></pre></td></tr></table></figure></div>
 <p>原因是jemalloc重载了Linux下的ANSI C的malloc和free函数。解决办法：make时添加参数。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make MALLOC=libc</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make MALLOC=libc</span><br></pre></td></tr></table></figure></div>
 <p>3.make之后，会出现一句提示</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hint: To run &apos;make test&apos; is a good idea ;)</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hint: To run &apos;make test&apos; is a good idea ;)</span><br></pre></td></tr></table></figure></div>
 <p>但是不测试，通常是可以使用的。若我们运行make test ，会有如下提示</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[devnote@devnote src]$ make test</span><br><span class="line">You need tcl 8.5 or newer in order to run the Redis test</span><br><span class="line">make: ***[test] Error_1</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[devnote@devnote src]$ make test</span><br><span class="line">You need tcl 8.5 or newer in order to run the Redis test</span><br><span class="line">make: ***[test] Error_1</span><br></pre></td></tr></table></figure></div>
 <p>解决办法是用yum安装tcl8.5（或去tcl的官方网站<a href="http://www.tcl.tk/下载8.5版本，并参考官网介绍进行安装）" target="_blank" rel="noopener">http://www.tcl.tk/下载8.5版本，并参考官网介绍进行安装）</a></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install tcl</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install tcl</span><br></pre></td></tr></table></figure></div>
 <h3 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h3><p>进入src文件夹，执行redis-server即可启动</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ./src/redis-server</span></span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ./src/redis-server</span></span><br></pre></td></tr></table></figure></div>
 <p>如若后台启动，则修改配置文件，把daemo改为yes。然后在启动的时候指定配置文件</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vi redis.conf</span></span><br><span class="line">daemonize yes</span><br><span class="line"><span class="meta">$</span><span class="bash"> ./src/redis-server redis.conf</span></span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vi redis.conf</span></span><br><span class="line">daemonize yes</span><br><span class="line"><span class="meta">$</span><span class="bash"> ./src/redis-server redis.conf</span></span><br></pre></td></tr></table></figure></div>
 <h2 id="基础命令"><a href="#基础命令" class="headerlink" title="基础命令"></a>基础命令</h2><h2 id="核心原理"><a href="#核心原理" class="headerlink" title="核心原理"></a>核心原理</h2><h3 id="Redis的单线程与高性能"><a href="#Redis的单线程与高性能" class="headerlink" title="Redis的单线程与高性能"></a>Redis的单线程与高性能</h3><p><strong>Redis单线程为什么还能这么快？</strong>    </p>
 <p>因为它所有的数据都在内存中，所有的运算都是内存级别的运算，而且单线程避免了多线程的切换性能损耗问题。正因为 Redis 是单线程，所以要小心使用 Redis 指令，对于那些耗时的指令(比如keys)，一定要谨慎使用，一不小心就可能会导致 Redis 卡顿。</p>
 <p>阿里 沈询 ：<strong>“redis 核心就是 如果我的数据全都在内存里，我单线程的去操作 就是效率最高的，为什么呢，因为多线程的本质就是 CPU 模拟出来多个线程的情况，这种模拟出来的情况就有一个代价，就是上下文的切换，对于一个内存的系统来说，它没有上下文的切换就是效率最高的。redis 用 单个CPU 绑定一块内存的数据，然后针对这块内存的数据进行多次读写的时候，都是在一个CPU上完成的，所以它是单线程处理这个事。在内存的情况下，这个方案就是最佳方案”</strong></p>
@@ -287,13 +109,13 @@ ga('send', 'pageview');
 <li><p>使用多路I/O复用模型，非阻塞IO；(接下来就简单了解一下IO多路复用)</p>
 </li>
 </ol>
-<p><strong>Redis 单线程如何处理那么多的并发客户端连接？</strong><br>Redis的IO多路复用：redis利用epoll来实现IO多路复用，将连接信息和事件放到队列中，依次放到文件事件分派器，事件分派器将事件分发给事件处理器。<br>Nginx也是采用IO多路复用原理解决C10K问题。<br><img src="https://ws3.sinaimg.cn/large/006tKfTcly1g0rovtq9iwj30qc0f60vs.jpg" alt=""></p>
+<p><strong>Redis 单线程如何处理那么多的并发客户端连接？</strong><br>Redis的IO多路复用：redis利用epoll来实现IO多路复用，将连接信息和事件放到队列中，依次放到文件事件分派器，事件分派器将事件分发给事件处理器。<br>Nginx也是采用IO多路复用原理解决C10K问题。<br><a href="https://ws3.sinaimg.cn/large/006tKfTcly1g0rovtq9iwj30qc0f60vs.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws3.sinaimg.cn/large/006tKfTcly1g0rovtq9iwj30qc0f60vs.jpg" alt="" title=""></a></p>
 <h2 id="持久化"><a href="#持久化" class="headerlink" title="持久化"></a>持久化</h2><h3 id="RDB快照（snapshot）"><a href="#RDB快照（snapshot）" class="headerlink" title="RDB快照（snapshot）"></a>RDB快照（snapshot）</h3><p>在默认情况下， Redis 将内存数据库快照保存在名字为 dump.rdb 的二进制文件中。</p>
 <p>你可以对 Redis 进行设置， 让它在“ N 秒内数据集至少有 M 个改动”这一条件被满足时， 自动保存一次数据集。    </p>
 <p>比如说， 以下设置会让 Redis 在满足“ 60 秒内有至少有 1000 个键被改动”这一条件时， 自动保存一次数据集：    </p>
 <pre><code>save 60 1000
 </code></pre><p>在redis的配置文件redis.conf中也是明确写了，注释写的很清晰，简单翻译一下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line">################################ SNAPSHOTTING  ################################</span><br><span class="line">#</span><br><span class="line"># Save the DB on disk: 将数据存储到磁盘</span><br><span class="line">#</span><br><span class="line">#   save &lt;seconds&gt; &lt;changes&gt;</span><br><span class="line">#</span><br><span class="line">#   Will save the DB if both the given number of seconds and the given</span><br><span class="line">#   number of write operations against the DB occurred.</span><br><span class="line">#</span><br><span class="line">#   In the example below the behaviour will be to save:</span><br><span class="line">#   默认是一下三种情况会进行存储</span><br><span class="line">#   1.每900秒内数据集至少有1次变动</span><br><span class="line">#   after 900 sec (15 min) if at least 1 key changed</span><br><span class="line">#   2.每300秒内数据集至少有10次变动</span><br><span class="line">#   after 300 sec (5 min) if at least 10 keys changed</span><br><span class="line">#   3.每60秒内至少有10000次变动</span><br><span class="line">#   after 60 sec if at least 10000 keys changed</span><br><span class="line">#</span><br><span class="line">#   Note: you can disable saving completely by commenting out all &quot;save&quot; lines.</span><br><span class="line">#</span><br><span class="line">#   It is also possible to remove all the previously configured save</span><br><span class="line">#   points by adding a save directive with a single empty string argument</span><br><span class="line">#   like in the following example:</span><br><span class="line">#</span><br><span class="line">#   save &quot;&quot;</span><br><span class="line"></span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line"></span><br><span class="line"># By default Redis will stop accepting writes if RDB snapshots are enabled</span><br><span class="line"># (at least one save point) and the latest background save failed.</span><br><span class="line"># This will make the user aware (in a hard way) that data is not persisting</span><br><span class="line"># on disk properly, otherwise chances are that no one will notice and some</span><br><span class="line"># disaster will happen.</span><br><span class="line">默认情况下，如果启用了RDB快照（至少一个保存点）并且最新的后台保存失败，Redis将停止接受写入。 </span><br><span class="line">这将使用户意识到（以一种困难的方式）数据不能正确地保存在磁盘上，</span><br><span class="line">否则很可能没有人会注意到，并且会发生一些灾难。</span><br><span class="line">#</span><br><span class="line"># If the background saving process will start working again Redis will</span><br><span class="line"># automatically allow writes again.</span><br><span class="line">如果后台保存过程再次开始工作，Redis将自动再次允许写入。</span><br><span class="line">#</span><br><span class="line"># However if you have setup your proper monitoring of the Redis server</span><br><span class="line"># and persistence, you may want to disable this feature so that Redis will</span><br><span class="line"># continue to work as usual even if there are problems with disk,</span><br><span class="line"># permissions, and so forth.</span><br><span class="line">但是，如果您已设置对Redis服务器和持久性的正确监视，则可能需要禁用此功能，以便即使磁盘，</span><br><span class="line">权限等存在问题，Redis也将继续正常工作。</span><br><span class="line"></span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># Compress string objects using LZF when dump .rdb databases?</span><br><span class="line"># For default that&apos;s set to &apos;yes&apos; as it&apos;s almost always a win.</span><br><span class="line"># If you want to save some CPU in the saving child set it to &apos;no&apos; but</span><br><span class="line"># the dataset will likely be bigger if you have compressible values or keys.</span><br><span class="line">rdbcompression yes</span><br><span class="line"></span><br><span class="line"># Since version 5 of RDB a CRC64 checksum is placed at the end of the file.</span><br><span class="line"># This makes the format more resistant to corruption but there is a performance</span><br><span class="line"># hit to pay (around 10%) when saving and loading RDB files, so you can disable it</span><br><span class="line"># for maximum performances.</span><br><span class="line">从RDB的第5版开始，CRC64校验和被放置在文件的末尾。这使得格式更能抵抗损坏，但是在保存和加载RDB文件时需要支付性能（大约10％），因此你可以禁用它为了最大的性能。</span><br><span class="line">#</span><br><span class="line"># RDB files created with checksum disabled have a checksum of zero that will</span><br><span class="line"># tell the loading code to skip the check.</span><br><span class="line">禁用校验和创建的RDB文件的校验，这意味着将会跳过检查。</span><br><span class="line">rdbchecksum yes</span><br><span class="line"></span><br><span class="line"># The filename where to dump the DB</span><br><span class="line">转储数据库的文件名</span><br><span class="line">dbfilename dump.rdb</span><br><span class="line"></span><br><span class="line"># The working directory.</span><br><span class="line">#</span><br><span class="line"># The DB will be written inside this directory, with the filename specified</span><br><span class="line"># above using the &apos;dbfilename&apos; configuration directive.</span><br><span class="line">#</span><br><span class="line"># The Append Only File will also be created inside this directory.</span><br><span class="line">#</span><br><span class="line"># Note that you must specify a directory here, not a file name.</span><br><span class="line">转储数据库的文件地址</span><br><span class="line">dir ./</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line">################################ SNAPSHOTTING  ################################</span><br><span class="line">#</span><br><span class="line"># Save the DB on disk: 将数据存储到磁盘</span><br><span class="line">#</span><br><span class="line">#   save &lt;seconds&gt; &lt;changes&gt;</span><br><span class="line">#</span><br><span class="line">#   Will save the DB if both the given number of seconds and the given</span><br><span class="line">#   number of write operations against the DB occurred.</span><br><span class="line">#</span><br><span class="line">#   In the example below the behaviour will be to save:</span><br><span class="line">#   默认是一下三种情况会进行存储</span><br><span class="line">#   1.每900秒内数据集至少有1次变动</span><br><span class="line">#   after 900 sec (15 min) if at least 1 key changed</span><br><span class="line">#   2.每300秒内数据集至少有10次变动</span><br><span class="line">#   after 300 sec (5 min) if at least 10 keys changed</span><br><span class="line">#   3.每60秒内至少有10000次变动</span><br><span class="line">#   after 60 sec if at least 10000 keys changed</span><br><span class="line">#</span><br><span class="line">#   Note: you can disable saving completely by commenting out all &quot;save&quot; lines.</span><br><span class="line">#</span><br><span class="line">#   It is also possible to remove all the previously configured save</span><br><span class="line">#   points by adding a save directive with a single empty string argument</span><br><span class="line">#   like in the following example:</span><br><span class="line">#</span><br><span class="line">#   save &quot;&quot;</span><br><span class="line"></span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line"></span><br><span class="line"># By default Redis will stop accepting writes if RDB snapshots are enabled</span><br><span class="line"># (at least one save point) and the latest background save failed.</span><br><span class="line"># This will make the user aware (in a hard way) that data is not persisting</span><br><span class="line"># on disk properly, otherwise chances are that no one will notice and some</span><br><span class="line"># disaster will happen.</span><br><span class="line">默认情况下，如果启用了RDB快照（至少一个保存点）并且最新的后台保存失败，Redis将停止接受写入。 </span><br><span class="line">这将使用户意识到（以一种困难的方式）数据不能正确地保存在磁盘上，</span><br><span class="line">否则很可能没有人会注意到，并且会发生一些灾难。</span><br><span class="line">#</span><br><span class="line"># If the background saving process will start working again Redis will</span><br><span class="line"># automatically allow writes again.</span><br><span class="line">如果后台保存过程再次开始工作，Redis将自动再次允许写入。</span><br><span class="line">#</span><br><span class="line"># However if you have setup your proper monitoring of the Redis server</span><br><span class="line"># and persistence, you may want to disable this feature so that Redis will</span><br><span class="line"># continue to work as usual even if there are problems with disk,</span><br><span class="line"># permissions, and so forth.</span><br><span class="line">但是，如果您已设置对Redis服务器和持久性的正确监视，则可能需要禁用此功能，以便即使磁盘，</span><br><span class="line">权限等存在问题，Redis也将继续正常工作。</span><br><span class="line"></span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># Compress string objects using LZF when dump .rdb databases?</span><br><span class="line"># For default that&apos;s set to &apos;yes&apos; as it&apos;s almost always a win.</span><br><span class="line"># If you want to save some CPU in the saving child set it to &apos;no&apos; but</span><br><span class="line"># the dataset will likely be bigger if you have compressible values or keys.</span><br><span class="line">rdbcompression yes</span><br><span class="line"></span><br><span class="line"># Since version 5 of RDB a CRC64 checksum is placed at the end of the file.</span><br><span class="line"># This makes the format more resistant to corruption but there is a performance</span><br><span class="line"># hit to pay (around 10%) when saving and loading RDB files, so you can disable it</span><br><span class="line"># for maximum performances.</span><br><span class="line">从RDB的第5版开始，CRC64校验和被放置在文件的末尾。这使得格式更能抵抗损坏，但是在保存和加载RDB文件时需要支付性能（大约10％），因此你可以禁用它为了最大的性能。</span><br><span class="line">#</span><br><span class="line"># RDB files created with checksum disabled have a checksum of zero that will</span><br><span class="line"># tell the loading code to skip the check.</span><br><span class="line">禁用校验和创建的RDB文件的校验，这意味着将会跳过检查。</span><br><span class="line">rdbchecksum yes</span><br><span class="line"></span><br><span class="line"># The filename where to dump the DB</span><br><span class="line">转储数据库的文件名</span><br><span class="line">dbfilename dump.rdb</span><br><span class="line"></span><br><span class="line"># The working directory.</span><br><span class="line">#</span><br><span class="line"># The DB will be written inside this directory, with the filename specified</span><br><span class="line"># above using the &apos;dbfilename&apos; configuration directive.</span><br><span class="line">#</span><br><span class="line"># The Append Only File will also be created inside this directory.</span><br><span class="line">#</span><br><span class="line"># Note that you must specify a directory here, not a file name.</span><br><span class="line">转储数据库的文件地址</span><br><span class="line">dir ./</span><br></pre></td></tr></table></figure></div>
 <h3 id="RDB快照原理"><a href="#RDB快照原理" class="headerlink" title="RDB快照原理"></a>RDB快照原理</h3><p>理清Redis实现快照的过程对我们了解快照文件的特性有很大的帮助。Redis会默认将快照文件存储在Redis当前进程的工作目录中的dump.rdb文件中。<br>快照过程如下：</p>
 <ol>
 <li>Redis使用fork函数复制一份当前进程（父进程）的副本（子进程）。</li>
@@ -301,7 +123,7 @@ ga('send', 'pageview');
 <li>当子进程写入完所有数据后会用该临时文件替换旧的RDB文件，至此一次快照操作完成。</li>
 </ol>
 <p>通过上述过程可以发现Redis在进行快照的过程中不会修改RDB文件，只有快照结束后才会将旧的文件替换成新的，也就是说任何时候RDB文件都是完整的。这使得我们可以通过定时备份RDB文件来实现Redis数据库备份。RDB文件时经过压缩（可以配置rdbcompression参数以及禁用压缩节省CPU占用）的二进制格式，所以占用的空间会小于内存中的数据大小，更加利于传输。</p>
-<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1g0u9zsb4elj31ce0powhx.jpg" alt=""></p>
+<p><a href="https://ws3.sinaimg.cn/large/006tKfTcly1g0u9zsb4elj31ce0powhx.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws3.sinaimg.cn/large/006tKfTcly1g0u9zsb4elj31ce0powhx.jpg" alt="" title=""></a></p>
 <p>通过RDB的方式实现持久化，一旦Redis异常退出，就会丢失最后一次快照以后更改的所有数据（如上图所示）。如果对于数据会丢失最近的几十个键没有影响，可以这样使用，但是如果数据相对重要，则可以使用AOF方式进行持久化。</p>
 <h3 id="AOF持久化"><a href="#AOF持久化" class="headerlink" title="AOF持久化"></a>AOF持久化</h3><p>AOF（append-only file）<br>快照功能并不是非常耐久（durable）： 如果 Redis 因为某些原因而造成故障停机， 那么服务器将丢失最近写入、且仍未保存到快照中的那些数据。从 1.1 版本开始， Redis 增加了一种完全耐久的持久化方式： AOF 持久化，将修改的每一条指令记录进文件，也就是我们所说的AOF。    </p>
 <p>你可以通过修改配置文件来打开 AOF 功能：</p>
@@ -316,242 +138,23 @@ ga('send', 'pageview');
 </ol>
 <p>推荐（并且也是默认）的措施为每秒 fsync 一次， 这种 fsync 策略可以兼顾速度和安全性。</p>
 <p>我们可以查看appendonly.aof文件，就会发现里面记录的就是我们执行的命令。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">[root@murasakiseifu redis-5.0.3]# more appendonly.aof </span><br><span class="line">*2</span><br><span class="line">$6</span><br><span class="line">SELECT</span><br><span class="line">$1</span><br><span class="line">0</span><br><span class="line">*3</span><br><span class="line">$3</span><br><span class="line">set</span><br><span class="line">$4</span><br><span class="line">name</span><br><span class="line">$4</span><br><span class="line">6666</span><br><span class="line">*3</span><br><span class="line">$3</span><br><span class="line">set</span><br><span class="line">$4</span><br><span class="line">name</span><br><span class="line">$6</span><br><span class="line">777777</span><br><span class="line">*3</span><br><span class="line">$3</span><br><span class="line">set</span><br><span class="line">$4</span><br><span class="line">name</span><br><span class="line">$5</span><br><span class="line">88888</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">[root@murasakiseifu redis-5.0.3]# more appendonly.aof </span><br><span class="line">*2</span><br><span class="line">$6</span><br><span class="line">SELECT</span><br><span class="line">$1</span><br><span class="line">0</span><br><span class="line">*3</span><br><span class="line">$3</span><br><span class="line">set</span><br><span class="line">$4</span><br><span class="line">name</span><br><span class="line">$4</span><br><span class="line">6666</span><br><span class="line">*3</span><br><span class="line">$3</span><br><span class="line">set</span><br><span class="line">$4</span><br><span class="line">name</span><br><span class="line">$6</span><br><span class="line">777777</span><br><span class="line">*3</span><br><span class="line">$3</span><br><span class="line">set</span><br><span class="line">$4</span><br><span class="line">name</span><br><span class="line">$5</span><br><span class="line">88888</span><br></pre></td></tr></table></figure></div>
 <h3 id="RDB-和-AOF-，我应该用哪一个？"><a href="#RDB-和-AOF-，我应该用哪一个？" class="headerlink" title="RDB 和 AOF ，我应该用哪一个？"></a>RDB 和 AOF ，我应该用哪一个？</h3><p>如果你非常关心你的数据， 但仍然可以承受数分钟以内的数据丢失， 那么你可以只使用 RDB 持久化。<br>有很多用户都只使用 AOF 持久化， 但我们并不推荐这种方式： 因为定时生成 RDB 快照（snapshot）非常便于进行数据库备份， 并且 RDB 恢复数据集的速度也要比 AOF 恢复的速度要快。</p>
 <h3 id="Redis-4-0-混合持久化"><a href="#Redis-4-0-混合持久化" class="headerlink" title="Redis 4.0 混合持久化"></a>Redis 4.0 混合持久化</h3><p>重启 Redis 时，我们很少使用 rdb 来恢复内存状态，因为会丢失大量数据。我们通常使用 AOF 日志重放，但是重放 AOF 日志性能相对 rdb 来说要慢很多，这样在 Redis 实例很大的情况下，启动需要花费很长的时间。 Redis 4.0 为了解决这个问题，带来了一个新的持久化选项——<strong>混合持久化</strong>。<br><strong>再说混合持久化之前，要先说一下AOF重写特性。</strong></p>
 <p>我们做一下自增操作，做10次。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 1</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 2</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 3</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 4</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 5</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 6</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 7</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 8</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 9</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 10</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 1</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 2</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 3</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 4</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 5</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 6</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 7</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 8</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 9</span><br><span class="line">127.0.0.1:6379&gt; incr age</span><br><span class="line">(integer) 10</span><br></pre></td></tr></table></figure></div>
 <p>然后我们查看一下appendonly.aof 文件，会发现有很多重复的命令。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$4</span><br><span class="line">incr</span><br><span class="line">$3</span><br><span class="line">age</span><br></pre></td></tr></table></figure></div>
 <p>当我们重启redis服务时，会根据aof文件来恢复我们的内存数据，假如我们自增了几十万次，然后恢复时就要执行几十万次的命令，这样性能非常低而且很愚蠢。    </p>
 <p>因此AOF重写功能就诞生了。有两种方式，一种是后台起进程自动执行，一种是我们在客户端手动触发。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; bgrewriteaof</span><br><span class="line">Background append only file rewriting started</span><br><span class="line">127.0.0.1:6379&gt;</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; bgrewriteaof</span><br><span class="line">Background append only file rewriting started</span><br><span class="line">127.0.0.1:6379&gt;</span><br></pre></td></tr></table></figure></div>
 <p>然后我们再看一下 appendonly.aof 文件，重写之后，10次自增就变成一个set age 10的命令了。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">set</span><br><span class="line">$10</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$10</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">set</span><br><span class="line">$10</span><br><span class="line">age</span><br><span class="line">*2</span><br><span class="line">$10</span><br></pre></td></tr></table></figure></div>
 <p>同样我们可以在配置文件里开启。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># Automatic rewrite of the append only file.</span><br><span class="line"># Redis is able to automatically rewrite the log file implicitly calling</span><br><span class="line"># BGREWRITEAOF when the AOF log size grows by the specified percentage.</span><br><span class="line">#</span><br><span class="line"># This is how it works: Redis remembers the size of the AOF file after the</span><br><span class="line"># latest rewrite (if no rewrite has happened since the restart, the size of</span><br><span class="line"># the AOF at startup is used).</span><br><span class="line">#</span><br><span class="line"># This base size is compared to the current size. If the current size is</span><br><span class="line"># bigger than the specified percentage, the rewrite is triggered. Also</span><br><span class="line"># you need to specify a minimal size for the AOF file to be rewritten, this</span><br><span class="line"># is useful to avoid rewriting the AOF file even if the percentage increase</span><br><span class="line"># is reached but it is still pretty small.</span><br><span class="line">#</span><br><span class="line"># Specify a percentage of zero in order to disable the automatic AOF</span><br><span class="line"># rewrite feature.</span><br><span class="line"></span><br><span class="line">当aof文件只要容量翻倍就会进行重写</span><br><span class="line">auto-aof-rewrite-percentage 100</span><br><span class="line">当aof文件超过64M才会执行上面的配置</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># Automatic rewrite of the append only file.</span><br><span class="line"># Redis is able to automatically rewrite the log file implicitly calling</span><br><span class="line"># BGREWRITEAOF when the AOF log size grows by the specified percentage.</span><br><span class="line">#</span><br><span class="line"># This is how it works: Redis remembers the size of the AOF file after the</span><br><span class="line"># latest rewrite (if no rewrite has happened since the restart, the size of</span><br><span class="line"># the AOF at startup is used).</span><br><span class="line">#</span><br><span class="line"># This base size is compared to the current size. If the current size is</span><br><span class="line"># bigger than the specified percentage, the rewrite is triggered. Also</span><br><span class="line"># you need to specify a minimal size for the AOF file to be rewritten, this</span><br><span class="line"># is useful to avoid rewriting the AOF file even if the percentage increase</span><br><span class="line"># is reached but it is still pretty small.</span><br><span class="line">#</span><br><span class="line"># Specify a percentage of zero in order to disable the automatic AOF</span><br><span class="line"># rewrite feature.</span><br><span class="line"></span><br><span class="line">当aof文件只要容量翻倍就会进行重写</span><br><span class="line">auto-aof-rewrite-percentage 100</span><br><span class="line">当aof文件超过64M才会执行上面的配置</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br></pre></td></tr></table></figure></div>
 <p><strong>AOF在重写(aof文件里可能有太多没用指令，所以aof会定期根据内存的最新数据生成aof文件)时将重写这一刻之前的内存rdb快照文件的内容和增量的 AOF修改内存数据的命令日志文件存在一起，都写入新的aof文件，新的文件一开始不叫appendonly.aof，等到重写完新的AOF文件才会进行改名，原子的覆盖原有的AOF文件，完成新旧两个AOF文件的替换</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">开启混合持久化：</span><br><span class="line"># aof-use-rdb-preamble yes</span><br></pre></td></tr></table></figure>
+<div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">开启混合持久化：</span><br><span class="line"># aof-use-rdb-preamble yes</span><br></pre></td></tr></table></figure></div>
 <p>混合持久化aof文件结构</p>
-<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g0ub6ljp1sj30bj073dr2.jpg" alt=""></p>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g0ub6ljp1sj30bj073dr2.jpg" data-fancybox="group" data-caption="" class="fancybox"><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g0ub6ljp1sj30bj073dr2.jpg" alt="" title=""></a></p>
 <p>结合之前的RDB快照流程，我们知道在子进程写入文件的时候，父进程依然在接受命令，所以这段时间内依然是有新的数据产生但是没有写到RDB文件里。开启混合持久化，在子进程进行RDB快照文件写入的时间里，会进行AOF重写，把这期间内的数据存放在新的AOF文件，重写完新的AOF文件才会进行改名，原子的覆盖原有的AOF文件，完成新旧两个AOF文件的替换。</p>
-
-    
-  </div>
-
-</article>
-
-
-   
-  <div class="text-center donation">
-    <div class="inner-donation">
-      <span class="btn-donation">Chat with me 🍾</span>
-      <div class="donation-body">
-        <div class="tip text-center">Tell me when you add that you are from the blog</div>
-        <ul>
-        
-          <li class="item">
-            
-            <img src="/images/WechatIMG5.jpeg" alt="">
-          </li>
-        
-        </ul>
-      </div>
-    </div>
-  </div>
-
-
-   
-  <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2019/03/04/zookeeper-java-api-介绍/">
-        <i class="icon icon-angle-left"></i>
-    </a>
-    <a class="show pull-right" href="/2019/03/12/redis-高可用集群搭建/">
-        <i class="icon icon-angle-right"></i>
-    </a>
-  </div>
-
-
-
-
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
-
-
-  <div class="modal" id="modal">
-  <span id="cover" class="cover hide"></span>
-  <div id="modal-dialog" class="modal-dialog hide-dialog">
-    <div class="modal-header">
-      <span id="close" class="btn-close">关闭</span>
-    </div>
-    <hr>
-    <div class="modal-body">
-      <ul class="list-toolbox">
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/archives/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              博客
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/categories/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              分类
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/tag/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              标签
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/link/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              友链
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/about/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              关于
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/atom.xml"
-              rel="noopener noreferrer"
-              target="_blank"
-              >
-              RSS
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/search/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              搜索
-            </a>
-          </li>
-        
-      </ul>
-
-    </div>
-  </div>
-</div>
-
-
-
-  
-      <div class="fexo-comments comments-post">
-    
-
-    
-
-    
-    
-
-    
-
-    
-    
-
-    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
-    <div id="comment" class="vcomment" ></div>
-    <script>
-        var notify = 'false' == true ? true : false;
-        var verify = 'false' == true ? true : false;
-        var GUEST_INFO = ['nick','mail','link'];
-        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
-            return GUEST_INFO.indexOf(item) > -1
-        });
-        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
-        window.valine = new Valine({
-            el: '.vcomment',
-            notify: notify,
-            verify: verify,
-            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
-            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
-            avatar:'mm',
-            placeholder: "Talk to me ^_^",
-            guest_info:guest_info,
-            pageSize:'10'
-        });
-    </script>
-  
-    
-
-  </div>
-
-  
-
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
-
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
-    }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
-    });
-  }
-</script>
-
-</body>
-</html>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">MurasakiSeiFu.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://ilovenorth.life/2019/03/07/redis-安装-基础命令-持久化概念/">http://ilovenorth.life/2019/03/07/redis-安装-基础命令-持久化概念/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-button button--primary button--animated"> <i class="fa fa-qrcode"></i> Donate<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/wechat.jpg" alt="微信"><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/alipay.jpg" alt="支付寶"><div class="post-qr-code__desc">支付寶</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="prev-post pull_left"><a href="/2019/03/12/redis-高可用集群搭建/"><img class="prev_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Previous Post</div><div class="prev_info"><span>redis 高可用集群搭建</span></div></a></div><div class="next-post pull_right"><a href="/2019/03/04/zookeeper-java-api-介绍/"><img class="next_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Next Post</div><div class="next_info"><span>zookeeper java-api 介绍</span></div></a></div></nav></div></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2020 By MurasakiSeiFu.</div><div class="framework-info"><span>Driven </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>Theme </span><a href="https://github.com/jerryc127/hexo-theme-butterfly"><span>Butterfly</span></a></div></div></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><i class="fa fa-book" id="readmode" title="Read Mode"></i><i class="fa fa-plus" id="font_plus" title="Increase font size"></i><i class="fa fa-minus" id="font_minus" title="Decrease font size"></i><a class="translate_chn_to_cht" id="translateLink" href="javascript:translatePage();" title="Traditional Chinese and Simplified Chinese Conversion" target="_self">繁</a><i class="darkmode fa fa-moon-o" id="darkmode" title="Dark Mode"></i></div><div id="rightside-config-show"><div id="rightside_config" title="Setting"><i class="fa fa-cog" aria-hidden="true"></i></div><i class="fa fa-list-ul close" id="mobile-toc-button" title="Table of Contents" aria-hidden="true"></i><i class="fa fa-arrow-up" id="go-up" title="Back to top" aria-hidden="true"></i></div></section><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@latest/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/lazysizes@latest/lazysizes.min.js" async></script></body></html>

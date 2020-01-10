@@ -1,483 +1,91 @@
-<!DOCTYPE html>
+<!DOCTYPE html><html lang="default" data-theme="light"><head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5"><title>Springboot mybatis复制表结构和数据到指定表 | MurasakiSeiFu</title><meta name="description" content="Springboot mybatis复制表结构和数据到指定表"><meta name="author" content="MurasakiSeiFu."><meta name="copyright" content="MurasakiSeiFu."><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="https://fonts.googleapis.com" crossorigin=""><link rel="preconnect" href="//busuanzi.ibruce.info"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Springboot mybatis复制表结构和数据到指定表"><meta name="twitter:description" content="Springboot mybatis复制表结构和数据到指定表"><meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png"><meta property="og:type" content="article"><meta property="og:title" content="Springboot mybatis复制表结构和数据到指定表"><meta property="og:url" content="http://ilovenorth.life/2018/04/23/Springboot-mybatis复制表结构和数据到指定表/"><meta property="og:site_name" content="MurasakiSeiFu"><meta property="og:description" content="Springboot mybatis复制表结构和数据到指定表"><meta property="og:image" content="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><script src="https://cdn.jsdelivr.net/npm/js-cookie/dist/js.cookie.min.js"></script><script>const autoChangeMode = 'false'
+var t = Cookies.get("theme");
+if (autoChangeMode == '1'){
+const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
+const isLightMode = window.matchMedia("(prefers-color-scheme: light)").matches
+const isNotSpecified = window.matchMedia("(prefers-color-scheme: no-preference)").matches
+const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+if (t === undefined){
+  if (isLightMode) activateLightMode()
+  else if (isDarkMode) activateDarkMode()
+  else if (isNotSpecified || hasNoSupport){
+    console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+    now = new Date();
+    hour = now.getHours();
+    isNight = hour < 6 || hour >= 18
+    isNight ? activateDarkMode() : activateLightMode()
+}
+} else if (t == 'light') activateLightMode()
+else activateDarkMode()
 
 
-  <html class="dark page-post">
+} else if (autoChangeMode == '2'){
+  now = new Date();
+  hour = now.getHours();
+  isNight = hour < 6 || hour >= 18
+  if(t === undefined) isNight? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode() 
+} else {
+  if ( t == 'dark' ) activateDarkMode()
+  else if ( t == 'light') activateLightMode()
+}
 
-
-<head>
-  <meta charset="utf-8">
-  <meta name="referrer" content="no-referrer" />
+function activateDarkMode(){
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#000')
+  }
+}
+function activateLightMode(){
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+  document.querySelector('meta[name="theme-color"]').setAttribute('content','#fff')
+  }
+}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="canonical" href="http://ilovenorth.life/2018/04/23/Springboot-mybatis复制表结构和数据到指定表/"><link rel="prev" title="Springboot 统一异常拦截处理" href="http://ilovenorth.life/2018/04/24/Springboot-统一异常拦截处理/"><link rel="next" title="Util:java对日期date类运算" href="http://ilovenorth.life/2018/04/23/Util-java对日期date类运算/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"cookieDomain":"https://xxx/","msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  bookmark: {
+    title: 'Snackbar.bookmark.title',
+    message_prev: 'Press',
+    message_next: 'to bookmark this page'
+  },
+  runtime_unit: 'days',
+  runtime: true,
+  copyright: undefined,
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  baiduPush: false,
+  isHome: false,
+  isPost: true
   
-  <title>Springboot mybatis复制表结构和数据到指定表 | MurasakiSeiFu</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-  
-    <meta name="keywords" content="java,redis,nginx,zookeeper,分布式中间件,微服务,springboot,mysql" />
-  
-
-  <meta name="description" content="简介在项目中新增了一个功能： 明天凌晨2点启动定时器，删除前天以前的数据，删除的数据转移到新的表中  名称=表名_yyyyMMdd  时间为当前时间。 看到这个功能，首先我们得知道mysql中复制表结构和数据的语句怎么写。 复制表结构和数据的语句复制表结构及数据到新表 第一种1CREATE TABLE 新表 SELECT * FROM 旧表 这一条语句就可以搞定复制表表结构和数据到新表，但是这">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Springboot mybatis复制表结构和数据到指定表">
-<meta property="og:url" content="http://ilovenorth.life/2018/04/23/Springboot-mybatis复制表结构和数据到指定表/index.html">
-<meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="简介在项目中新增了一个功能： 明天凌晨2点启动定时器，删除前天以前的数据，删除的数据转移到新的表中  名称=表名_yyyyMMdd  时间为当前时间。 看到这个功能，首先我们得知道mysql中复制表结构和数据的语句怎么写。 复制表结构和数据的语句复制表结构及数据到新表 第一种1CREATE TABLE 新表 SELECT * FROM 旧表 这一条语句就可以搞定复制表表结构和数据到新表，但是这">
-<meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-04-29T01:54:58.490Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Springboot mybatis复制表结构和数据到指定表">
-<meta name="twitter:description" content="简介在项目中新增了一个功能： 明天凌晨2点启动定时器，删除前天以前的数据，删除的数据转移到新的表中  名称=表名_yyyyMMdd  时间为当前时间。 看到这个功能，首先我们得知道mysql中复制表结构和数据的语句怎么写。 复制表结构和数据的语句复制表结构及数据到新表 第一种1CREATE TABLE 新表 SELECT * FROM 旧表 这一条语句就可以搞定复制表表结构和数据到新表，但是这">
-
-  
-
-  
-    <link rel="icon" href="/images/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
-
-
-  
-    <link rel="stylesheet" href="/css/personal-style.css">
-  
-
-  
-<!-- Google Analytics -->
-<script type="text/javascript">
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-ga('create', 'UA-86660611-1', 'auto');
-ga('send', 'pageview');
-
-</script>
-<!-- End Google Analytics -->
-
-
-  
-  <script type="text/javascript">
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "//hm.baidu.com/hm.js?2e6da3c375c8a87f5b664cea6d4cb29c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
-
-
-  
-  <script type="text/javascript">
-	(function(){
-	    var bp = document.createElement('script');
-	    var curProtocol = window.location.protocol.split(':')[0];
-	    if (curProtocol === 'https') {
-	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-	    }
-	    else {
-	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-	    }
-	    var s = document.getElementsByTagName("script")[0];
-	    s.parentNode.insertBefore(bp, s);
-	})();
-  </script>
-
-
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-</head>
-
-<body>
-
-
-  
-    <span id="toolbox-mobile" class="toolbox-mobile">🍆</span>
-  
-
-  <div class="post-header CENTER">
-   
-  <div class="toolbox">
-    <a class="toolbox-entry" href="/">
-      <span class="toolbox-entry-text">🍆</span>
-      <i class="icon-angle-down"></i>
-      <i class="icon-home"></i>
-    </a>
-    <ul class="list-toolbox">
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/archives/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            博客
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/categories/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            分类
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/tag/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            标签
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/link/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            友链
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/about/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            关于
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/atom.xml"
-            rel="noopener noreferrer"
-            target="_blank"
-            >
-            RSS
-          </a>
-        </li>
-      
-        <li class="item-toolbox">
-          <a
-            class="CIRCLE"
-            href="/search/"
-            rel="noopener noreferrer"
-            target="_self"
-            >
-            搜索
-          </a>
-        </li>
-      
-    </ul>
-  </div>
-
-
-</div>
-
-
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#简介"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#复制表结构和数据的语句"><span class="toc-text">复制表结构和数据的语句</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#复制表结构及数据到新表-第一种"><span class="toc-text">复制表结构及数据到新表 第一种</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#复制表结构及数据到新表-第二种"><span class="toc-text">复制表结构及数据到新表 第二种</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#只复制表结构到新表"><span class="toc-text">只复制表结构到新表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#复制旧表的数据到新表-当两个表结构一样"><span class="toc-text">复制旧表的数据到新表(当两个表结构一样)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#mybatis"><span class="toc-text">mybatis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#"><span class="toc-text">${} #{}</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#mapper"><span class="toc-text">mapper</span></a></li></ol>
-  </div>
-
-
-
-<div class="content content-post CENTER">
-   <article id="post-Springboot-mybatis复制表结构和数据到指定表" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">Springboot mybatis复制表结构和数据到指定表</h1>
-
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2018.04.23</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>MurasakiSeiFu.</span>
-        </span>
-      
-
-      
-  <span class="article-category">
-    <i class="icon-list"></i>
-    <a class="article-category-link" href="/categories/Springboot/">Springboot</a>
-  </span>
-
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
-    
-      <meta name="referrer" content="no-referrer">
+}</script></head><body><header> <div id="page-header"><span class="pull_left" id="blog_name"><a class="blog_title" id="site-name" href="/">MurasakiSeiFu</a></span><span class="toggle-menu pull_right close"><a class="site-page"><i class="fa fa-bars fa-fw" aria-hidden="true"></i></a></span><span class="pull_right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> List</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> Music</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> Movie</span></a></li></ul></div></div></span></div></header><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">Articles</div><div class="length_num">49</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">Tags</div><div class="length_num">1</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">Categories</div><div class="length_num">11</div></a></div></div></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> List</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fa fa-music"></i><span> Music</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> Movie</span></a></li></ul></div></div></div><div id="mobile-sidebar-toc"><div class="toc_mobile_headline">Catalog</div><div class="sidebar-toc__content"><ol class="toc_mobile_items"><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#简介"><span class="toc_mobile_items-number">1.</span> <span class="toc_mobile_items-text">简介</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#复制表结构和数据的语句"><span class="toc_mobile_items-number">2.</span> <span class="toc_mobile_items-text">复制表结构和数据的语句</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#复制表结构及数据到新表-第一种"><span class="toc_mobile_items-number">2.1.</span> <span class="toc_mobile_items-text">复制表结构及数据到新表 第一种</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#复制表结构及数据到新表-第二种"><span class="toc_mobile_items-number">2.2.</span> <span class="toc_mobile_items-text">复制表结构及数据到新表 第二种</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#只复制表结构到新表"><span class="toc_mobile_items-number">2.2.1.</span> <span class="toc_mobile_items-text">只复制表结构到新表</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#复制旧表的数据到新表-当两个表结构一样"><span class="toc_mobile_items-number">2.2.2.</span> <span class="toc_mobile_items-text">复制旧表的数据到新表(当两个表结构一样)</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#mybatis"><span class="toc_mobile_items-number">3.</span> <span class="toc_mobile_items-text">mybatis</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#null"><span class="toc_mobile_items-number">4.</span> <span class="toc_mobile_items-text">${} #{}</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#mapper"><span class="toc_mobile_items-number">5.</span> <span class="toc_mobile_items-text">mapper</span></a></li></ol></div></div></div><div id="body-wrap"><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true">     </i><div class="auto_open" id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#简介"><span class="toc-number">1.</span> <span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#复制表结构和数据的语句"><span class="toc-number">2.</span> <span class="toc-text">复制表结构和数据的语句</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#复制表结构及数据到新表-第一种"><span class="toc-number">2.1.</span> <span class="toc-text">复制表结构及数据到新表 第一种</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#复制表结构及数据到新表-第二种"><span class="toc-number">2.2.</span> <span class="toc-text">复制表结构及数据到新表 第二种</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#只复制表结构到新表"><span class="toc-number">2.2.1.</span> <span class="toc-text">只复制表结构到新表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#复制旧表的数据到新表-当两个表结构一样"><span class="toc-number">2.2.2.</span> <span class="toc-text">复制旧表的数据到新表(当两个表结构一样)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#mybatis"><span class="toc-number">3.</span> <span class="toc-text">mybatis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#null"><span class="toc-number">4.</span> <span class="toc-text">${} #{}</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#mapper"><span class="toc-number">5.</span> <span class="toc-text">mapper</span></a></li></ol></div></div></div><main id="content-outer"><div id="top-container" style="background-image: url(https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png)"><div id="post-info"><div id="post-title"><div class="posttitle">Springboot mybatis复制表结构和数据到指定表</div></div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar fa-fw" aria-hidden="true"></i> Created 2018-04-23<span class="post-meta__separator">|</span><i class="fa fa-history fa-fw" aria-hidden="true"></i> Updated 2019-04-29</time><span class="post-meta__separator">|</span><span><i class="fa fa-inbox post-meta__icon fa-fw" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/Springboot/">Springboot</a></span><div class="post-meta-wordcount"><div class="post-meta-pv-cv"><span><i class="fa fa-eye post-meta__icon fa-fw" aria-hidden="true"> </i>Post View:</span><span id="busuanzi_value_page_pv"></span></div></div></div></div></div><div class="layout layout_post" id="content-inner">   <article id="post"><div class="article-container" id="post-content"><meta name="referrer" content="no-referrer">
 
 <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>在项目中新增了一个功能：</p>
 <pre><code>明天凌晨2点启动定时器，删除前天以前的数据，删除的数据转移到新的表中 
 名称=表名_yyyyMMdd  时间为当前时间。
 </code></pre><p>看到这个功能，首先我们得知道mysql中复制表结构和数据的语句怎么写。</p>
-<h2 id="复制表结构和数据的语句"><a href="#复制表结构和数据的语句" class="headerlink" title="复制表结构和数据的语句"></a>复制表结构和数据的语句</h2><h3 id="复制表结构及数据到新表-第一种"><a href="#复制表结构及数据到新表-第一种" class="headerlink" title="复制表结构及数据到新表 第一种"></a>复制表结构及数据到新表 第一种</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> 新表 <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> 旧表</span><br></pre></td></tr></table></figure>
+<h2 id="复制表结构和数据的语句"><a href="#复制表结构和数据的语句" class="headerlink" title="复制表结构和数据的语句"></a>复制表结构和数据的语句</h2><h3 id="复制表结构及数据到新表-第一种"><a href="#复制表结构及数据到新表-第一种" class="headerlink" title="复制表结构及数据到新表 第一种"></a>复制表结构及数据到新表 第一种</h3><div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">sql</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> 新表 <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> 旧表</span><br></pre></td></tr></table></figure></div>
 <p>这一条语句就可以搞定复制表表结构和数据到新表，但是这种方法的一个最不好的地方就是新表中没有旧表的字段属性。比如primary key、auto等。<br>而且，这条语句如果直接执行会报一个错误：</p>
 <pre><code>MYSQL Statement violates GTID consistency: CREATE TABLE ... SELECT. 错误代码： 1786 问题
-</code></pre><p>解决办法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">在 my.cnf 中将</span><br><span class="line">gtid_mode = ON</span><br><span class="line">enforce_gtid_consistency = ON</span><br><span class="line"></span><br><span class="line">改为</span><br><span class="line"></span><br><span class="line">gtid_mode = OFF</span><br><span class="line">enforce_gtid_consistency = OFF</span><br></pre></td></tr></table></figure></p>
+</code></pre><p>解决办法<br><div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">在 my.cnf 中将</span><br><span class="line">gtid_mode = ON</span><br><span class="line">enforce_gtid_consistency = ON</span><br><span class="line"></span><br><span class="line">改为</span><br><span class="line"></span><br><span class="line">gtid_mode = OFF</span><br><span class="line">enforce_gtid_consistency = OFF</span><br></pre></td></tr></table></figure></div></p>
 <p>一般我们是没有这种DBA权限的，所以这种方法我们pass。</p>
 <h3 id="复制表结构及数据到新表-第二种"><a href="#复制表结构及数据到新表-第二种" class="headerlink" title="复制表结构及数据到新表 第二种"></a>复制表结构及数据到新表 第二种</h3><p>没法一条语句就过，我们就得用两条语句来分别执行。</p>
-<h4 id="只复制表结构到新表"><a href="#只复制表结构到新表" class="headerlink" title="只复制表结构到新表"></a>只复制表结构到新表</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">new</span>表 <span class="keyword">like</span> <span class="keyword">old</span>表</span><br></pre></td></tr></table></figure>
-<h4 id="复制旧表的数据到新表-当两个表结构一样"><a href="#复制旧表的数据到新表-当两个表结构一样" class="headerlink" title="复制旧表的数据到新表(当两个表结构一样)"></a>复制旧表的数据到新表(当两个表结构一样)</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">new</span>表 <span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">old</span>表 <span class="keyword">where</span> ...</span><br></pre></td></tr></table></figure>
-<h2 id="mybatis"><a href="#mybatis" class="headerlink" title="mybatis"></a>mybatis</h2><p>最好是能在一次调用时就把这两条语句都执行了，mybatis也为我们提供了这个方法。<br>首先，在jdbc连接串上我们需要加上allowMultiQueries=true<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jdbc:mysql://127.0.0.1:3306/test?allowMultiQueries=true</span><br></pre></td></tr></table></figure></p>
-<p>然后在xml文件里，用“;”隔开两个sql语句就可以啦。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 复制表结构和数据到新表 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">update</span> <span class="attr">id</span>=<span class="string">"createTable"</span>&gt;</span></span><br><span class="line">    create table $&#123;mrJobTasksMonitorName&#125; like mr_job_tasks_monitor;</span><br><span class="line">    insert into $&#123;mrJobTasksMonitorName&#125; select * from mr_job_tasks_monitor where monitor_date &amp;lt; #&#123;newDate&#125;;</span><br><span class="line"><span class="tag">&lt;/<span class="name">update</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h4 id="只复制表结构到新表"><a href="#只复制表结构到新表" class="headerlink" title="只复制表结构到新表"></a>只复制表结构到新表</h4><div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">sql</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">new</span>表 <span class="keyword">like</span> <span class="keyword">old</span>表</span><br></pre></td></tr></table></figure></div>
+<h4 id="复制旧表的数据到新表-当两个表结构一样"><a href="#复制旧表的数据到新表-当两个表结构一样" class="headerlink" title="复制旧表的数据到新表(当两个表结构一样)"></a>复制旧表的数据到新表(当两个表结构一样)</h4><div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">sql</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">new</span>表 <span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">old</span>表 <span class="keyword">where</span> ...</span><br></pre></td></tr></table></figure></div>
+<h2 id="mybatis"><a href="#mybatis" class="headerlink" title="mybatis"></a>mybatis</h2><p>最好是能在一次调用时就把这两条语句都执行了，mybatis也为我们提供了这个方法。<br>首先，在jdbc连接串上我们需要加上allowMultiQueries=true<br><div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">Code</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jdbc:mysql://127.0.0.1:3306/test?allowMultiQueries=true</span><br></pre></td></tr></table></figure></div></p>
+<p>然后在xml文件里，用“;”隔开两个sql语句就可以啦。<br><div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">xml</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 复制表结构和数据到新表 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">update</span> <span class="attr">id</span>=<span class="string">"createTable"</span>&gt;</span></span><br><span class="line">    create table $&#123;mrJobTasksMonitorName&#125; like mr_job_tasks_monitor;</span><br><span class="line">    insert into $&#123;mrJobTasksMonitorName&#125; select * from mr_job_tasks_monitor where monitor_date &amp;lt; #&#123;newDate&#125;;</span><br><span class="line"><span class="tag">&lt;/<span class="name">update</span>&gt;</span></span><br></pre></td></tr></table></figure></div></p>
 <h2 id=""><a href="#" class="headerlink" title="${} #{}"></a>${} #{}</h2><p>#{} 这种取值是编译好SQL语句再取值<br>${} 这种是取值以后再去编译SQL语句 一般用于传入数据库对象，比如表名。</p>
-<h2 id="mapper"><a href="#mapper" class="headerlink" title="mapper"></a>mapper</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 复制表结构和数据到新表</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> mrNodesScheduleName</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> newDate</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">createTable</span><span class="params">(@Param(<span class="string">"mrNodesScheduleName"</span>)</span> String mrNodesScheduleName, </span></span><br><span class="line"><span class="function">                 @<span class="title">Param</span><span class="params">(<span class="string">"newDate"</span>)</span> String newDate)</span>;</span><br></pre></td></tr></table></figure>
+<h2 id="mapper"><a href="#mapper" class="headerlink" title="mapper"></a>mapper</h2><div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">java</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 复制表结构和数据到新表</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> mrNodesScheduleName</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> newDate</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">createTable</span><span class="params">(@Param(<span class="string">"mrNodesScheduleName"</span>)</span> String mrNodesScheduleName, </span></span><br><span class="line"><span class="function">                 @<span class="title">Param</span><span class="params">(<span class="string">"newDate"</span>)</span> String newDate)</span>;</span><br></pre></td></tr></table></figure></div>
 <p>核心内容就是这些了，配合定时器就可以完成这个功能了。</p>
-
-    
-  </div>
-
-</article>
-
-
-   
-  <div class="text-center donation">
-    <div class="inner-donation">
-      <span class="btn-donation">Chat with me 🍾</span>
-      <div class="donation-body">
-        <div class="tip text-center">Tell me when you add that you are from the blog</div>
-        <ul>
-        
-          <li class="item">
-            
-            <img src="/images/WechatIMG5.jpeg" alt="">
-          </li>
-        
-        </ul>
-      </div>
-    </div>
-  </div>
-
-
-   
-  <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2018/04/23/Util-java对日期date类运算/">
-        <i class="icon icon-angle-left"></i>
-    </a>
-    <a class="show pull-right" href="/2018/04/24/Springboot-统一异常拦截处理/">
-        <i class="icon icon-angle-right"></i>
-    </a>
-  </div>
-
-
-
-
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
-
-
-  <div class="modal" id="modal">
-  <span id="cover" class="cover hide"></span>
-  <div id="modal-dialog" class="modal-dialog hide-dialog">
-    <div class="modal-header">
-      <span id="close" class="btn-close">关闭</span>
-    </div>
-    <hr>
-    <div class="modal-body">
-      <ul class="list-toolbox">
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/archives/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              博客
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/categories/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              分类
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/tag/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              标签
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/link/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              友链
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/about/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              关于
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/atom.xml"
-              rel="noopener noreferrer"
-              target="_blank"
-              >
-              RSS
-            </a>
-          </li>
-        
-          <li class="item-toolbox">
-            <a
-              class="CIRCLE"
-              href="/search/"
-              rel="noopener noreferrer"
-              target="_self"
-              >
-              搜索
-            </a>
-          </li>
-        
-      </ul>
-
-    </div>
-  </div>
-</div>
-
-
-
-  
-      <div class="fexo-comments comments-post">
-    
-
-    
-
-    
-    
-
-    
-
-    
-    
-
-    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
-    <div id="comment" class="vcomment" ></div>
-    <script>
-        var notify = 'false' == true ? true : false;
-        var verify = 'false' == true ? true : false;
-        var GUEST_INFO = ['nick','mail','link'];
-        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
-            return GUEST_INFO.indexOf(item) > -1
-        });
-        guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
-        window.valine = new Valine({
-            el: '.vcomment',
-            notify: notify,
-            verify: verify,
-            appId: "9cprXYUH7H1YKlRERiGS8bxV-gzGzoHsz",
-            appKey: "et0Drv2jnj4ILMBUSaNM2M2R",
-            avatar:'mm',
-            placeholder: "Talk to me ^_^",
-            guest_info:guest_info,
-            pageSize:'10'
-        });
-    </script>
-  
-    
-
-  </div>
-
-  
-
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
-
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
-    }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
-    });
-  }
-</script>
-
-</body>
-</html>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">MurasakiSeiFu.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://ilovenorth.life/2018/04/23/Springboot-mybatis复制表结构和数据到指定表/">http://ilovenorth.life/2018/04/23/Springboot-mybatis复制表结构和数据到指定表/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-button button--primary button--animated"> <i class="fa fa-qrcode"></i> Donate<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/wechat.jpg" alt="微信"><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/alipay.jpg" alt="支付寶"><div class="post-qr-code__desc">支付寶</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="prev-post pull_left"><a href="/2018/04/24/Springboot-统一异常拦截处理/"><img class="prev_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Previous Post</div><div class="prev_info"><span>Springboot 统一异常拦截处理</span></div></a></div><div class="next-post pull_right"><a href="/2018/04/23/Util-java对日期date类运算/"><img class="next_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">Next Post</div><div class="next_info"><span>Util:java对日期date类运算</span></div></a></div></nav></div></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2020 By MurasakiSeiFu.</div><div class="framework-info"><span>Driven </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>Theme </span><a href="https://github.com/jerryc127/hexo-theme-butterfly"><span>Butterfly</span></a></div></div></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><i class="fa fa-book" id="readmode" title="Read Mode"></i><i class="fa fa-plus" id="font_plus" title="Increase font size"></i><i class="fa fa-minus" id="font_minus" title="Decrease font size"></i><a class="translate_chn_to_cht" id="translateLink" href="javascript:translatePage();" title="Traditional Chinese and Simplified Chinese Conversion" target="_self">繁</a><i class="darkmode fa fa-moon-o" id="darkmode" title="Dark Mode"></i></div><div id="rightside-config-show"><div id="rightside_config" title="Setting"><i class="fa fa-cog" aria-hidden="true"></i></div><i class="fa fa-list-ul close" id="mobile-toc-button" title="Table of Contents" aria-hidden="true"></i><i class="fa fa-arrow-up" id="go-up" title="Back to top" aria-hidden="true"></i></div></section><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@latest/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/lazysizes@latest/lazysizes.min.js" async></script></body></html>
