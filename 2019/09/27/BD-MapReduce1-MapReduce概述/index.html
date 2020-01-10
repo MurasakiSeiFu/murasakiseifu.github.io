@@ -86,18 +86,18 @@ function activateLightMode(){
 <p>MapReduce核心功能是将<font color="red">用户编写的业务逻辑代码</font>和<font color="red">自带默认组件</font>整合成一个完整的<font color="red">分布式运算程序</font>，并发运行在一个Hadoop集群上。</p>
 <h2 id="二、MapReduce-优缺点"><a href="#二、MapReduce-优缺点" class="headerlink" title="二、MapReduce 优缺点"></a>二、MapReduce 优缺点</h2><h3 id="2-1-优点：简单"><a href="#2-1-优点：简单" class="headerlink" title="2.1 优点：简单"></a>2.1 优点：简单</h3><h4 id="1-易于编程"><a href="#1-易于编程" class="headerlink" title="1. 易于编程"></a>1. 易于编程</h4><font color="red">它简单的实现一些接口，就可以完成一个分布式程序</font>，这个分布式程序可以分布到大量廉价的PC机器上运行。也就是说你写一个分布式程序，跟写一个简单的串行程序是一模一样的。就是因为这个特点使得MapReduce变成变得非常流行。<br><br><br>#### 2. 良好的扩展性<br><br><br>当你的计算资源不能得到满足的时候，你可以通过<font color="red">简单的增加机器</font>来扩展它的计算能力。<br><br><br>#### 3. 高容错性<br><br><br>MapReduce设计的初衷就是使程序能够部署在廉价的PC机器上，这就要求它具有很高的容错性。<font color="red">比如其中一台机器挂了，它可以把上面的计算任务转移到另外一个节点上运行，不至于这个任务运行失败</font>，而且这个过程不需要人工参与，而完全是由Hadoop内部完成的。<br><br><br>### 2.2 缺点：慢<br><br><br>#### 1. 不擅长实时计算<br><br><br>MapReduce无法像MySQL一样，在毫秒或者秒级内返回结果。<br><br><br>#### 2. 不擅长流式计算<br><br><br>流式计算的输入数据是动态的(数据流)，而MapReduce的<font color="red">输入数据集是静态的(文件)</font>，不能动态变化。这是因为MapReduce自身的设计特点决定了数据源必须是静态的。<br><br><br>#### 3. 不擅长DAG（有向图）计算<br><br><br>多个应用程序存在依赖关系，后一个应用程序的输入为前一个的输出。在这种情况下，MapReduce并不是不能做，而是使用后，<font color="red">每个MapReduce作业的输出结果都会写入到磁盘，会造成大量的磁盘IO，导致性能非常的低下。</font>
 
-<h2 id="三、MapReduce-核心思想"><a href="#三、MapReduce-核心思想" class="headerlink" title="三、MapReduce 核心思想"></a>三、MapReduce 核心思想</h2><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2mbtsiej31qf0u0n46.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2mbtsiej31qf0u0n46.jpg" class="lazyload" title=""></a></p>
+<h2 id="三、MapReduce-核心思想"><a href="#三、MapReduce-核心思想" class="headerlink" title="三、MapReduce 核心思想"></a>三、MapReduce 核心思想</h2><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2mbtsiej31qf0u0n46.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2mbtsiej31qf0u0n46.jpg" class="lazyload"></a></p>
 <p>MapReduce运算程序一般需要分成2个阶段：Map阶段和Reduce阶段。</p>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2q0yszaj31qm0u0tjf.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2q0yszaj31qm0u0tjf.jpg" class="lazyload" title=""></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2q0yszaj31qm0u0tjf.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2q0yszaj31qm0u0tjf.jpg" class="lazyload"></a></p>
 <ul>
 <li>Map拿到数据之后，交给MapTask，完全并行运行，互不相干。</li>
 <li>MapTask对数据进行处理，首先读数据。</li>
 <li>然后将数据按空格切分行内单词。</li>
 <li>把数据映射成KV键值对的形式（单词，1）</li>
 </ul>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2zdpmclj31q80u0k6x.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2zdpmclj31q80u0k6x.jpg" class="lazyload" title=""></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2zdpmclj31q80u0k6x.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e2zdpmclj31q80u0k6x.jpg" class="lazyload"></a></p>
 <p>分区我们一会再说，在Map阶段我们已经把数据分成了一个单词一个&lt;单词，1&gt;的形式，在Reduce阶段，会将相同单词的1进行累加，变成&lt;单词，n&gt;的形式。总结一写，MapReduce的核心思想其实就是Map阶段将文件变成我们想要的形式，Reduce阶段把数据做处理。</p>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e34hgqk8j31qr0u07op.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e34hgqk8j31qr0u07op.jpg" class="lazyload" title=""></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e34hgqk8j31qr0u07op.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e34hgqk8j31qr0u07op.jpg" class="lazyload"></a></p>
 <p>至于一些细节，会在后面的文章中慢慢渗透。</p>
 <h2 id="四、MapReduce-进程"><a href="#四、MapReduce-进程" class="headerlink" title="四、MapReduce 进程"></a>四、MapReduce 进程</h2><p>一个完整的MapReduce程序在分布式运行时有三类实例进程：</p>
 <ul>
