@@ -100,22 +100,22 @@ function activateLightMode(){
 
 </li>
 </ol>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg" class="lazyload"></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <h2 id="三、GroupingComparator分组"><a href="#三、GroupingComparator分组" class="headerlink" title="三、GroupingComparator分组"></a>三、GroupingComparator分组</h2><p>对Reduce阶段的数据根据某一个或几个字段进行分组。</p>
-<h2 id="四、Shuffle机制查缺补漏"><a href="#四、Shuffle机制查缺补漏" class="headerlink" title="四、Shuffle机制查缺补漏"></a>四、Shuffle机制查缺补漏</h2><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg" class="lazyload"></a></p>
+<h2 id="四、Shuffle机制查缺补漏"><a href="#四、Shuffle机制查缺补漏" class="headerlink" title="四、Shuffle机制查缺补漏"></a>四、Shuffle机制查缺补漏</h2><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <p>我们知道Map方法出来的数据，首先写到环形缓冲区，当缓冲区满了就会发生溢写，溢写之前要先发生分区和排序。<br>数据进入缓冲区之前是&lt;K,V&gt;，当数据进入缓冲区的时候会获得一个分区号P，显示为&lt;K,V,P&gt;，然后这个数据进入缓冲区，注意，此时只是获得分区号，并没有进行物理分区。    </p>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg" class="lazyload"></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <p>物理的分区发生在缓冲区满了需要写磁盘的时候，先按照分区号进行排序，分区号相同的再按Key进行排序(实际上分区排序是一个过程，也就是二次排序)。排完的结果是相同的分区在一起并且区内又序。</p>
 <p>分区排序后，在落盘前，如果我们启用了Combiner，这个数据在落盘前会先到Combiner中进行合并（把Key值相同的合并，\&lt;a,1&gt; \&lt;a,1&gt; —-&gt; \&lt;a,2&gt;），合并完成后再真正的落盘。</p>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg" class="lazyload"></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <p>会多次放生溢写生成的文件会通过归并排序之后，在Combiner中合并（压缩以后再说），最终落到磁盘上。这就是MapTask最终的输出文件，这个文件的特点就是分区且区内有序。</p>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u3rgstmcj31600llwjj.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u3rgstmcj31600llwjj.jpg" class="lazyload"></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u3rgstmcj31600llwjj.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u3rgstmcj31600llwjj.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <p>图片上有两个，假设我们有N个MapTask，每个MapTask分了3个区（1区、2区、3区），最后生成了N个文件，每个文件3个qu且区内有序。然后启用3个ReduceTask，ReduceTask与MapTask数量并没有直接关系。<font color="red">每个ReduceTask都会处理所有MapTask相应分区的数据。</font>ReduceTask在Reduce端有一个内存缓存，这些数据以序列化的形式（文件）最开始都放在内存缓存中，如果缓存满了才用磁盘。</p>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg" class="lazyload"></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <p>最后我们把这是文件进行了归并排序，合成了一整个的输出文件，这个文件的特点就是按照Key有序，下一步对文件进行分组（自定义规则，注意排序的粒度一定要比分组的粒度细），并放到Reduce方法中，</p>
 <p><strong>接下来说一下缓冲区</strong>    </p>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u43e5ibkj30qr0913zi.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u43e5ibkj30qr0913zi.jpg" class="lazyload"></a></p>
-<p>所谓的环形缓冲区，好处是没头没尾，从哪里写入都一样。假如我们中正中间开始写，顺时针写KV，逆时针写索引。<br><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u84ilt40j30bb098q3i.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u84ilt40j30bb098q3i.jpg" class="lazyload"></a></p>
+<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u43e5ibkj30qr0913zi.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u43e5ibkj30qr0913zi.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<p>所谓的环形缓冲区，好处是没头没尾，从哪里写入都一样。假如我们中正中间开始写，顺时针写KV，逆时针写索引。<br><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u84ilt40j30bb098q3i.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u84ilt40j30bb098q3i.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <p>这个索引就是KV在环形缓冲区的位置索引。一直写，直到写到80%的时候就开始溢写，在溢写的时候，同样会有新的数据会进入缓冲区，这时就会从缓冲区剩下的20%中选择一点写入缓冲区。逆时针写KV，顺时针写索引。80%的数据在溢写腾空缓冲区的速度还是挺快的。而且这个大小是可以根据实际情况进行设置的，默认是100M的0.8。</p>
 <p>排序就发生在环形缓冲区。在排序的时候，如果KV1和KV2通过比较需要交换顺序，不直接移动右侧的数据，而是交换他们的索引值，因为索引占用很小，这样可以节省IO。排好序后，根据索引的序列开始落盘，通过索引找到对应的数据。</p>
 <p>学会手画。</p>

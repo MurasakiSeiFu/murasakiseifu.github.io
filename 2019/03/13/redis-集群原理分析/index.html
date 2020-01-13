@@ -93,7 +93,7 @@ function activateLightMode(){
 <p>我们发现5798在5461-10922之间，所以redis集群帮我们重定向到8002这台机器，并输出了key的value值：fzz。</p>
 <p>当客户端向一个错误的节点发出了指令，该节点会发现指令的 key 所在的槽位并不归自己管理，这时它会向客户端发送一个特殊的跳转指令携带目标操作的节点地址，告诉客户端去连这个节点去获取数据。客户端收到指令后除了跳转到正确的节点上去操作，还会同步更新纠正本地的槽位映射表缓存，后续所有 key 将使用新的槽位映射表。</p>
 <h2 id="水平扩展"><a href="#水平扩展" class="headerlink" title="水平扩展"></a>水平扩展</h2><p>Redis3.0以后的版本虽然有了集群功能，提供了比之前版本的哨兵模式更高的性能与可用性，但是集群的水平扩展却比较麻烦，今天就来带大家看看redis高可用集群如何做水平扩展，<font color="red">原始集群(见下图)由6个节点组成，6个节点分布在三台机器上，采用三主三从的模式</font></p>
-<p><a href="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg" class="lazyload"></a></p>
+<p><a href="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <h3 id="1-启动集群"><a href="#1-启动集群" class="headerlink" title="1.启动集群"></a>1.启动集群</h3><ul>
 <li>启动整个集群</li>
 </ul>
@@ -106,10 +106,10 @@ function activateLightMode(){
 <li>查看集群状态</li>
 </ul>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">192.168.0.61:8001&gt; cluster  nodes</span><br></pre></td></tr></table></figure></div>
-<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg" class="lazyload"></a></p>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <p> 从上图可以看出，整个集群运行正常，三个master节点和三个slave节点，8001端口的实例节点存储0-5460这些hash槽，8002端口的实例节点存储5461-10922这些hash槽，8003端口的实例节点存储10923-16383这些hash槽，这三个master节点存储的所有hash槽组成redis集群的存储槽位，slave点是每个主节点的备份从节点，不显示存储槽位 </p>
 <h3 id="2-集群操作"><a href="#2-集群操作" class="headerlink" title="2.集群操作"></a>2.集群操作</h3><p>我们在原始集群基础上再增加一主(8007)一从(8008)，增加节点后的集群参见下图，新增节点用虚线框表示</p>
-<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg" class="lazyload"></a></p>
+<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <ul>
 <li><p><font color="green">增加redis实例</font><br>方式在上一遍已经介绍完了，大家按以前自行配置就好。</p>
 </li>
@@ -118,7 +118,7 @@ function activateLightMode(){
 </li>
 </ul>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /usr/local/redis-5.0.2</span><br><span class="line">src/redis-cli --cluster help</span><br></pre></td></tr></table></figure></div>
-<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg" class="lazyload"></a></p>
+<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <ol>
 <li>create：创建一个集群环境host1:port1 … hostN:portN</li>
 <li>call：可以执行redis命令</li>
@@ -135,13 +135,13 @@ function activateLightMode(){
 <p>使用add-node命令新增一个主节点8007(master)，绿色为新增节点，红色为已知存在节点，看到日志最后有”[OK] New node added correctly”提示代表新节点加入成功</p>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/redis-cli --cluster add-node 192.168.0.64:8007 192.168.0.61:8001</span><br></pre></td></tr></table></figure></div>
 <p>查看集群状态</p>
-<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg" class="lazyload"></a></p>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <font color="red">注意：当添加节点成功以后，新增的节点不会有任何数据，因为它还没有分配任何的slot(hash槽)，我们需要为新节点手工分配hash槽</font>    
 
 <p>使用redis-cli命令为8007分配hash槽，找到集群中的任意一个主节点(红色位置表示集群中的任意一个主节点)，对其进行重新分片工作。</p>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-cli --cluster reshard 192.168.0.61:8001</span><br><span class="line">输出如下：</span><br><span class="line">... ...</span><br><span class="line">How many slots do you want to move (from 1 to 16384)? 600</span><br><span class="line">(ps:需要多少个槽移动到新的节点上，自己设置，比如600个hash槽)</span><br><span class="line">What is the receiving node ID? eb57a5700ee6f9ff099b3ce0d03b1a50ff247c3c</span><br><span class="line">(ps:把这600个hash槽移动到哪个节点上去，需要指定节点id)</span><br><span class="line">Please enter all the source node IDs.</span><br><span class="line">  Type 'all' to use all the nodes as source nodes for the hash slots.</span><br><span class="line">  Type 'done' once you entered all the source nodes IDs.</span><br><span class="line">Source node 1:all</span><br><span class="line">(ps:输入all为从所有主节点(8001,8002,8003)中分别抽取相应的槽数指定到新节点中，抽取的总槽数为600个)</span><br><span class="line"> ... ...</span><br><span class="line">Do you want to proceed with the proposed reshard plan (yes/no)? yes</span><br><span class="line">(ps:输入yes确认开始执行分片任务)</span><br><span class="line">... ...</span><br></pre></td></tr></table></figure></div>
 <p>查看下最新的集群状态    </p>
-<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg" class="lazyload"></a></p>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <font color="red">如上图所示，现在我们的8007已经有hash槽了，也就是说可以在8007上进行读写数据啦！到此为止我们的8007已经加入到集群中，并且是主节点(Master)</font>    
 
 <ul>
@@ -151,11 +151,11 @@ function activateLightMode(){
 </ul>
 <p>添加从节点8008到集群中去并查看集群状态    </p>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/redis-cli --cluster add-node 192.168.0.64:8008 192.168.0.61:8001</span><br></pre></td></tr></table></figure></div>
-<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg" class="lazyload"></a></p>
+<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <p>如图所示，还是一个master节点，没有被分配任何的hash槽。<br>我们需要执行replicate命令来指定当前节点(从节点)的主节点id为哪个,首先需要连接新加的8008节点的客户端，然后使用集群命令进行操作，把当前的8008(slave)节点指定到一个主节点下(这里使用之前创建的8007主节点，红色表示节点id)</p>
 <div class="code-area-wrap"><div class="highlight-tools"><i class="fa fa-angle-down code-expand" aria-hidden="true"></i><div class="code_lang">shell</div><div class="copy-notice"></div><i class="fa fa-clipboard" aria-hidden="true"></i></div><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/redis-cli -c -h 192.168.0.64 -p 8008</span><br><span class="line">192.168.0.61:8008&gt; cluster replicate eb57a5700ee6f9ff099b3ce0d03b1a50ff247c3c</span><br></pre></td></tr></table></figure></div>
 <p>查看集群状态，8008节点已成功添加为8007节点的从节点</p>
-<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg" class="lazyload"></a></p>
+<p><a href="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg" src="/img/cat.gif" class="lazyload"></a></p>
 <h2 id="Redis集群选举原理分析"><a href="#Redis集群选举原理分析" class="headerlink" title="Redis集群选举原理分析"></a>Redis集群选举原理分析</h2><p>当slave发现自己的master变为FAIL状态时，便尝试进行Failover，以期成为新的master。由于挂掉的master可能会有多个slave，从而存在多个slave竞争成为master节点的过程，其过程如下：</p>
 <ol>
 <li>slave发现自己的master变为FAIL</li>
