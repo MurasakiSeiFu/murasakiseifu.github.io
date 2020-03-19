@@ -94,29 +94,29 @@ ga('send', 'pageview');
 <li>机架感知（副本存储节点选择）</li>
 </ol>
 <h2 id="1-1-剖析文件写入"><a href="#1-1-剖析文件写入" class="headerlink" title="1.1 剖析文件写入"></a>1.1 剖析文件写入</h2><p><strong>HDFS的写数据流程（上传）。</strong></p>
-<h3 id="第一步"><a href="#第一步" class="headerlink" title="第一步"></a>第一步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7aer0y6qzj30s20brwev.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7aer0y6qzj30s20brwev.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<h3 id="第一步"><a href="#第一步" class="headerlink" title="第一步"></a>第一步</h3><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7aer0y6qzj30s20brwev.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <ol>
 <li>我们有个200M的本地文件要上传到HDFS，首先我们需要一个客户端Client，Client通过 <strong><em>Distributed FileSystem</em></strong> 模块向NameNode申请上传请求。</li>
 </ol>
 <blockquote>
 <p>Distributed FileSystem : 整个集群的抽象封装</p>
 </blockquote>
-<h3 id="第二步"><a href="#第二步" class="headerlink" title="第二步"></a>第二步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7af0ekkwxj30sx0c874w.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7af0ekkwxj30sx0c874w.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<h3 id="第二步"><a href="#第二步" class="headerlink" title="第二步"></a>第二步</h3><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7af0ekkwxj30sx0c874w.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <ul>
 <li>由NameNode来审核请求是否合法，会检查相同路径是否会有重名文件、有没有上传权限、父目录是否存在。</li>
 </ul>
 <ul>
 <li>当客户端收到NameNode响应之后，会对文件进行逻辑切分（举个例子：🍰–&gt;冰箱，在真正切之前，用笔在蛋糕上花上线，还没切），然后开启输出流（因为我们要往HDFS写数据，文件从本地磁盘到客户端是输入流）</li>
 </ul>
-<h3 id="第三步"><a href="#第三步" class="headerlink" title="第三步"></a>第三步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afd05j57j30sq0d0q3o.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afd05j57j30sq0d0q3o.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<h3 id="第三步"><a href="#第三步" class="headerlink" title="第三步"></a>第三步</h3><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afd05j57j30sq0d0q3o.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>有了输入流和输出流之后，就要进行流对拷了，在这之前要向NameNode发送申请，请求上传第一个Block（0-128M）</p>
-<h3 id="第四步"><a href="#第四步" class="headerlink" title="第四步"></a>第四步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afoq902fj30ua0eqq47.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afoq902fj30ua0eqq47.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<h3 id="第四步"><a href="#第四步" class="headerlink" title="第四步"></a>第四步</h3><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afoq902fj30ua0eqq47.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>这时NameNode会返回给客户端一个 <strong><em>DataNode List ，HDFS实际存数据是在DataNode上，所以我们写数据也是往DataNode上去写</em></strong>，<font color="red">这个List的数量是由集群中设置的副本数量控制的，你定义了多少副本数量，list就会返回多少DataNode节点。</font></p>
 <p>返回的DataNode并不是随机返回，返回的第一个DN1，是离Client最近的一个，后两个是根据DN1选出来的。</p>
 <blockquote>
 <p>哪个最近？后两个怎么选的？我们下面再说，这里先跳过。</p>
 </blockquote>
-<h3 id="第五步"><a href="#第五步" class="headerlink" title="第五步"></a>第五步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afxhgadvj30v00flmyp.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afxhgadvj30v00flmyp.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<h3 id="第五步"><a href="#第五步" class="headerlink" title="第五步"></a>第五步</h3><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7afxhgadvj30v00flmyp.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>拿到Datanodelist 客户端就知道往哪里传数据了</p>
 <ul>
 <li>它就会向列表中的第一个DN（离它最近）发出建立通道的请求。</li>
@@ -128,7 +128,7 @@ ga('send', 'pageview');
 <blockquote>
 <p>而且这个请求是串行的（原因一会再说~）</p>
 </blockquote>
-<h3 id="第六步"><a href="#第六步" class="headerlink" title="第六步"></a>第六步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7am58j25pj30vb0f2762.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7am58j25pj30vb0f2762.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<h3 id="第六步"><a href="#第六步" class="headerlink" title="第六步"></a>第六步</h3><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7am58j25pj30vb0f2762.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>客户端知道建立好通道以后，就开始传数据了，传的是一个packet（64K）。</p>
 <ul>
 <li>当DN1收到这个packet以后（在内存的一个buggeer收到），它一边落盘本地写，一边把packet发给DN2。</li>
@@ -138,9 +138,9 @@ ga('send', 'pageview');
 <li>DN1同理，向client发送成功，此时，一个packet就发送成功了。</li>
 </ul>
 <p><strong><em>Client不是落盘一个packet成功后才发第二个，而是一个发送队列，DN中会有一个待写的packet队列，成功之后就移除。当128M传输完毕，那么第一块文件就同时存在了3个DN中，3个副本完全一样。</em></strong></p>
-<h3 id="第七步"><a href="#第七步" class="headerlink" title="第七步"></a>第七步</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7amlul8mpj30v40cagmk.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7amlul8mpj30v40cagmk.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<h3 id="第七步"><a href="#第七步" class="headerlink" title="第七步"></a>第七步</h3><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7amlul8mpj30v40cagmk.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>传输成功后，我们第一块的文件就传完了，关闭流以后，client告诉hdfs数据传输完毕，NN收到消息后，增加元数据（描述数据的数据），相当于数据的目录。</p>
-<h3 id="另一块（第二块）"><a href="#另一块（第二块）" class="headerlink" title="另一块（第二块）"></a>另一块（第二块）</h3><p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7amty6sbkj30v30fugng.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7amty6sbkj30v30fugng.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<h3 id="另一块（第二块）"><a href="#另一块（第二块）" class="headerlink" title="另一块（第二块）"></a>另一块（第二块）</h3><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7amty6sbkj30v30fugng.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>第二块同理，省去其他步骤，我们看到红色字的地方，DN变为4~6了，说明两次DN的选择的完全独立的过程，有可能与第一次一样，也有可能不一样，<font color="red">也就是说同一个文件的两块可能不在同一个DN上</font></p>
 <h3 id="特定步骤失败的影响"><a href="#特定步骤失败的影响" class="headerlink" title="特定步骤失败的影响"></a>特定步骤失败的影响</h3><p>在客户端请求建立通道时失败，则这次上传就失败了。假设在数据传输的过程中失败，分两种情况，如果客户端向DN1发送Packet失败，则上传失败；如果DN1-DN2或者DN2-DN3失败，则上传仍然继续进行，并且返回成功信号，因为我们DN1已经有了一个副本，如果我们设置的副本数是3，它会自动进行备份，再去找两台机器。</p>
 <h2 id="2-1-网络拓扑-节点距离计算"><a href="#2-1-网络拓扑-节点距离计算" class="headerlink" title="2.1 网络拓扑-节点距离计算"></a>2.1 网络拓扑-节点距离计算</h2><blockquote>
@@ -148,7 +148,7 @@ ga('send', 'pageview');
 </blockquote>
 <p>在HDFS写数据的过程中，NameNode会选择距离待上传数据最近距离的DataNode接收数据。那么这个最近距离怎么计算呢？</p>
 <p><strong><font color="red">节点距离：两个节点到达最近的共同祖先的距离总和。</font></strong></p>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7ayagxsxlj31uw0u0adm.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7ayagxsxlj31uw0u0adm.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7ayagxsxlj31uw0u0adm.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>机架可以理解为路由器，D1为一个数据中心，<strong><em>一个R1+3个N构成了一个NAT网络，一个D1+3个R也构成了一个NAT网络。</em></strong>    </p>
 <p>N1到N2的距离怎么算？很简单，数直线就行了。所以N1到N2的距离为2。    </p>
 <p><code>/</code>为抽象意义上的根，一个D1为一个公网出口，任意两个公网出口之间的拓扑距离为2.</p>
@@ -158,7 +158,7 @@ ga('send', 'pageview');
 <blockquote>
 <p>在常见情况下，当复制因子为3时，HDFS的放置策略是将一个副本放置在本地机架中的一个节点上，将另一个副本放置在本地机架中的另一个节点上，最后一个副本放置在不同机架中的另一个节点上。</p>
 </blockquote>
-<p><a href="https://tva1.sinaimg.cn/large/006y8mN6ly1g7bjjosbhbj30ys0p2mz8.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7bjjosbhbj30ys0p2mz8.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7bjjosbhbj30ys0p2mz8.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>第一个副本在Client所处的节点上。如果客户端在集群外，随机选一个。    </p>
 <p>第二个副本和第一个副本位于相同机架的随机节点。    </p>
 <p>第三个副本位于不同机架的随机节点。</p>

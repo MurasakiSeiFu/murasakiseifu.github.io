@@ -91,8 +91,8 @@ ga('send', 'pageview');
 <h1 id="zookeeper客户端详解"><a href="#zookeeper客户端详解" class="headerlink" title="zookeeper客户端详解"></a>zookeeper客户端详解</h1><h2 id="1-zookeeper核心概念"><a href="#1-zookeeper核心概念" class="headerlink" title="1. zookeeper核心概念"></a>1. zookeeper核心概念</h2><p>Zookeeper提供一个多层级的节点命名空间（节点称为znode）。与文件系统不同的是，这些节点都可以设置关联的数据，而文件系统中只有文件节点可以存放数据，而目录节点不行。    </p>
 <p>Zookeeper为了保证高吞吐和低延迟，在内存中维护了这个树状的目录结构，<strong>这种特性使得Zookeeper不能用于存放大量的数据，每个节点的存放数据上限为1M。</strong></p>
 <p>说白了，可以理解zookeeper为一个存储功能，在其节点上存放数据，比如分布式配置中心就是一个典型的例子。    </p>
-<p><a href="https://ws1.sinaimg.cn/large/006tKfTcly1g0f24w4olxj31d00n0778.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws1.sinaimg.cn/large/006tKfTcly1g0f24w4olxj31d00n0778.jpg" src="/img/cat.gif" class="lazyload"></a></p>
-<h2 id="2-znode"><a href="#2-znode" class="headerlink" title="2. znode"></a>2. znode</h2><p><a href="https://ws3.sinaimg.cn/large/006tKfTcly1g0f5k911z0j306303i418.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws3.sinaimg.cn/large/006tKfTcly1g0f5k911z0j306303i418.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://ws1.sinaimg.cn/large/006tKfTcly1g0f24w4olxj31d00n0778.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
+<h2 id="2-znode"><a href="#2-znode" class="headerlink" title="2. znode"></a>2. znode</h2><p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://ws3.sinaimg.cn/large/006tKfTcly1g0f5k911z0j306303i418.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>ZooKeeper操作和维护的为一个个数据节点，称为 znode，采用类似文件系统的层级树状结构进行管理。如果 znode 节点包含数据则存储为字节数组（byte array）。</p>
 <h3 id="znode类型"><a href="#znode类型" class="headerlink" title="znode类型"></a>znode类型</h3><p><strong>PERSISTENT-持久节点</strong></p>
 <ul>
@@ -291,7 +291,7 @@ ga('send', 'pageview');
 </tbody>
 </table>
 <p>通过这个监听机制，我们就可以监听节点状态，以及节点何时发生了改变。</p>
-<p><a href="https://ws2.sinaimg.cn/large/006tKfTcly1g0k1c1vokmj31ds0sstbh.jpg" data-fancybox="group" data-caption="" class="fancybox"><img alt="" title="" data-src="https://ws2.sinaimg.cn/large/006tKfTcly1g0k1c1vokmj31ds0sstbh.jpg" src="/img/cat.gif" class="lazyload"></a></p>
+<p><a href="/img/cat.gif" data-fancybox="group" data-caption="" class="fancybox"><img alt="" data-src="https://ws2.sinaimg.cn/large/006tKfTcly1g0k1c1vokmj31ds0sstbh.jpg" src="/img/cat.gif" class="lazyload" title=""></a></p>
 <p>比如分布式任务调度中心，有三个交易的任务，每一个都与Job调度中心建立连接，假如此时我们只让B机器执行交易任务，当有一天B机器挂了，通过watcher机制，我们就可以知道B机器的会话状态为Disconnected，因此我们就可以做相应的处理。</p>
 <h2 id="4-ACL"><a href="#4-ACL" class="headerlink" title="4.ACL"></a>4.ACL</h2><h3 id="什么是ACL"><a href="#什么是ACL" class="headerlink" title="什么是ACL"></a>什么是ACL</h3><p>ACL全称：Access Control List，字面理解就是访问控制集合。<br>其中包含了内置的ACl Scheemes：</p>
 <ul>
