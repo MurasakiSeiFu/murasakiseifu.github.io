@@ -175,15 +175,15 @@
 </li>
 </ol>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public FlowBean() &#123;</span><br><span class="line">	super();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ol start="3">
+<ol>
 <li>重写序列化方法</li>
 </ol>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(DataOutput out)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">	out.writeLong(upFlow);</span><br><span class="line">	out.writeLong(downFlow);</span><br><span class="line">	out.writeLong(sumFlow);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ol start="4">
+<ol>
 <li>重写反序列化方法</li>
 </ol>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">readFields</span><span class="params">(DataInput in)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">	upFlow = in.readLong();</span><br><span class="line">	downFlow = in.readLong();</span><br><span class="line">	sumFlow = in.readLong();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ol start="5">
+<ol>
 <li><font color="red">注意反序列化的顺序和序列化的顺序完全一致</font>
 </li>
 <li><p>要想把结果显示在文件中，需要重写toString()，可用”\t”分开，方便后续用</p>

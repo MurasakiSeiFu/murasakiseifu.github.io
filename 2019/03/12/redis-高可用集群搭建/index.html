@@ -184,7 +184,7 @@
 <p>第五步：分别启动6个redis实例，然后检查是否启动成功</p>
 <p>（1）/usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/800*/redis.conf</p>
 <p>（2）ps -ef | grep redis 查看是否启动成功</p>
-<p>第六步：用redis-cli创建整个redis集群(redis5以前的版本集群是依靠ruby脚本redis-trib.rb实现)<br>-a 为刚才设置的密码<br>（1）/usr/local/redis-5.0.2/src/redis-cli -a fzz –cluster create –cluster-replicas 1 192.168.187.200:8001 192.168.187.201:8002 192.168.187.202:8003 192.168.187.200:8004 192.168.187.201:8005 192.168.187.202:8006 代表为每个创建的主服务器节点创建一个从服务器节点</p>
+<p>第六步：用redis-cli创建整个redis集群(redis5以前的版本集群是依靠ruby脚本redis-trib.rb实现)<br>-a 为刚才设置的密码<br>（1）/usr/local/redis-5.0.2/src/redis-cli -a fzz —cluster create —cluster-replicas 1 192.168.187.200:8001 192.168.187.201:8002 192.168.187.202:8003 192.168.187.200:8004 192.168.187.201:8005 192.168.187.202:8006 代表为每个创建的主服务器节点创建一个从服务器节点</p>
 <p>第七步：验证集群：</p>
 <p>（1）连接任意一个客户端即可：./redis-cli -c -h -p (-a访问服务端密码，-c表示集群模式，指定ip地址和端口号）如：/usr/local/redis-5.0.2/src/redis-cli -a fzz -c -h 192.168.187.200 -p 800*</p>
 <p>（2）进行验证： cluster info（查看集群信息）、cluster nodes（查看节点列表）</p>

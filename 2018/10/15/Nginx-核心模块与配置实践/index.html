@@ -178,7 +178,7 @@
 <p>2）服务器实际处理网络请求及响应的是工作进程（worker），在类unix系统上，nginx可以配置多个worker，而每个worker进程都可以同时处理数以千计的网络请求。    </p>
 <p>3）模块化设计。nginx的worker，包括核心和功能性模块，核心模块负责维持一个运行循环（run-loop），执行网络请求处理的不同阶段的模块功能，如网络读写、存储读写、内容传输、外出过滤，以及将请求发往上游服务器等。而其代码的模块化设计，也使得我们可以根据需要对功能模块进行适当的选择和修改，编译成具有特定功能的服务器。</p>
 <p>4）事件驱动、异步及非阻塞，可以说是nginx得以获得高并发、高性能的关键因素，同时也得益于对Linux、Solaris及类BSD等操作系统内核中事件通知及I/O性能增强功能的采用，如kqueue、epoll及event ports。</p>
-<p><strong>简单说明流程:</strong><br><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fw8w9tfiktj31280kc78n.jpg" alt=""><br>正常流程：浏览器发送请求—&gt;连接到网卡—&gt;内核从硬盘读取Html文件到内核态—&gt;内核再把文件发送到nginx应用态—&gt;应用态在复制到网卡</p>
+<p><strong>简单说明流程:</strong><br><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fw8w9tfiktj31280kc78n.jpg" alt=""><br>正常流程：浏览器发送请求—-&gt;连接到网卡—-&gt;内核从硬盘读取Html文件到内核态—-&gt;内核再把文件发送到nginx应用态—-&gt;应用态在复制到网卡</p>
 <p>最早的nginx的流程：通过eqoll/select IO模型来完成非阻塞，所有需要I/O操作的进程进入selet队列。nginx会轮询队列是否有I/O进程，如果有，再去硬盘读写。</p>
 <p>现在：如果轮询需要10万个，也是很耗时间的，所以在内核里会增加一个事件，通过AIO的方式，不需要轮询，当有可读可写的I/O时，不通过select，内核自己来通知nginx，nginx在通过进一步的配置，内核态就可以不经过nginx直接到网卡。</p>
 <h2 id="三、Nginx-配置与使用"><a href="#三、Nginx-配置与使用" class="headerlink" title="三、Nginx 配置与使用"></a>三、Nginx 配置与使用</h2><h3 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a><strong>主要内容</strong></h3><ol>
@@ -196,7 +196,7 @@
 <li>日志配置<h3 id="1、配置文件的语法格式："><a href="#1、配置文件的语法格式：" class="headerlink" title="1、配置文件的语法格式："></a><strong>1、配置文件的语法格式：</strong></h3>先来看一个简单的nginx 配置<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_processes  1;</span><br><span class="line">events &#123;</span><br><span class="line">    worker_connections  1024;</span><br><span class="line">&#125;</span><br><span class="line">http &#123;</span><br><span class="line">    include       mime.types;</span><br><span class="line">    default_type  application/octet-stream;</span><br><span class="line">    # 开启后 内核态就可以不经过nginx直接发送文件到网卡。</span><br><span class="line">    sendfile        on;</span><br><span class="line">    # 长连接保活时间</span><br><span class="line">    keepalive_timeout  65;</span><br><span class="line">    </span><br><span class="line">    # 代表虚拟机</span><br><span class="line">    server &#123;</span><br><span class="line">    	# 监听端口(不要重复)</span><br><span class="line">        listen       80;</span><br><span class="line">        # 配置域名</span><br><span class="line">        server_name  localhost;</span><br><span class="line">        # 请求地址</span><br><span class="line">        location / &#123;</span><br><span class="line">            root   html;</span><br><span class="line">            index  index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line">        location /nginx_status &#123;</span><br><span class="line">    	   stub_status on;</span><br><span class="line">    	   access_log   off;</span><br><span class="line">  	    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
-<p>上述配置中的events、http、server、location、upstream等属于配置项块。<br>而worker_processes 、worker_connections、include、listen  属于配置项块中的属性。<br>/nginx_status：属于配置块的特定参数参数。其中server块嵌套于http块，其可以直接继承访问Http块当中的参数。<br>| <strong>配置块</strong>   | 名称开头用大口号包裹其对应属性   |<br>|:—-|:—-|<br>| <strong>属性</strong>   | 基于空格切分属性名与属性值，属性值可能有多个项 都以空格进行切分 如：  access_log  logs/host.access.log  main   |<br>| <strong>参数</strong>   | 其配置在 块名称与大括号间，其值如果有多个也是通过空格进行拆   | </p>
+<p>上述配置中的events、http、server、location、upstream等属于配置项块。<br>而worker_processes 、worker_connections、include、listen  属于配置项块中的属性。<br>/nginx_status：属于配置块的特定参数参数。其中server块嵌套于http块，其可以直接继承访问Http块当中的参数。<br>| <strong>配置块</strong>   | 名称开头用大口号包裹其对应属性   |<br>|:——|:——|<br>| <strong>属性</strong>   | 基于空格切分属性名与属性值，属性值可能有多个项 都以空格进行切分 如：  access_log  logs/host.access.log  main   |<br>| <strong>参数</strong>   | 其配置在 块名称与大括号间，其值如果有多个也是通过空格进行拆   | </p>
 <p>注意 如果配置项值中包括语法符号，比如空格符，那么需要使用单引号或双引号括住配置项值，否则Nginx会报语法错误。例如：<br>    log_format  main  ‘$remote_addr - $remote_user [$time_local] “$request” ‘<br>                     ‘$status $body_bytes_sent “$http_referer” ‘<br>                     ‘“$http_user_agent” “$http_x_forwarded_for”‘;</p>
 <h3 id="2、配置第一个静态WEB服务"><a href="#2、配置第一个静态WEB服务" class="headerlink" title="2、配置第一个静态WEB服务"></a>2、配置第一个静态WEB服务</h3><p>基本配置介绍说明：<br>（1）监听端口<br>语法：listen address：<br>默认：listen 80;<br>配置块：server    </p>
 <p>（2）主机名称<br>语法：server_name name[……];<br>默认：server_name “”;<br>配置块：server<br>server_name后可以跟多个主机名称，如server_name <a href="http://www.testweb.com" target="_blank" rel="noopener">www.testweb.com</a>、download.testweb.com;。 支持通配符与正则</p>
@@ -210,9 +210,9 @@
 </ol>
 <p><strong>动静分离：</strong></p>
 <ul>
-<li style="list-style: none"><input type="checkbox"> 创建静态站点</li>
-<li style="list-style: none"><input type="checkbox"> 配置 location /static</li>
-<li style="list-style: none"><input type="checkbox"> 配置 ~* .(gif|png|css|js)$ </li>
+<li>[ ] 创建静态站点</li>
+<li>[ ] 配置 location /static</li>
+<li>[ ] 配置 ~* .(gif|png|css|js)$ </li>
 </ul>
 <p>基于目录动静分离<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">   server &#123;</span><br><span class="line">        listen 80;</span><br><span class="line">        server_name *.MurasakiSeiFu.com;</span><br><span class="line">        root /usr/www/MurasakiSeiFu;</span><br><span class="line">        location / &#123;</span><br><span class="line">                index MurasakiSeiFu.html;</span><br><span class="line">        &#125;</span><br><span class="line"># 静态资源配置</span><br><span class="line"># 访问/static/***.jpg</span><br><span class="line">        location /static &#123;</span><br><span class="line"> # 创建static文件夹 然后放入一张图片 在这里指定路径</span><br><span class="line">         alias /usr/www/static;</span><br><span class="line">        &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
 <p>基于正则动静分离(如果配置正则表达式 最先匹配正则 其次是static 最后是 /)<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">location ~* \.(gif|jpg|png|css|js)$ &#123;</span><br><span class="line">      root /usr/www/static;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>

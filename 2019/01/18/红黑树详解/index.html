@@ -6,12 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="红黑树JDK1.8开始，HashMap引进红黑树作为又一存储结构。正好HashMap有红黑树的源码，所以我们借此分析一下红黑树结构。  TreeNode&amp;lt;K,V&amp;gt; 继承 LinkedHashMap.Entry&amp;lt;K,V&amp;gt;，用来实现红黑树相关的存储结构  static final class TreeNode&amp;lt;K,V&amp;gt; extends LinkedHashMap">
+    <meta name="description" content="红黑树JDK1.8开始，HashMap引进红黑树作为又一存储结构。正好HashMap有红黑树的源码，所以我们借此分析一下红黑树结构。  TreeNode 继承 LinkedHashMap.Entry，用来实现红黑树相关的存储结构  static final class TreeNode&amp;lt;K,V&amp;gt; extends LinkedHashMap.Entry&amp;lt;K,V&amp;gt; &amp;#12">
 <meta property="og:type" content="article">
 <meta property="og:title" content="红黑树详解">
 <meta property="og:url" content="http://ilovenorth.cn/2019/01/18/红黑树详解/index.html">
 <meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="红黑树JDK1.8开始，HashMap引进红黑树作为又一存储结构。正好HashMap有红黑树的源码，所以我们借此分析一下红黑树结构。  TreeNode&amp;lt;K,V&amp;gt; 继承 LinkedHashMap.Entry&amp;lt;K,V&amp;gt;，用来实现红黑树相关的存储结构  static final class TreeNode&amp;lt;K,V&amp;gt; extends LinkedHashMap">
+<meta property="og:description" content="红黑树JDK1.8开始，HashMap引进红黑树作为又一存储结构。正好HashMap有红黑树的源码，所以我们借此分析一下红黑树结构。  TreeNode 继承 LinkedHashMap.Entry，用来实现红黑树相关的存储结构  static final class TreeNode&amp;lt;K,V&amp;gt; extends LinkedHashMap.Entry&amp;lt;K,V&amp;gt; &amp;#12">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://ws4.sinaimg.cn/large/006tNc79ly1fzakddsg0ij311u0mwdj1.jpg">
 <meta property="og:image" content="https://ws4.sinaimg.cn/large/006tNc79ly1fzakf9so37j31100nqn0h.jpg">
@@ -37,7 +37,7 @@
 <meta property="og:updated_time" content="2019-04-29T02:00:17.820Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="红黑树详解">
-<meta name="twitter:description" content="红黑树JDK1.8开始，HashMap引进红黑树作为又一存储结构。正好HashMap有红黑树的源码，所以我们借此分析一下红黑树结构。  TreeNode&amp;lt;K,V&amp;gt; 继承 LinkedHashMap.Entry&amp;lt;K,V&amp;gt;，用来实现红黑树相关的存储结构  static final class TreeNode&amp;lt;K,V&amp;gt; extends LinkedHashMap">
+<meta name="twitter:description" content="红黑树JDK1.8开始，HashMap引进红黑树作为又一存储结构。正好HashMap有红黑树的源码，所以我们借此分析一下红黑树结构。  TreeNode 继承 LinkedHashMap.Entry，用来实现红黑树相关的存储结构  static final class TreeNode&amp;lt;K,V&amp;gt; extends LinkedHashMap.Entry&amp;lt;K,V&amp;gt; &amp;#12">
 <meta name="twitter:image" content="https://ws4.sinaimg.cn/large/006tNc79ly1fzakddsg0ij311u0mwdj1.jpg">
     
     
@@ -175,7 +175,7 @@
 
 <h2 id="红黑树"><a href="#红黑树" class="headerlink" title="红黑树"></a>红黑树</h2><p>JDK1.8开始，HashMap引进红黑树作为又一存储结构。<br>正好HashMap有红黑树的源码，所以我们借此分析一下红黑树结构。</p>
 <ul>
-<li>TreeNode&lt;K,V&gt; 继承 LinkedHashMap.Entry&lt;K,V&gt;，用来实现红黑树相关的存储结构</li>
+<li>TreeNode<k,v> 继承 LinkedHashMap.Entry<k,v>，用来实现红黑树相关的存储结构</k,v></k,v></li>
 </ul>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TreeNode</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; <span class="keyword">extends</span> <span class="title">LinkedHashMap</span>.<span class="title">Entry</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; </span>&#123;</span><br><span class="line">	TreeNode&lt;K,V&gt; parent;  <span class="comment">// 存储当前节点的父节点</span></span><br><span class="line">    TreeNode&lt;K,V&gt; left;   <span class="comment">// 存储当前节点的左孩子</span></span><br><span class="line">    TreeNode&lt;K,V&gt; right;  <span class="comment">// 存储当前节点的右孩子</span></span><br><span class="line">    TreeNode&lt;K,V&gt; prev;   <span class="comment">// 存储当前节点的前一个节点</span></span><br><span class="line">    <span class="keyword">boolean</span> red;          <span class="comment">// 存储当前节点的颜色（红、黑）</span></span><br><span class="line">    TreeNode(<span class="keyword">int</span> hash, K key, V val, Node&lt;K,V&gt; next) &#123;</span><br><span class="line">        <span class="keyword">super</span>(hash, key, val, next);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 <ul>

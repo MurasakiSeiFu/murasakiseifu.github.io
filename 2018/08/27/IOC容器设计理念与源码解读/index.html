@@ -179,7 +179,7 @@
 <li>自动注入(byName、byType）</li>
 <li>依赖检测<h3 id="1、Ioc理论概要"><a href="#1、Ioc理论概要" class="headerlink" title="1、Ioc理论概要"></a>1、Ioc理论概要</h3>在JAVA的世界中，一个对象A怎么才能调用对象B？通常有以下几种方法。    </li>
 </ol>
-<p>类别 | 描述 | 时间点<br>:—: | :—: | :—:<br>外部传入|构造方法传入|<br>| |属性设置传入|设置对象状态时<br>| |运行时做为参数传入|调用时<br>内部创建|属性中直接创建|创建引用对象时<br>| |初始化方法创建|创建引用对象时<br>| |运行时动态创建|调用时</p>
+<p>类别 | 描述 | 时间点<br>:—-: | :—-: | :—-:<br>外部传入|构造方法传入|<br>| |属性设置传入|设置对象状态时<br>| |运行时做为参数传入|调用时<br>内部创建|属性中直接创建|创建引用对象时<br>| |初始化方法创建|创建引用对象时<br>| |运行时动态创建|调用时</p>
 </li>
 </ol>
 <p>上表可以看到， 引用一个对象可以在不同地点（其它引用者）、不同时间由不同的方法完成。如果B只是一个非常简单的对象  如直接new B()，怎样都不会觉得复杂，比如你从来不会觉得创建一个String 是一个件复杂的事情。但如果B 是一个有着复杂依赖的Service对象，这时在不同时机引用B将会变得很复杂。</p>
@@ -234,20 +234,20 @@
 <li>这些承载对象又是保存在哪里？</li>
 </ol>
 <p><strong>BeanDefinition （Bean定义）</strong><br>ioc 实现中 我们在xml 中描述的Bean信息最后 都将保存至BeanDefinition （定义）对象中，其中xml bean 与BeanDefinition 程一对一的关系。<br><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fuo8w0fohnj30ex08h74q.jpg" alt=""></p>
-<p>由此可见，xml  bean中设置的属性最后都会体现在BeanDefinition中。如:<br>| <strong>XML-bean </strong>   | <strong>BeanDefinition</strong>   |<br>|:—-|:—-|<br>|  class   | beanClassName   |<br>| scope   | scope   |<br>| lazy-init | lazyInit   |<br>| constructor-arg   | ConstructorArgument   |<br>| property   | MutablePropertyValues   |<br>| factory-method   | factoryMethodName   |<br>| destroy-method   | AbstractBeanDefinition.destroyMethodName   |<br>| init-method   | AbstractBeanDefinition.initMethodName   |<br>| autowire   | AbstractBeanDefinition.autowireMode   |<br>| id   |    |<br>| name   |    | </p>
+<p>由此可见，xml  bean中设置的属性最后都会体现在BeanDefinition中。如:<br>| <strong>XML-bean </strong>   | <strong>BeanDefinition</strong>   |<br>|:——|:——|<br>|  class   | beanClassName   |<br>| scope   | scope   |<br>| lazy-init | lazyInit   |<br>| constructor-arg   | ConstructorArgument   |<br>| property   | MutablePropertyValues   |<br>| factory-method   | factoryMethodName   |<br>| destroy-method   | AbstractBeanDefinition.destroyMethodName   |<br>| init-method   | AbstractBeanDefinition.initMethodName   |<br>| autowire   | AbstractBeanDefinition.autowireMode   |<br>| id   |    |<br>| name   |    | </p>
 <ul>
-<li style="list-style: none"><input type="checkbox"> 演示查看 BeanDefinition 属性结构</li>
+<li>[ ] 演示查看 BeanDefinition 属性结构</li>
 </ul>
 <p><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fuo90i9jbpj30dd054jra.jpg" alt=""></p>
 <p><strong>BeanDefinitionRegistry（Bean注册器）</strong><br>在上表中我们并没有看到 xml bean 中的 id  和name属性没有体现在定义中，原因是ID 其作为当前Bean的存储key注册到了BeanDefinitionRegistry 注册器中。name 作为别名key 注册到了 AliasRegistry 注册中心。其最后都是指向其对应的BeanDefinition。</p>
 <ul>
-<li style="list-style: none"><input type="checkbox"> 演示查看 BeanDefinitionRegistry属性结构</li>
+<li>[ ] 演示查看 BeanDefinitionRegistry属性结构</li>
 </ul>
 <p><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fuo91jbelmj30ej0clglv.jpg" alt=""></p>
 <p><strong>BeanDefinitionReader（Bean定义读取）</strong><br>至此我们学习了 BeanDefinition 中存储了Xml Bean信息，而BeanDefinitionRegister 基于ID和name 保存了Bean的定义。接下要学习的是从xml Bean到BeanDefinition 然后在注册至BeanDefinitionRegister 整个过程。<br><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fuo92y28t9j30k109zt9b.jpg" alt=""></p>
 <p>上图中可以看出Bean的定义是由BeanDefinitionReader 从xml 中读取配置并构建出 BeanDefinitionReader,然后在基于别名注册到BeanDefinitionRegister中。</p>
 <ul>
-<li style="list-style: none"><input type="checkbox"> 查看BeanDefinitionReader结构</li>
+<li>[ ] 查看BeanDefinitionReader结构</li>
 </ul>
 <p><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fuo94l1j2pj30da079q30.jpg" alt=""><br>方法说明：</p>
 <ul>
@@ -269,7 +269,7 @@
 </li>
 </ul>
 <ul>
-<li style="list-style: none"><input type="checkbox"> 基于示例演示BeanDefinitionReader装载过程<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">//创建一个简单注册器</span><br><span class="line">BeanDefinitionRegistry register = new SimpleBeanDefinitionRegistry();</span><br><span class="line">//创建bean定义读取器</span><br><span class="line">BeanDefinitionReader reader = new XmlBeanDefinitionReader(register);</span><br><span class="line">// 创建资源读取器</span><br><span class="line">DefaultResourceLoader resourceLoader = new DefaultResourceLoader();</span><br><span class="line">// 获取资源</span><br><span class="line">Resource xmlResource = resourceLoader.getResource(&quot;spring.xml&quot;);</span><br><span class="line">// 装载Bean的定义</span><br><span class="line">reader.loadBeanDefinitions(xmlResource);</span><br><span class="line">// 打印构建的Bean 名称</span><br><span class="line">System.out.println(Arrays.toString(register.getBeanDefinitionNames());</span><br></pre></td></tr></table></figure>
+<li>[ ] 基于示例演示BeanDefinitionReader装载过程<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">//创建一个简单注册器</span><br><span class="line">BeanDefinitionRegistry register = new SimpleBeanDefinitionRegistry();</span><br><span class="line">//创建bean定义读取器</span><br><span class="line">BeanDefinitionReader reader = new XmlBeanDefinitionReader(register);</span><br><span class="line">// 创建资源读取器</span><br><span class="line">DefaultResourceLoader resourceLoader = new DefaultResourceLoader();</span><br><span class="line">// 获取资源</span><br><span class="line">Resource xmlResource = resourceLoader.getResource(&quot;spring.xml&quot;);</span><br><span class="line">// 装载Bean的定义</span><br><span class="line">reader.loadBeanDefinitions(xmlResource);</span><br><span class="line">// 打印构建的Bean 名称</span><br><span class="line">System.out.println(Arrays.toString(register.getBeanDefinitionNames());</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <p><strong>Beanfactory(bean 工厂)</strong><br> 有了Bean的定义就相当于有了产品的配方，接下来就是要把这个配方送到工厂进行生产了。在ioc当中Bean的构建是由BeanFactory 负责的。其结构如下：<br><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fuo95fjpbdj30d60al0sy.jpg" alt=""><br>方法说明：</p>
@@ -293,7 +293,7 @@
 </ul>
 <p>以上方法中重点要关注getBean，当用户调用getBean的时候就会触发 Bean的创建动作，其是如何创建的呢？</p>
 <ul>
-<li style="list-style: none"><input type="checkbox"> 演示基本BeanFactory获取一个Bean<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#创建Bean堆栈</span><br><span class="line">// 其反射实例化Bean</span><br><span class="line">java.lang.reflect.Constructor.newInstance(Unknown Source:-1)</span><br><span class="line">BeanUtils.instantiateClass()</span><br><span class="line">//基于实例化策略 实例化Bean</span><br><span class="line">SimpleInstantiationStrategy.instantiate()</span><br><span class="line">AbstractAutowireCapableBeanFactory.instantiateBean()</span><br><span class="line">// 执行Bean的实例化方法</span><br><span class="line">AbstractAutowireCapableBeanFactory.createBeanInstance()</span><br><span class="line">AbstractAutowireCapableBeanFactory.doCreateBean()</span><br><span class="line">// 执行Bean的创建</span><br><span class="line">AbstractAutowireCapableBeanFactory.createBean()</span><br><span class="line">// 缓存中没有，调用指定Bean工厂创建Bean</span><br><span class="line">AbstractBeanFactory$1.getObject()</span><br><span class="line">// 从单例注册中心获取Bean缓存</span><br><span class="line">DefaultSingletonBeanRegistry.getSingleton()</span><br><span class="line">AbstractBeanFactory.doGetBean()</span><br><span class="line">// 获取Bean</span><br><span class="line">AbstractBeanFactory.getBean()</span><br><span class="line">// 调用的客户类</span><br><span class="line">com.tuling.spring.BeanFactoryExample.main()</span><br></pre></td></tr></table></figure>
+<li>[ ] 演示基本BeanFactory获取一个Bean<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#创建Bean堆栈</span><br><span class="line">// 其反射实例化Bean</span><br><span class="line">java.lang.reflect.Constructor.newInstance(Unknown Source:-1)</span><br><span class="line">BeanUtils.instantiateClass()</span><br><span class="line">//基于实例化策略 实例化Bean</span><br><span class="line">SimpleInstantiationStrategy.instantiate()</span><br><span class="line">AbstractAutowireCapableBeanFactory.instantiateBean()</span><br><span class="line">// 执行Bean的实例化方法</span><br><span class="line">AbstractAutowireCapableBeanFactory.createBeanInstance()</span><br><span class="line">AbstractAutowireCapableBeanFactory.doCreateBean()</span><br><span class="line">// 执行Bean的创建</span><br><span class="line">AbstractAutowireCapableBeanFactory.createBean()</span><br><span class="line">// 缓存中没有，调用指定Bean工厂创建Bean</span><br><span class="line">AbstractBeanFactory$1.getObject()</span><br><span class="line">// 从单例注册中心获取Bean缓存</span><br><span class="line">DefaultSingletonBeanRegistry.getSingleton()</span><br><span class="line">AbstractBeanFactory.doGetBean()</span><br><span class="line">// 获取Bean</span><br><span class="line">AbstractBeanFactory.getBean()</span><br><span class="line">// 调用的客户类</span><br><span class="line">com.tuling.spring.BeanFactoryExample.main()</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <p><strong>Bean创建时序图：</strong><br><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fuo96eb3k4j30z90foq3x.jpg" alt=""></p>

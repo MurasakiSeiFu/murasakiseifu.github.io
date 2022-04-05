@@ -192,6 +192,7 @@
 </ul>
 <h3 id="Stat-数据结构"><a href="#Stat-数据结构" class="headerlink" title="Stat 数据结构"></a>Stat 数据结构</h3><p>Stat中记录了这个 ZNode 的三个数据版本，分别是version（当前ZNode的版本）、cversion（当前ZNode子节点的版本）和 cversion（当前ZNode的ACL版本）。<br>Stat：状态信息、版本、权限相关</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 1] get /murasaki</span><br><span class="line">hello</span><br><span class="line">cZxid = 0x400000002</span><br><span class="line">ctime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">mZxid = 0x400000002</span><br><span class="line">mtime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">pZxid = 0x400000003</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 5</span><br><span class="line">numChildren = 1</span><br></pre></td></tr></table></figure>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -242,6 +243,7 @@
 </tr>
 </tbody>
 </table>
+</div>
 <p>Session会话：<br>客户端来创建一个和zk服务端连接的句柄。<br>连接状态：CONNECTING\CONNECTED\CLOSED</p>
 <h2 id="3-watcher"><a href="#3-watcher" class="headerlink" title="3.watcher"></a>3.watcher</h2><h3 id="什么是watcher"><a href="#什么是watcher" class="headerlink" title="什么是watcher"></a>什么是watcher</h3><p>Watcher（事件监听器），是zookeeper中的一个很重要的特性。zookeeper允许用户在指定节点（znode）上注册一些Watcher，并且在一些特定事件触发的时候，zookeeper服务端会将事件通知到感兴趣的客户端上去，该机制zookeeper实现分布式协调服务的<font color="red">重要特性。</font></p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1.首先我们在集群1机器上执行以下命令</span><br><span class="line">[zk: localhost:2181(CONNECTED) 2] get /murasaki watcher</span><br><span class="line">hello</span><br><span class="line">cZxid = 0x400000002</span><br><span class="line">ctime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">mZxid = 0x400000002</span><br><span class="line">mtime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">pZxid = 0x400000003</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 0</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 5</span><br><span class="line">numChildren = 1</span><br></pre></td></tr></table></figure>
@@ -249,6 +251,7 @@
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">3.回到集群1机器，会触发watcher时间</span><br><span class="line">[zk: localhost:2181(CONNECTED) 3] </span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected type:NodeDataChanged path:/murasaki</span><br></pre></td></tr></table></figure>
 <p>根据上面的客户端代码，我们可以看到三个重要的属性：state、type、Path<br>下面重点说明一下state、type两个属性的主要意义。</p>
 <p><strong>SyncConnected</strong></p>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -297,7 +300,9 @@
 </tr>
 </tbody>
 </table>
+</div>
 <p><strong>Disconnected</strong></p>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -317,7 +322,9 @@
 </tr>
 </tbody>
 </table>
+</div>
 <p><strong>Expired</strong></p>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -337,7 +344,9 @@
 </tr>
 </tbody>
 </table>
+</div>
 <p><strong>AuthFailed</strong></p>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -357,6 +366,7 @@
 </tr>
 </tbody>
 </table>
+</div>
 <p>通过这个监听机制，我们就可以监听节点状态，以及节点何时发生了改变。</p>
 <p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g0k1c1vokmj31ds0sstbh.jpg" alt=""></p>
 <p>比如分布式任务调度中心，有三个交易的任务，每一个都与Job调度中心建立连接，假如此时我们只让B机器执行交易任务，当有一天B机器挂了，通过watcher机制，我们就可以知道B机器的会话状态为Disconnected，因此我们就可以做相应的处理。</p>

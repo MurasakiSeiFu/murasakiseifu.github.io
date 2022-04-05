@@ -6,12 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="并发编程专题–现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
+    <meta name="description" content="并发编程专题—现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
 <meta property="og:type" content="article">
 <meta property="og:title" content="并发编程专题--现代计算机理论模型与工作原理">
 <meta property="og:url" content="http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/index.html">
 <meta property="og:site_name" content="MurasakiSeiFu">
-<meta property="og:description" content="并发编程专题–现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
+<meta property="og:description" content="并发编程专题—现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9rce0mvj30zk0mctbf.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9ylyc2ij315q0ruqdj.jpg">
@@ -28,7 +28,7 @@
 <meta property="og:updated_time" content="2019-09-01T01:29:01.278Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="并发编程专题--现代计算机理论模型与工作原理">
-<meta name="twitter:description" content="并发编程专题–现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
+<meta name="twitter:description" content="并发编程专题—现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
 <meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9rce0mvj30zk0mctbf.jpg">
     
     
@@ -118,7 +118,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#并发编程专题–现代计算机理论模型与工作原理"><span class="toc-number">1.</span> <span class="toc-text">并发编程专题–现代计算机理论模型与工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现代计算机主要结构组成"><span class="toc-number">1.1.</span> <span class="toc-text">现代计算机主要结构组成</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CPU多核缓存架构"><span class="toc-number">1.2.</span> <span class="toc-text">CPU多核缓存架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总线加锁"><span class="toc-number">1.2.1.</span> <span class="toc-text">总线加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#缓存一致性协议（MESI）"><span class="toc-number">1.2.2.</span> <span class="toc-text">缓存一致性协议（MESI）</span></a></li></ol></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#并发编程专题—现代计算机理论模型与工作原理"><span class="toc-number">1.</span> <span class="toc-text">并发编程专题—现代计算机理论模型与工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现代计算机主要结构组成"><span class="toc-number">1.1.</span> <span class="toc-text">现代计算机主要结构组成</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CPU多核缓存架构"><span class="toc-number">1.2.</span> <span class="toc-text">CPU多核缓存架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总线加锁"><span class="toc-number">1.2.1.</span> <span class="toc-text">总线加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#缓存一致性协议（MESI）"><span class="toc-number">1.2.2.</span> <span class="toc-text">缓存一致性协议（MESI）</span></a></li></ol></li></ol></li></ol>
     </div>
   </span>
 </div>
@@ -164,7 +164,7 @@
   <div class="content" itemprop="articleBody">
     <meta name="referrer" content="no-referrer">
 
-<h1 id="并发编程专题–现代计算机理论模型与工作原理"><a href="#并发编程专题–现代计算机理论模型与工作原理" class="headerlink" title="并发编程专题–现代计算机理论模型与工作原理"></a>并发编程专题–现代计算机理论模型与工作原理</h1><h2 id="现代计算机主要结构组成"><a href="#现代计算机主要结构组成" class="headerlink" title="现代计算机主要结构组成"></a>现代计算机主要结构组成</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9rce0mvj30zk0mctbf.jpg" alt=""></p>
+<h1 id="并发编程专题—现代计算机理论模型与工作原理"><a href="#并发编程专题—现代计算机理论模型与工作原理" class="headerlink" title="并发编程专题—现代计算机理论模型与工作原理"></a>并发编程专题—现代计算机理论模型与工作原理</h1><h2 id="现代计算机主要结构组成"><a href="#现代计算机主要结构组成" class="headerlink" title="现代计算机主要结构组成"></a>现代计算机主要结构组成</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9rce0mvj30zk0mctbf.jpg" alt=""></p>
 <p>主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。</p>
 <p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9ylyc2ij315q0ruqdj.jpg" alt=""></p>
 <p>如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中取出数据，但是我们能看到，很多的外设等都从IO总线通信，由于IO总线是有带宽的，就像公路堵车一样，如果CPU每次运算都从内存中取数据，就会造成IO堵塞。</p>
@@ -214,7 +214,8 @@
 <h3 id="总线加锁"><a href="#总线加锁" class="headerlink" title="总线加锁"></a>总线加锁</h3><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6joidngawj314a0u0tbq.jpg" alt=""></p>
 <p>早期奔腾处理器，通过总线加锁来保证一致性，当CPU想要访问内存时，首先会对总线加锁，为了避免CPU2去抢资源，加锁之后，CPU2就没有办法读写内存数据了。</p>
 <p>这种的性能实在太低，相当于CPU2在获取数据时，直接就瘫痪了。</p>
-<h3 id="缓存一致性协议（MESI）"><a href="#缓存一致性协议（MESI）" class="headerlink" title="缓存一致性协议（MESI）"></a>缓存一致性协议（MESI）</h3><table>
+<h3 id="缓存一致性协议（MESI）"><a href="#缓存一致性协议（MESI）" class="headerlink" title="缓存一致性协议（MESI）"></a>缓存一致性协议（MESI）</h3><div class="table-container">
+<table>
 <thead>
 <tr>
 <th style="text-align:center">状态</th>
@@ -245,6 +246,7 @@
 </tr>
 </tbody>
 </table>
+</div>
 <p>表格看起来很难理解，我们举个例子。</p>
 <p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jp3ras18j313h0u0juj.jpg" alt=""></p>
 <p><strong>缓存一致性协议如何工作？数据的IO依然然通过bus总线，然而bus总线将遵循缓存一致性协议。这里我们就涉及一个概念：CPU缓存中，最小存储单元的概念</strong><br>缓存行。 </p>
@@ -300,7 +302,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#并发编程专题–现代计算机理论模型与工作原理"><span class="toc-number">1.</span> <span class="toc-text">并发编程专题–现代计算机理论模型与工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现代计算机主要结构组成"><span class="toc-number">1.1.</span> <span class="toc-text">现代计算机主要结构组成</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CPU多核缓存架构"><span class="toc-number">1.2.</span> <span class="toc-text">CPU多核缓存架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总线加锁"><span class="toc-number">1.2.1.</span> <span class="toc-text">总线加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#缓存一致性协议（MESI）"><span class="toc-number">1.2.2.</span> <span class="toc-text">缓存一致性协议（MESI）</span></a></li></ol></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#并发编程专题—现代计算机理论模型与工作原理"><span class="toc-number">1.</span> <span class="toc-text">并发编程专题—现代计算机理论模型与工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现代计算机主要结构组成"><span class="toc-number">1.1.</span> <span class="toc-text">现代计算机主要结构组成</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CPU多核缓存架构"><span class="toc-number">1.2.</span> <span class="toc-text">CPU多核缓存架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总线加锁"><span class="toc-number">1.2.1.</span> <span class="toc-text">总线加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#缓存一致性协议（MESI）"><span class="toc-number">1.2.2.</span> <span class="toc-text">缓存一致性协议（MESI）</span></a></li></ol></li></ol></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

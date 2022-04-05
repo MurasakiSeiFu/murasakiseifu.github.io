@@ -186,7 +186,8 @@
 <h4 id="基于Nginx-静态缓存的解决方案："><a href="#基于Nginx-静态缓存的解决方案：" class="headerlink" title="基于Nginx 静态缓存的解决方案："></a><strong>基于Nginx 静态缓存的解决方案：</strong></h4><p><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fwb64zn4cfj30na0e33z6.jpg" alt=""><br>1.用户请求访问详情页<br>2.首先Nginx会请求本地文件，查找静态文件缓存。<br>3.如果缓存没有，再去加载商品详情页，去请求商品详情页服务。<br>4.当我们对页面详情进行更新时，直接去Nginx清楚指定的商品缓存。</p>
 <h2 id="二-Nginx-静态缓存基本配置"><a href="#二-Nginx-静态缓存基本配置" class="headerlink" title="二.Nginx 静态缓存基本配置"></a><strong>二.Nginx 静态缓存基本配置</strong></h2><h4 id="1-在http元素模块下添加缓存区声明。"><a href="#1-在http元素模块下添加缓存区声明。" class="headerlink" title="1.在http元素模块下添加缓存区声明。"></a>1.在http元素模块下添加缓存区声明。</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># proxy_cache_path 缓存路径,在Tomcat(服务器)所在目录中创建</span><br><span class="line"># levels 缓存层级及目录位数 1:2 一级目录存一个字符 二级目录存2个字符</span><br><span class="line"># keys_zone 缓存区内存大小</span><br><span class="line"># inactive 有效期</span><br><span class="line"># max_size 硬盘大小</span><br><span class="line">proxy_cache_path /data/nginx/cache_murasakiseifu levels=1:2 keys_zone=cache_murasakiseifu:500m inactive=20d max_size=1g;</span><br></pre></td></tr></table></figure>
 <h4 id="2-为指定location模块设定缓存策略。"><a href="#2-为指定location模块设定缓存策略。" class="headerlink" title="2.为指定location模块设定缓存策略。"></a>2.为指定location模块设定缓存策略。</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 指定缓存区</span><br><span class="line">proxy_cache cache_murasakiseifu;</span><br><span class="line"># 以全路径md5值做为Key </span><br><span class="line">proxy_cache_key $host$uri$is_args$args;</span><br><span class="line"># 对不同的HTTP状态码设置不同的缓存时间</span><br><span class="line">proxy_cache_valid 200 304 12h;</span><br></pre></td></tr></table></figure>
-<h4 id="3-缓存参数详细说明"><a href="#3-缓存参数详细说明" class="headerlink" title="3.缓存参数详细说明"></a>3.缓存参数详细说明</h4><table>
+<h4 id="3-缓存参数详细说明"><a href="#3-缓存参数详细说明" class="headerlink" title="3.缓存参数详细说明"></a>3.缓存参数详细说明</h4><div class="table-container">
+<table>
 <thead>
 <tr>
 <th style="text-align:left">父元素</th>
@@ -237,6 +238,7 @@
 </tr>
 </tbody>
 </table>
+</div>
 <h2 id="三-缓存的清除："><a href="#三-缓存的清除：" class="headerlink" title="三.缓存的清除："></a><strong>三.缓存的清除：</strong></h2><p>当我们更新数据时，需要清除缓存。    </p>
 <pre><code>该功能可以采用第三方模块 ngx_cache_purge 实现。    
 </code></pre><p><strong>为 nginx 添加 ngx_cache_purge 模块</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 下载ngx_cache_purge 模块包 ,这里nginx 版本为1.6.2 purge 对应2.0版</span><br><span class="line">wget http://labs.frickle.com/files/ngx_cache_purge-2.3.tar.gz</span><br><span class="line"># 查看已安装模块</span><br><span class="line">./sbin/nginx -V</span><br><span class="line"># 进入nginx安装包目录 重新安装 --add-module为模块解压的全路径</span><br><span class="line">./configure --prefix=/root/svr/nginx --with-http_stub_status_module --with-http_ssl_module --add-module=/root/svr/nginx/models/ngx_cache_purge-2.0</span><br><span class="line"># 重新编译</span><br><span class="line">make</span><br><span class="line"># 拷贝 安装目录/objs/nginx 文件用于替换原nginx 文件</span><br><span class="line"># 检测查看安装是否成功</span><br><span class="line">nginx -t</span><br></pre></td></tr></table></figure></p>
