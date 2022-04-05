@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="redis 集群原理分析原理分析Redis Cluster 将所有数据划分为 16384 的 slots(槽位)，每个节点负责其中一部分槽位。槽位的信息存储于每个节点中。只有master节点才有槽位。 192.168.187.200:8001&amp;gt; cluster nodes9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187.201:80">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis 集群原理分析">
+<meta property="og:url" content="http://ilovenorth.cn/2019/03/13/redis-集群原理分析/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="redis 集群原理分析原理分析Redis Cluster 将所有数据划分为 16384 的 slots(槽位)，每个节点负责其中一部分槽位。槽位的信息存储于每个节点中。只有master节点才有槽位。 192.168.187.200:8001&amp;gt; cluster nodes9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187.201:80">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg">
+<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg">
+<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg">
+<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg">
+<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.740Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="redis 集群原理分析">
+<meta name="twitter:description" content="redis 集群原理分析原理分析Redis Cluster 将所有数据划分为 16384 的 slots(槽位)，每个节点负责其中一部分槽位。槽位的信息存储于每个节点中。只有master节点才有槽位。 192.168.187.200:8001&amp;gt; cluster nodes9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187.201:80">
+<meta name="twitter:image" content="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>redis 集群原理分析</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/03/12/redis-高可用集群搭建/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&text=redis 集群原理分析"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&is_video=false&description=redis 集群原理分析"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=redis 集群原理分析&body=Check out this article: http://ilovenorth.cn/2019/03/13/redis-集群原理分析/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&name=redis 集群原理分析&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&t=redis 集群原理分析"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#redis-集群原理分析"><span class="toc-number">1.</span> <span class="toc-text">redis 集群原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#原理分析"><span class="toc-number">1.1.</span> <span class="toc-text">原理分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#槽位定位算法"><span class="toc-number">1.2.</span> <span class="toc-text">槽位定位算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#跳转重定位"><span class="toc-number">1.3.</span> <span class="toc-text">跳转重定位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#水平扩展"><span class="toc-number">1.4.</span> <span class="toc-text">水平扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-启动集群"><span class="toc-number">1.4.1.</span> <span class="toc-text">1.启动集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-集群操作"><span class="toc-number">1.4.2.</span> <span class="toc-text">2.集群操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis集群选举原理分析"><span class="toc-number">1.5.</span> <span class="toc-text">Redis集群选举原理分析</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        redis 集群原理分析
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-03-13T08:48:16.000Z" itemprop="datePublished">2019-03-13</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/分布式专题/">分布式专题</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="redis-集群原理分析"><a href="#redis-集群原理分析" class="headerlink" title="redis 集群原理分析"></a>redis 集群原理分析</h1><h2 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h2><p>Redis Cluster 将所有数据划分为 16384 的 slots(槽位)，每个节点负责其中一部分槽位。槽位的信息存储于每个节点中。只有master节点才有槽位。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">192.168.187.200:8001&gt; cluster nodes</span><br><span class="line">9c4b4fe726ff6bc380b65c8716e65cdac8f9e2b6 192.168.187.201:8005@18005 slave b79e767ee587656222e24b0e2605213345a91c9c 0 1551146483000 5 connected</span><br><span class="line">3f60a2638aacb3a6a51dad4536e0062005b80d66 192.168.187.202:8006@18006 master - 0 1551146484100 7 connected 0-5460</span><br><span class="line">b79e767ee587656222e24b0e2605213345a91c9c 192.168.187.202:8003@18003 master - 0 1551146483595 3 connected 10923-16383</span><br><span class="line">b61e5639764a954054d5d5690f72dca33f83b7cf 192.168.187.200:8001@18001 myself,slave 3f60a2638aacb3a6a51dad4536e0062005b80d66 0 1551146484000 1 connected</span><br><span class="line">3f3a3707957b23b9c1b0ffb28ec2a2d57845a130 192.168.187.201:8002@18002 master - 0 1551146483595 11 connected 5461-10922</span><br><span class="line">4641fe0918cb54a280b5f4d63e22cc672d6919d0 192.168.187.200:8004@18004 slave 3f3a3707957b23b9c1b0ffb28ec2a2d57845a130 0 1551146484608 11 connected</span><br></pre></td></tr></table></figure>
+<ul>
+<li>0-5460</li>
+<li>5461-10922</li>
+<li>10923-16383</li>
+</ul>
+<p>这些槽位是在逻辑上的，最多redis支持16384个槽位，也就是16384个机器，在没有设置槽位分配时，默认是平均分配的。</p>
+<p>当 Redis Cluster 的客户端来连接集群时，它也会得到一份集群的槽位配置信息，<strong>并将其缓存在客户端本地</strong>。这样当客户端要查找某个 key 时，可以直接定位到目标节点。同时因为槽位的信息可能会存在客户端与服务器不一致的情况，还需要纠正机制来实现槽位信息的校验调整。</p>
+<h2 id="槽位定位算法"><a href="#槽位定位算法" class="headerlink" title="槽位定位算法"></a>槽位定位算法</h2><p>Cluster 默认会对 key 值使用 crc16 算法进行 hash 得到一个整数值，然后用这个整数值对 16384 进行取模来得到具体槽位。</p>
+<font color="red">HASH_SLOT = CRC16(key) mod 16384</font>
+
+<h2 id="跳转重定位"><a href="#跳转重定位" class="headerlink" title="跳转重定位"></a>跳转重定位</h2><p><strong>注意：redis-cli是没有定位算法的，jedis是有定位算法的</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">192.168.187.200:8001&gt; get name</span><br><span class="line">-&gt; Redirected to slot [5798] located at 192.168.187.201:8002</span><br><span class="line">&quot;fzz&quot;</span><br><span class="line">192.168.187.201:8002&gt;</span><br></pre></td></tr></table></figure>
+<p>我们刚才通过redis-cli连接上了8001这台机器，我们执行一下get命令，看着日志就会很清晰的明白：我们在8001机器上执行get命令，通过redis发现name这个key的槽位是5798，根据一开始打印的集群节点信息 </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">192.168.187.201:8002@18002 master - 0 1551146483595 11 connected 5461-10922</span><br></pre></td></tr></table></figure>
+<p>我们发现5798在5461-10922之间，所以redis集群帮我们重定向到8002这台机器，并输出了key的value值：fzz。</p>
+<p>当客户端向一个错误的节点发出了指令，该节点会发现指令的 key 所在的槽位并不归自己管理，这时它会向客户端发送一个特殊的跳转指令携带目标操作的节点地址，告诉客户端去连这个节点去获取数据。客户端收到指令后除了跳转到正确的节点上去操作，还会同步更新纠正本地的槽位映射表缓存，后续所有 key 将使用新的槽位映射表。</p>
+<h2 id="水平扩展"><a href="#水平扩展" class="headerlink" title="水平扩展"></a>水平扩展</h2><p>Redis3.0以后的版本虽然有了集群功能，提供了比之前版本的哨兵模式更高的性能与可用性，但是集群的水平扩展却比较麻烦，今天就来带大家看看redis高可用集群如何做水平扩展，<font color="red">原始集群(见下图)由6个节点组成，6个节点分布在三台机器上，采用三主三从的模式</font></p>
+<p><img src="https://ws3.sinaimg.cn/large/006tKfTcly1g118vvemroj30bj063tib.jpg" alt=""></p>
+<h3 id="1-启动集群"><a href="#1-启动集群" class="headerlink" title="1.启动集群"></a>1.启动集群</h3><ul>
+<li>启动整个集群</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8001/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8002/redis.conf</span><br><span class="line">/usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8003/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8004/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8005/redis.conf</span><br><span class="line"> /usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/8006/redis.conf</span><br></pre></td></tr></table></figure>
+<ul>
+<li>客户端连接8001端口的redis实例</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-cli -a fzz -c -h 192.168.0.61 -p 8001</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看集群状态</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">192.168.0.61:8001&gt; cluster  nodes</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g118xw7ib4j30bj05bdo6.jpg" alt=""></p>
+<p> 从上图可以看出，整个集群运行正常，三个master节点和三个slave节点，8001端口的实例节点存储0-5460这些hash槽，8002端口的实例节点存储5461-10922这些hash槽，8003端口的实例节点存储10923-16383这些hash槽，这三个master节点存储的所有hash槽组成redis集群的存储槽位，slave点是每个主节点的备份从节点，不显示存储槽位 </p>
+<h3 id="2-集群操作"><a href="#2-集群操作" class="headerlink" title="2.集群操作"></a>2.集群操作</h3><p>我们在原始集群基础上再增加一主(8007)一从(8008)，增加节点后的集群参见下图，新增节点用虚线框表示</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g118yplbeaj30bj06a7e7.jpg" alt=""></p>
+<ul>
+<li><p><font color="green">增加redis实例</font><br>方式在上一遍已经介绍完了，大家按以前自行配置就好。</p>
+</li>
+<li><font color="green">查看redis集群的命令帮助</font>
+
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /usr/local/redis-5.0.2</span><br><span class="line">src/redis-cli --cluster help</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g1190wwagrj30bj0a27kc.jpg" alt=""></p>
+<ol>
+<li>create：创建一个集群环境host1:port1 … hostN:portN</li>
+<li>call：可以执行redis命令</li>
+<li>add-node：将一个节点添加到集群里，第一个参数为新节点的ip:port，第二个参数为集群中任意一个已经存在的节点的ip:port </li>
+<li>del-node：移除一个节点</li>
+<li>reshard：重新分片</li>
+<li>check：检查集群状态 </li>
+</ol>
+<ul>
+<li><font color="green">配置8007为集群主节点</font>    
+
+</li>
+</ul>
+<p>使用add-node命令新增一个主节点8007(master)，绿色为新增节点，红色为已知存在节点，看到日志最后有”[OK] New node added correctly”提示代表新节点加入成功</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/redis-cli --cluster add-node 192.168.0.64:8007 192.168.0.61:8001</span><br></pre></td></tr></table></figure>
+<p>查看集群状态</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g1193s43s5j30bj02vdk7.jpg" alt=""></p>
+<font color="red">注意：当添加节点成功以后，新增的节点不会有任何数据，因为它还没有分配任何的slot(hash槽)，我们需要为新节点手工分配hash槽</font>    
+
+<p>使用redis-cli命令为8007分配hash槽，找到集群中的任意一个主节点(红色位置表示集群中的任意一个主节点)，对其进行重新分片工作。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/usr/local/redis-5.0.2/src/redis-cli --cluster reshard 192.168.0.61:8001</span><br><span class="line">输出如下：</span><br><span class="line">... ...</span><br><span class="line">How many slots do you want to move (from 1 to 16384)? 600</span><br><span class="line">(ps:需要多少个槽移动到新的节点上，自己设置，比如600个hash槽)</span><br><span class="line">What is the receiving node ID? eb57a5700ee6f9ff099b3ce0d03b1a50ff247c3c</span><br><span class="line">(ps:把这600个hash槽移动到哪个节点上去，需要指定节点id)</span><br><span class="line">Please enter all the source node IDs.</span><br><span class="line">  Type 'all' to use all the nodes as source nodes for the hash slots.</span><br><span class="line">  Type 'done' once you entered all the source nodes IDs.</span><br><span class="line">Source node 1:all</span><br><span class="line">(ps:输入all为从所有主节点(8001,8002,8003)中分别抽取相应的槽数指定到新节点中，抽取的总槽数为600个)</span><br><span class="line"> ... ...</span><br><span class="line">Do you want to proceed with the proposed reshard plan (yes/no)? yes</span><br><span class="line">(ps:输入yes确认开始执行分片任务)</span><br><span class="line">... ...</span><br></pre></td></tr></table></figure>
+<p>查看下最新的集群状态    </p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g11954jbzwj30bj033dkk.jpg" alt=""></p>
+<font color="red">如上图所示，现在我们的8007已经有hash槽了，也就是说可以在8007上进行读写数据啦！到此为止我们的8007已经加入到集群中，并且是主节点(Master)</font>    
+
+<ul>
+<li><font color="green">配置8008为8007的从节点</font>
+
+</li>
+</ul>
+<p>添加从节点8008到集群中去并查看集群状态    </p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/redis-cli --cluster add-node 192.168.0.64:8008 192.168.0.61:8001</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g1196kk0ndj30bj03dn2c.jpg" alt=""></p>
+<p>如图所示，还是一个master节点，没有被分配任何的hash槽。<br>我们需要执行replicate命令来指定当前节点(从节点)的主节点id为哪个,首先需要连接新加的8008节点的客户端，然后使用集群命令进行操作，把当前的8008(slave)节点指定到一个主节点下(这里使用之前创建的8007主节点，红色表示节点id)</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/redis-cli -c -h 192.168.0.64 -p 8008</span><br><span class="line">192.168.0.61:8008&gt; cluster replicate eb57a5700ee6f9ff099b3ce0d03b1a50ff247c3c</span><br></pre></td></tr></table></figure>
+<p>查看集群状态，8008节点已成功添加为8007节点的从节点</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tKfTcly1g1197hk77nj30bj03943i.jpg" alt=""></p>
+<h2 id="Redis集群选举原理分析"><a href="#Redis集群选举原理分析" class="headerlink" title="Redis集群选举原理分析"></a>Redis集群选举原理分析</h2><p>当slave发现自己的master变为FAIL状态时，便尝试进行Failover，以期成为新的master。由于挂掉的master可能会有多个slave，从而存在多个slave竞争成为master节点的过程，其过程如下：</p>
+<ol>
+<li>slave发现自己的master变为FAIL</li>
+<li>将自己记录的集群currentEpoch加1（集群选举周期，cluster info查看），并广播FAILOVER_AUTH_REQUEST 信息</li>
+<li>其他节点收到该信息，只有master响应，判断请求者的合法性，并发送FAILOVER_AUTH_ACK，对每一个从节点发送的epoch信息只发送一次ack</li>
+<li>尝试failover的slave收集FAILOVER_AUTH_ACK</li>
+<li>超过半数后变成新Master</li>
+<li>广播Pong通知其他集群节点。</li>
+</ol>
+<p>假如集群3的master挂了，slave1和slave2分别向其他两个master节点发送FAILOVER_AUTH_REQUEST 信息来竞选master位置，假如master1节点先收到slave1节点的竞选请求信息，它就会给slave节点发送一个FAILOVER_AUTH_ACK验证，证明它投票给了slave1节点，与此同时，master1节点将不再接受slave2节点的请求信息，同理，如果master2节点也先接收到了slave1节点的竞选请求信息，它也会给slave节点发送一个FAILOVER_AUTH_ACK验证，证明它投票给了slave1节点，此时slave1有了两票，超过了当前master节点（2台）的半数，即成为master节点。所以redis集群，必须至少有3个master节点。</p>
+<p><strong>很容易想出一种情况，slave1收到了master1的验证通过信息，slave2收到master2的验证通过信息，2台平票，怎么办？</strong></p>
+<p>从节点并不是在主节点一进入 FAIL 状态就马上尝试发起选举，而是有一定延迟，一定的延迟确保我们等待FAIL状态在集群中传播，slave如果立即尝试选举，其它masters或许尚未意识到FAIL状态，可能会拒绝投票    </p>
+<ul>
+<li>延迟计算公式：    </li>
+</ul>
+<p>DELAY = 500ms + random(0 ~ 500ms) + SLAVE_RANK * 1000ms</p>
+<ul>
+<li>SLAVE_RANK表示此slave已经从master复制数据的总量的rank。Rank越小代表已复制的数据越新。这种方式下，持有最新数据的slave将会首先发起选举（理论上）。</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#redis-集群原理分析"><span class="toc-number">1.</span> <span class="toc-text">redis 集群原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#原理分析"><span class="toc-number">1.1.</span> <span class="toc-text">原理分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#槽位定位算法"><span class="toc-number">1.2.</span> <span class="toc-text">槽位定位算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#跳转重定位"><span class="toc-number">1.3.</span> <span class="toc-text">跳转重定位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#水平扩展"><span class="toc-number">1.4.</span> <span class="toc-text">水平扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-启动集群"><span class="toc-number">1.4.1.</span> <span class="toc-text">1.启动集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-集群操作"><span class="toc-number">1.4.2.</span> <span class="toc-text">2.集群操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis集群选举原理分析"><span class="toc-number">1.5.</span> <span class="toc-text">Redis集群选举原理分析</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&text=redis 集群原理分析"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&is_video=false&description=redis 集群原理分析"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=redis 集群原理分析&body=Check out this article: http://ilovenorth.cn/2019/03/13/redis-集群原理分析/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&title=redis 集群原理分析"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&name=redis 集群原理分析&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/03/13/redis-集群原理分析/&t=redis 集群原理分析"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

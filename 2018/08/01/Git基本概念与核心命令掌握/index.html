@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="Git 存储对象Git 是一个内容寻址存储系统，其核心部分是一个简单的键值对数据库(KEY-VALUE DATA STORE),你可以向数据库插入任意内容，它会返回一个用于取回该值的hash键。λ murasakiseifu [~/git] at  master ✔→ echo &apos;hello world&apos; | git hash-object -w --stdin3b18e512dba79e4">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git 底层原理">
+<meta property="og:url" content="http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="Git 存储对象Git 是一个内容寻址存储系统，其核心部分是一个简单的键值对数据库(KEY-VALUE DATA STORE),你可以向数据库插入任意内容，它会返回一个用于取回该值的hash键。λ murasakiseifu [~/git] at  master ✔→ echo &apos;hello world&apos; | git hash-object -w --stdin3b18e512dba79e4">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/0069RVTdly1ftu6oskha9j31h60j6tbx.jpg">
+<meta property="og:updated_time" content="2019-04-28T06:48:51.450Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Git 底层原理">
+<meta name="twitter:description" content="Git 存储对象Git 是一个内容寻址存储系统，其核心部分是一个简单的键值对数据库(KEY-VALUE DATA STORE),你可以向数据库插入任意内容，它会返回一个用于取回该值的hash键。λ murasakiseifu [~/git] at  master ✔→ echo &apos;hello world&apos; | git hash-object -w --stdin3b18e512dba79e4">
+<meta name="twitter:image" content="https://ws1.sinaimg.cn/large/0069RVTdly1ftu6oskha9j31h60j6tbx.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Git 底层原理</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2018/08/08/泛型程序设计/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2018/07/10/Mysql-通过sql批量插入10万条数据/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&text=Git 底层原理"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&is_video=false&description=Git 底层原理"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Git 底层原理&body=Check out this article: http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&name=Git 底层原理&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&t=Git 底层原理"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-存储对象"><span class="toc-number">1.</span> <span class="toc-text">Git 存储对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-树对象"><span class="toc-number">2.</span> <span class="toc-text">Git 树对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-提交对象"><span class="toc-number">3.</span> <span class="toc-text">Git 提交对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-引用"><span class="toc-number">4.</span> <span class="toc-text">Git 引用</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Git 底层原理
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-08-01T06:08:29.000Z" itemprop="datePublished">2018-08-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h2 id="Git-存储对象"><a href="#Git-存储对象" class="headerlink" title="Git 存储对象"></a>Git 存储对象</h2><p>Git 是一个内容寻址存储系统，其核心部分是一个简单的键值对数据库(KEY-VALUE DATA STORE),你可以向数据库插入任意内容，它会返回一个用于取回该值的hash键。<br><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">λ murasakiseifu [~/git] at  master ✔</span><br><span class="line">→ <span class="built_in">echo</span> <span class="string">'hello world'</span> | git <span class="built_in">hash</span>-object -w --stdin</span><br><span class="line">3b18e512dba79e4c8300dd08aeb37f8e728b8dad</span><br></pre></td></tr></table></figure></p>
+<p>当我们把存入任意内容时，都会为该内容生成一个hash值。我们可以通过这个hash值来获取其对应的内容。<br><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">λ murasakiseifu [~/git] at  master ✔</span><br><span class="line">→ git cat-file -p 3b18e512dba79e4c8300dd08aeb37f8e728b8dad</span><br><span class="line">hello world</span><br></pre></td></tr></table></figure></p>
+<p>Git 基于该功能，把每个文件的版本中内容都保存在数据库中，当要进行版本回滚的时候就通过其中一个键将期取回并替换。</p>
+<p>所以我们平常用的 git add 其实就是把修改之后的内容 插入到键值库中。当我们执行 git add README.MF 等同于执行了 git hash-object -w README.MF 把文件写到数据库中。</p>
+<p>我们解决了存储的问题，但其只能存储内容同并没有存储文件名，如果要进行回滚 怎么知道哪个内容对应哪个文件呢？接下要讲的就是树对象，它解决了文件名存储的问题 。</p>
+<h2 id="Git-树对象"><a href="#Git-树对象" class="headerlink" title="Git 树对象"></a>Git 树对象</h2><p>树对像解决了文件名的问题，它的目的将多个文件名组织在一起，其内包含多个文件名称与其对应的Key和其它树对像的用引用，可以理解成操作系统当中的文件夹，一个文件夹包含多个文件和多个其它文件夹。<br><img src="https://ws1.sinaimg.cn/large/0069RVTdly1ftu6oskha9j31h60j6tbx.jpg" alt=""><br>每一次提交，都会生成一个hash值，这个我们已经知道了。当我们提交的是一个带路径的对象时，比如 如图所示的 src/man/com/hello.java ，git 会为每一个路径文件夹建立一个hash值，类似我们java中的链表一样，通过对于hash值的判断，我们可以知道我们文件在何时提交的，可以用作回滚等操作。</p>
+<p>每一个分支当中都关联了一个树对像，他存储了当前分支下所有的文件名及对应的 key。<br>通过以下命令即可查看分指树。<br><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">λ murasakiseifu [src/man/hi.txt] at  master ✔</span><br><span class="line">→ git cat-file -p master^&#123;tree&#125;</span><br><span class="line">100644 blob 31e0fce560e96c8b357f5b8630c7d8fbeb0a3ec8	hello.txt</span><br><span class="line">040000 tree 85537e99ded58c97e62560f7f26644db5723da20	src</span><br></pre></td></tr></table></figure></p>
+<p>其中我们可以看到 hello.txt为TXT格式的文档，所以显示了它的文件类型，文件类型为blob，而src为一个文件夹，所以git采用树对象的形式来存储，并会为每一个文件夹生成一个Key，并且文件类型为tree，也就是顶级树对象。</p>
+<h2 id="Git-提交对象"><a href="#Git-提交对象" class="headerlink" title="Git 提交对象"></a>Git 提交对象</h2><p>一次提交即为当前版本的一个快照，该快照就是通过提交对像进行保存，其存储的内容为：一个顶级树对象、上一次提交的对像啥希、提交者用户名及邮箱、提交时间戳、提交评论。<br><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ git cat-file -p b2395925b5f1c12bf8cb9602f05fc8d580311836</span><br><span class="line">tree 002adb8152f7cd49f400a0480ef2d4c09b060c07</span><br><span class="line">parent 8be903f5e1046b851117a21cdc3c80bdcaf97570</span><br><span class="line">author murasakeseifu &lt;murasakeseifu@gmail.com&gt;</span><br><span class="line">committer murasakeseifu &lt;murasakeseifu@gmail.com&gt;</span><br></pre></td></tr></table></figure></p>
+<p>通过上面的知识，我们可以推测出从修改一个文件到提交的过程总共生成了三个对像：<br>一个内容对象 ==&gt; 存储了文件内容<br>一个树对像 ==&gt; 存储了文件名及内容对像的key<br>一个提交对像 ==&gt; 存储了树对像的key 及提交评论。    </p>
+<h2 id="Git-引用"><a href="#Git-引用" class="headerlink" title="Git 引用"></a>Git 引用</h2><p>当我们执行 git branch {branchName} 时创建了一个分支，其本质就是在git 基于指定提交创建了一个引用文件，保存在 .git\refs\heads\ 下。<br>git branch dev<br>cat.git\refs\heads\dev<br>git 总共 有三种类型的引用：</p>
+<ol>
+<li>分支引用</li>
+<li>远程分支引用</li>
+<li>标签引用</li>
+</ol>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-存储对象"><span class="toc-number">1.</span> <span class="toc-text">Git 存储对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-树对象"><span class="toc-number">2.</span> <span class="toc-text">Git 树对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-提交对象"><span class="toc-number">3.</span> <span class="toc-text">Git 提交对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-引用"><span class="toc-number">4.</span> <span class="toc-text">Git 引用</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&text=Git 底层原理"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&is_video=false&description=Git 底层原理"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Git 底层原理&body=Check out this article: http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&title=Git 底层原理"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&name=Git 底层原理&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/08/01/Git基本概念与核心命令掌握/&t=Git 底层原理"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

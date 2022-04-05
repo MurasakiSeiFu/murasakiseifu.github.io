@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="首先我们要准备数据.菜单表sqlCREATE TABLE `c_menu` (  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT &apos;主键&apos;,  `code` VARCHAR(10) DEFAULT NULL COMMENT &apos;编号&apos;,  `fathercode` VARCHAR(10) DEFAULT &apos;-1&apos; COMMENT &apos;父类编号&apos;,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="springboot java递归生成菜单树">
+<meta property="og:url" content="http://ilovenorth.cn/2018/04/18/springboot-登录技巧/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="首先我们要准备数据.菜单表sqlCREATE TABLE `c_menu` (  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT &apos;主键&apos;,  `code` VARCHAR(10) DEFAULT NULL COMMENT &apos;编号&apos;,  `fathercode` VARCHAR(10) DEFAULT &apos;-1&apos; COMMENT &apos;父类编号&apos;,">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-04-29T01:55:37.110Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="springboot java递归生成菜单树">
+<meta name="twitter:description" content="首先我们要准备数据.菜单表sqlCREATE TABLE `c_menu` (  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT &apos;主键&apos;,  `code` VARCHAR(10) DEFAULT NULL COMMENT &apos;编号&apos;,  `fathercode` VARCHAR(10) DEFAULT &apos;-1&apos; COMMENT &apos;父类编号&apos;,">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>springboot java递归生成菜单树</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2018/04/19/Util-Springboot类beans获取/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2018/04/16/test分类/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&text=springboot java递归生成菜单树"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&is_video=false&description=springboot java递归生成菜单树"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=springboot java递归生成菜单树&body=Check out this article: http://ilovenorth.cn/2018/04/18/springboot-登录技巧/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&name=springboot java递归生成菜单树&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&t=springboot java递归生成菜单树"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-6"><a class="toc-link" href="#叶子节点"><span class="toc-number">1.</span> <span class="toc-text"> 叶子节点 </span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#准备工作"><span class="toc-number">2.</span> <span class="toc-text"> 准备工作 </span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CMenu"><span class="toc-number"></span> <span class="toc-text"> CMenu </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CMenuServiceImpl"><span class="toc-number"></span> <span class="toc-text"> CMenuServiceImpl </span></a>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        springboot java递归生成菜单树
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-04-18T08:43:10.000Z" itemprop="datePublished">2018-04-18</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Springboot/">Springboot</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<p>首先我们要准备数据.<br><figure class="highlight sql"><figcaption><span>菜单表sql</span></figcaption><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`c_menu`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">BIGINT</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">'主键'</span>,</span><br><span class="line">  <span class="string">`code`</span> <span class="built_in">VARCHAR</span>(<span class="number">10</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'编号'</span>,</span><br><span class="line">  <span class="string">`fathercode`</span> <span class="built_in">VARCHAR</span>(<span class="number">10</span>) <span class="keyword">DEFAULT</span> <span class="string">'-1'</span> <span class="keyword">COMMENT</span> <span class="string">'父类编号'</span>,</span><br><span class="line">  <span class="string">`name`</span> <span class="built_in">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'目录名称'</span>,</span><br><span class="line">  <span class="string">`menu_url`</span> <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">DEFAULT</span> <span class="string">'#'</span> <span class="keyword">COMMENT</span> <span class="string">'目录路径'</span>,</span><br><span class="line">  <span class="string">`menu_image`</span> <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">DEFAULT</span> <span class="string">'#'</span> <span class="keyword">COMMENT</span> <span class="string">'图片'</span>,</span><br><span class="line">  <span class="string">`level`</span> <span class="built_in">INT</span>(<span class="number">5</span>) <span class="keyword">DEFAULT</span> <span class="string">'-1'</span> <span class="keyword">COMMENT</span> <span class="string">'目录等级'</span>,</span><br><span class="line">  <span class="string">`sort`</span> <span class="built_in">INT</span>(<span class="number">5</span>) <span class="keyword">DEFAULT</span> <span class="string">'0'</span> <span class="keyword">COMMENT</span> <span class="string">'目录排序'</span>,</span><br><span class="line">  <span class="string">`isleaf`</span> <span class="built_in">int</span>(<span class="number">2</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'是否叶子 1是 0不是'</span>,</span><br><span class="line">  <span class="string">`iscancel`</span> <span class="built_in">INT</span>(<span class="number">2</span>) <span class="keyword">DEFAULT</span> <span class="string">'0'</span> <span class="keyword">COMMENT</span> <span class="string">'是否作废'</span>,</span><br><span class="line">  <span class="string">`type`</span> <span class="built_in">INT</span>(<span class="number">5</span>) <span class="keyword">DEFAULT</span> <span class="string">'1'</span> <span class="keyword">COMMENT</span> <span class="string">'类型'</span>,</span><br><span class="line">  <span class="string">`state`</span> <span class="built_in">INT</span>(<span class="number">5</span>) <span class="keyword">DEFAULT</span> <span class="string">'1'</span> <span class="keyword">COMMENT</span> <span class="string">'状态'</span>,</span><br><span class="line">  <span class="string">`remark`</span> <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'备注'</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">INNODB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COMMENT</span>=<span class="string">'菜单目录表'</span>;</span><br></pre></td></tr></table></figure></p>
+<h6 id="叶子节点"><a href="#叶子节点" class="headerlink" title=" 叶子节点 "></a><strong> 叶子节点 </strong></h6><p>我们一级菜单的fathercode为 #，二级菜单的fathercode指向一级菜单的code，多级菜单以此类推。在这里有一个重要的字段，就是 isleaf(是否为叶子节点)，这个字段就是作为递归查询时的条件。当一个目录被定义为叶子节点，也就是说这个目录下就没有叶子目录了。</p>
+<h6 id="准备工作"><a href="#准备工作" class="headerlink" title=" 准备工作 "></a><strong> 准备工作 </strong></h6><p>我们要组装的数据格式是在菜单实体中组装一个菜单list，每一个list也就是对应着一个级别的菜单。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">（菜单实体）      &#123;一级菜单list&#125;  &#123;二级菜单list&#125;</span><br><span class="line">CMenu-list————---CMenu-list————---CMenu</span><br><span class="line">               |	       |--CMenu</span><br><span class="line">               |	       |--CMenu</span><br><span class="line">               |</span><br><span class="line">               |-CMenu-list————---CMenu</span><br><span class="line">               		       |--CMenu</span><br><span class="line">               		       |--CMenu</span><br></pre></td></tr></table></figure><br>基本的数据格式我们考虑好了之后，就可以开始完成功能了。</p>
+<h5 id="CMenu"><a href="#CMenu" class="headerlink" title=" CMenu "></a><strong> CMenu </strong></h5><p>在CMenu实体中，加上一个初始化的list和初始化是否是叶子节点的构造方法。<br><figure class="highlight java"><figcaption><span>list属性</span></figcaption><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CMenu</span><span class="params">(Integer isleaf)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">this</span>.isleaf = isleaf;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">private</span> List&lt;CMenu&gt; menus = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"><span class="comment">//对应的get/set方法</span></span><br></pre></td></tr></table></figure></p>
+<h5 id="CMenuServiceImpl"><a href="#CMenuServiceImpl" class="headerlink" title=" CMenuServiceImpl "></a><strong> CMenuServiceImpl </strong></h5><p>我们查询出所有的菜单。<br><figure class="highlight java"><figcaption><span>CMenu实现类</span></figcaption><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CMenu <span class="title">findAll</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	List&lt;CMenu&gt; menulist = cmenuMapper.findAll();</span><br><span class="line">	<span class="keyword">return</span> parentMenu(menulist);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>parentMenun()方法就是进入我们递归的方法啦。<br><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//菜单树</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> CMenu <span class="title">parentMenu</span><span class="params">(List&lt;CMenu&gt; menulist)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//初始化菜单的子节点</span></span><br><span class="line">    CMenu parentMenu = <span class="keyword">new</span> CMenu(<span class="number">0</span>);</span><br><span class="line">    <span class="comment">//初始父亲节点为 -1，为了查出一级菜单</span></span><br><span class="line">    parentMenu.setMenus(menus(<span class="string">"-1"</span>, listtomap(menulist)));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> parentMenu;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//组装map</span></span><br><span class="line"><span class="keyword">private</span> Map&lt;String, List&lt;CMenu&gt;&gt; listtomap(List&lt;CMenu&gt; menulist) &#123;</span><br><span class="line">    Map&lt;String, List&lt;CMenu&gt;&gt; menuMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    <span class="comment">//组装map key:fatherCode value:旗下的子菜单</span></span><br><span class="line">    <span class="comment">//可以省略一次循环</span></span><br><span class="line">    <span class="keyword">for</span> (CMenu cMenu : menulist) &#123;</span><br><span class="line">        List&lt;CMenu&gt; menus = menuMap.get(cMenu.getFathercode());</span><br><span class="line">        <span class="keyword">if</span> (menus == <span class="keyword">null</span>) &#123;</span><br><span class="line">            menus = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        menus.add(cMenu);</span><br><span class="line">        menuMap.put(cMenu.getFathercode(), menus);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> menuMap;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//递归方法</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> List&lt;CMenu&gt; <span class="title">menus</span><span class="params">(String fatherCode, Map&lt;String, List&lt;CMenu&gt;&gt; menuMap)</span> </span>&#123;</span><br><span class="line">    List&lt;CMenu&gt; childlist = menuMap.get(fatherCode);</span><br><span class="line">    <span class="comment">//退出递归的方法，不然就会死循环啦</span></span><br><span class="line">    <span class="keyword">if</span> (childlist == <span class="keyword">null</span> || childlist.size() == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//根据父类id查询旗下子类</span></span><br><span class="line">    <span class="keyword">for</span> (CMenu cMenu : childlist) &#123;</span><br><span class="line">        <span class="comment">//如果是叶子节点 则退出循环</span></span><br><span class="line">        <span class="keyword">if</span> (cMenu == <span class="keyword">null</span> || cMenu.getIsleaf() == <span class="keyword">null</span> || cMenu.getIsleaf() == <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//如果不是 继续递归</span></span><br><span class="line">        cMenu.setMenus(menus(cMenu.getCode(), menuMap));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> childlist;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>生成菜单树这是第一步，下一篇是完成权限登陆下的菜单初始化，最终我们要完成一个完成的登录功能~</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-6"><a class="toc-link" href="#叶子节点"><span class="toc-number">1.</span> <span class="toc-text"> 叶子节点 </span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#准备工作"><span class="toc-number">2.</span> <span class="toc-text"> 准备工作 </span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CMenu"><span class="toc-number"></span> <span class="toc-text"> CMenu </span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CMenuServiceImpl"><span class="toc-number"></span> <span class="toc-text"> CMenuServiceImpl </span></a>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&text=springboot java递归生成菜单树"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&is_video=false&description=springboot java递归生成菜单树"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=springboot java递归生成菜单树&body=Check out this article: http://ilovenorth.cn/2018/04/18/springboot-登录技巧/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&title=springboot java递归生成菜单树"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&name=springboot java递归生成菜单树&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/04/18/springboot-登录技巧/&t=springboot java递归生成菜单树"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

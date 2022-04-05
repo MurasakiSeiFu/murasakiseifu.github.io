@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="算法-排序-堆主要内容基本概念须知 堆 ==&amp;gt; 完全二叉树，可以用数组来实现逻辑上的堆。    通过数据下标找到其左右孩子以及父节点：  左孩子：2 * i + 1 右孩子：2 * i + 2 父节点：i - 1 / 2   大根堆  任意一颗树或子树的最大值都是树的头部     小根堆   任意一颗树或子树的最小值都是树的头部      堆排序思路概述 先将堆调整为大根堆，那么此时 arr">
+<meta name="keywords" content="算法 排序">
+<meta property="og:type" content="article">
+<meta property="og:title" content="算法-排序-堆">
+<meta property="og:url" content="http://ilovenorth.cn/2020/03/07/算法-排序-堆/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="算法-排序-堆主要内容基本概念须知 堆 ==&amp;gt; 完全二叉树，可以用数组来实现逻辑上的堆。    通过数据下标找到其左右孩子以及父节点：  左孩子：2 * i + 1 右孩子：2 * i + 2 父节点：i - 1 / 2   大根堆  任意一颗树或子树的最大值都是树的头部     小根堆   任意一颗树或子树的最小值都是树的头部      堆排序思路概述 先将堆调整为大根堆，那么此时 arr">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gcmeedw5qwj30zm0diaaj.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gcmegqbturj31420dmmxo.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gcmehip9vqj313u0d0jru.jpg">
+<meta property="og:updated_time" content="2020-03-08T09:55:34.727Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="算法-排序-堆">
+<meta name="twitter:description" content="算法-排序-堆主要内容基本概念须知 堆 ==&amp;gt; 完全二叉树，可以用数组来实现逻辑上的堆。    通过数据下标找到其左右孩子以及父节点：  左孩子：2 * i + 1 右孩子：2 * i + 2 父节点：i - 1 / 2   大根堆  任意一颗树或子树的最大值都是树的头部     小根堆   任意一颗树或子树的最小值都是树的头部      堆排序思路概述 先将堆调整为大根堆，那么此时 arr">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gcmeedw5qwj30zm0diaaj.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>算法-排序-堆</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/03/08/算法-排序-快速排序/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/01/17/2020 have fun/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2020/03/07/算法-排序-堆/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&text=算法-排序-堆"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&is_video=false&description=算法-排序-堆"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=算法-排序-堆&body=Check out this article: http://ilovenorth.cn/2020/03/07/算法-排序-堆/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&name=算法-排序-堆&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&t=算法-排序-堆"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#算法-排序-堆"><span class="toc-number">1.</span> <span class="toc-text">算法-排序-堆</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基本概念须知"><span class="toc-number">1.1.1.</span> <span class="toc-text">基本概念须知</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆排序思路概述"><span class="toc-number">1.1.2.</span> <span class="toc-text">堆排序思路概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#结合code详解"><span class="toc-number">1.1.3.</span> <span class="toc-text">结合code详解</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        算法-排序-堆
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-03-07T01:27:36.000Z" itemprop="datePublished">2020-03-07</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/算法/">算法</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/算法-排序/">算法 排序</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h1 id="算法-排序-堆"><a href="#算法-排序-堆" class="headerlink" title="算法-排序-堆"></a>算法-排序-堆</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h3 id="基本概念须知"><a href="#基本概念须知" class="headerlink" title="基本概念须知"></a>基本概念须知</h3><ol>
+<li>堆 ==&gt; 完全二叉树，可以用数组来实现<font color="red">逻辑上</font>的堆。</li>
+</ol>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gcmeedw5qwj30zm0diaaj.jpg" alt=""></p>
+<ol start="2">
+<li><p>通过数据下标找到其左右孩子以及父节点：</p>
+<ul>
+<li>左孩子：2 * i + 1</li>
+<li>右孩子：2 * i + 2</li>
+<li>父节点：i - 1 / 2</li>
+</ul>
+</li>
+<li><p>大根堆</p>
+<blockquote>
+<p>任意一颗树或子树的最大值都是树的头部</p>
+</blockquote>
+<p> <img src="https://tva1.sinaimg.cn/large/00831rSTly1gcmegqbturj31420dmmxo.jpg" alt=""></p>
+</li>
+<li><p>小根堆</p>
+<blockquote>
+<p> 任意一颗树或子树的最小值都是树的头部</p>
+</blockquote>
+<p> <img src="https://tva1.sinaimg.cn/large/00831rSTly1gcmehip9vqj313u0d0jru.jpg" alt=""></p>
+</li>
+</ol>
+<h3 id="堆排序思路概述"><a href="#堆排序思路概述" class="headerlink" title="堆排序思路概述"></a>堆排序思路概述</h3><ol>
+<li>先将堆调整为大根堆，那么此时 arr[0] 为最大元素</li>
+<li>让 arr[0] 与 arr[length - 1] 交换，那么此时arr[length - 1]为最大元素</li>
+<li>让数组整体的 length - 1 ，因为最大的元素已经在队尾，已经是有序的了，不需要考虑。剩下的数组继续调整为大根堆【此步为调整堆的大小，维护一个变量记为<font color="red">需要继续排序的堆的大小</font>】</li>
+<li>重复 2 ~ 4</li>
+</ol>
+<h3 id="结合code详解"><a href="#结合code详解" class="headerlink" title="结合code详解"></a>结合code详解</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">heapSort</span><span class="params">(<span class="keyword">int</span>[] arr)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (arr == <span class="keyword">null</span> || arr.length &lt; <span class="number">2</span>) &#123;</span><br><span class="line">           <span class="keyword">return</span>;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">           <span class="comment">// 将原数组调整为大根堆</span></span><br><span class="line">           heapInsert(arr, i);</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">int</span> size = arr.length;</span><br><span class="line">       <span class="comment">// 将大根堆的堆顶 移动到数组最后面 然后将size-1 准备将剩下的部分继续用来堆排序</span></span><br><span class="line">       swap(arr, <span class="number">0</span>, --size);</span><br><span class="line">       <span class="comment">// 开始进行堆排序 也就是基本思路的2~4</span></span><br><span class="line">       <span class="keyword">while</span> (size &gt; <span class="number">0</span>) &#123;</span><br><span class="line">           <span class="comment">// 排序成功一次 也就意味一个最大的元素在堆顶arr[0]</span></span><br><span class="line">           heapify(arr, <span class="number">0</span>, size);</span><br><span class="line">           <span class="comment">// 1. 将arr[0]挪到此时数组的arr[size - 1]的位置</span></span><br><span class="line">           <span class="comment">// 2. 整体size再减一 作为下一次循环是 所提供的数组整体的大小</span></span><br><span class="line">           swap(arr, <span class="number">0</span>, --size);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">heapInsert</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">       <span class="comment">// 当前i位置如果比父位置大</span></span><br><span class="line">       <span class="keyword">while</span> (arr[index] &gt; arr[(index - <span class="number">1</span>) / <span class="number">2</span>]) &#123;</span><br><span class="line">           <span class="comment">// 就交换</span></span><br><span class="line">           swap(arr, index, (index - <span class="number">1</span>) / <span class="number">2</span>);</span><br><span class="line">           <span class="comment">// 然后i位置变为父位置</span></span><br><span class="line">           index = (index - <span class="number">1</span>) / <span class="number">2</span>;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">heapify</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> index, <span class="keyword">int</span> size)</span> </span>&#123;</span><br><span class="line">       <span class="comment">// 定位左孩子的下标</span></span><br><span class="line">       <span class="keyword">int</span> left = index * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">       <span class="comment">// 只要左孩子的下标小于数组大小</span></span><br><span class="line">       <span class="keyword">while</span> (left &lt; size) &#123;</span><br><span class="line">           <span class="comment">// 找到index中 左右孩子中较大的一个</span></span><br><span class="line">           <span class="keyword">int</span> largest = left + <span class="number">1</span> &lt; size &amp;&amp; arr[left + <span class="number">1</span>] &gt; arr[left] ? left + <span class="number">1</span> : left;</span><br><span class="line">           <span class="comment">// 找到后 与index所在数组的值比较</span></span><br><span class="line">           <span class="comment">// largest记录其中较大的一个下标</span></span><br><span class="line">           largest = arr[largest] &gt; arr[index] ? largest : index;</span><br><span class="line">           <span class="comment">// 如果下标相等 就跳出循环</span></span><br><span class="line">           <span class="keyword">if</span> (largest == index) &#123;</span><br><span class="line">               <span class="keyword">break</span>;</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="comment">// 如果不相等 将两个值进行交换 实现较大的一个真实值在堆的结构上向上移动</span></span><br><span class="line">           swap(arr, largest, index);</span><br><span class="line">           <span class="comment">// 向下遍历 以largest下标为起点</span></span><br><span class="line">           index = largest;</span><br><span class="line">           <span class="comment">// 找到largest的左孩子 【下一次循环的比较条件就是找出largest的左孩子的左右孩子中较大的一个】</span></span><br><span class="line">           left = index * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> i, <span class="keyword">int</span> j)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">int</span> tmp = arr[i];</span><br><span class="line">       arr[i] = arr[j];</span><br><span class="line">       arr[j] = tmp;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#算法-排序-堆"><span class="toc-number">1.</span> <span class="toc-text">算法-排序-堆</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基本概念须知"><span class="toc-number">1.1.1.</span> <span class="toc-text">基本概念须知</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆排序思路概述"><span class="toc-number">1.1.2.</span> <span class="toc-text">堆排序思路概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#结合code详解"><span class="toc-number">1.1.3.</span> <span class="toc-text">结合code详解</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2020/03/07/算法-排序-堆/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&text=算法-排序-堆"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&is_video=false&description=算法-排序-堆"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=算法-排序-堆&body=Check out this article: http://ilovenorth.cn/2020/03/07/算法-排序-堆/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&title=算法-排序-堆"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&name=算法-排序-堆&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2020/03/07/算法-排序-堆/&t=算法-排序-堆"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

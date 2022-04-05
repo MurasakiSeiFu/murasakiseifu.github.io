@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制主要内容一、MapReduce工作流程 二、MapTask工作机制 1. Read 阶段MapTask通过用户编写的RecordReader，从输入InputSplit中解析出一个个key/value。 2. Map 阶段该节点主要是将解析出的key/value交给用户编写map()函数处理，并产生一系列新的key/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制">
+<meta property="og:url" content="http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制主要内容一、MapReduce工作流程 二、MapTask工作机制 1. Read 阶段MapTask通过用户编写的RecordReader，从输入InputSplit中解析出一个个key/value。 2. Map 阶段该节点主要是将解析出的key/value交给用户编写map()函数处理，并产生一系列新的key/">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yvis2mmtj30sd0emq64.jpg">
+<meta property="og:updated_time" content="2019-11-11T06:52:05.390Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制">
+<meta name="twitter:description" content="BD-MapReduce7-MapReduce框架原理之MapTask工作机制主要内容一、MapReduce工作流程 二、MapTask工作机制 1. Read 阶段MapTask通过用户编写的RecordReader，从输入InputSplit中解析出一个个key/value。 2. Map 阶段该节点主要是将解析出的key/value交给用户编写map()函数处理，并产生一系列新的key/">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BD-MapReduce7-MapReduce框架原理之MapTask工作机制</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/11/05/BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&text=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&is_video=false&description=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-MapReduce7-MapReduce框架原理之MapTask工作机制&body=Check out this article: http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&name=BD-MapReduce7-MapReduce框架原理之MapTask工作机制&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&t=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><span class="toc-number">1.</span> <span class="toc-text">BD-MapReduce7-MapReduce框架原理之MapTask工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-number">1.2.</span> <span class="toc-text">一、MapReduce工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、MapTask工作机制"><span class="toc-number">1.3.</span> <span class="toc-text">二、MapTask工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Read-阶段"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. Read 阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Map-阶段"><span class="toc-number">1.3.2.</span> <span class="toc-text">2. Map 阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Collect-收集阶段"><span class="toc-number">1.3.3.</span> <span class="toc-text">3. Collect 收集阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Spill-阶段"><span class="toc-number">1.3.4.</span> <span class="toc-text">4. Spill 阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#溢写阶段详情："><span class="toc-number">1.3.4.1.</span> <span class="toc-text">溢写阶段详情：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-Combine-阶段"><span class="toc-number">1.3.5.</span> <span class="toc-text">5. Combine 阶段</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BD-MapReduce7-MapReduce框架原理之MapTask工作机制
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-11-04T09:27:36.000Z" itemprop="datePublished">2019-11-04</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><a href="#BD-MapReduce7-MapReduce框架原理之MapTask工作机制" class="headerlink" title="BD-MapReduce7-MapReduce框架原理之MapTask工作机制"></a>BD-MapReduce7-MapReduce框架原理之MapTask工作机制</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h2 id="一、MapReduce工作流程"><a href="#一、MapReduce工作流程" class="headerlink" title="一、MapReduce工作流程"></a>一、MapReduce工作流程</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
+<h2 id="二、MapTask工作机制"><a href="#二、MapTask工作机制" class="headerlink" title="二、MapTask工作机制"></a>二、MapTask工作机制</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yvis2mmtj30sd0emq64.jpg" alt=""></p>
+<h3 id="1-Read-阶段"><a href="#1-Read-阶段" class="headerlink" title="1. Read 阶段"></a>1. Read 阶段</h3><p>MapTask通过用户编写的RecordReader，从输入InputSplit中解析出一个个key/value。</p>
+<h3 id="2-Map-阶段"><a href="#2-Map-阶段" class="headerlink" title="2. Map 阶段"></a>2. Map 阶段</h3><p>该节点主要是将解析出的key/value交给用户编写map()函数处理，并产生一系列新的key/value。</p>
+<h3 id="3-Collect-收集阶段"><a href="#3-Collect-收集阶段" class="headerlink" title="3. Collect 收集阶段"></a>3. Collect 收集阶段</h3><p>在用户编写map()函数中，当数据处理完成后，一般会调用OutputCollector.collect()输出结果。在该函数内部，它会将生成的key/value分区（调用Partitioner），并写入一个环形内存缓冲区中。</p>
+<h3 id="4-Spill-阶段"><a href="#4-Spill-阶段" class="headerlink" title="4. Spill 阶段"></a>4. Spill 阶段</h3><p>即“溢写”，当环形缓冲区满后，MapReduce会将数据写到本地磁盘上，生成一个临时文件。需要注意的是，将数据写入本地磁盘之前，先要对数据进行一次本地排序，并在必要时对数据进行合并、压缩等操作。</p>
+<h4 id="溢写阶段详情："><a href="#溢写阶段详情：" class="headerlink" title="溢写阶段详情："></a>溢写阶段详情：</h4><ol>
+<li><p>利用快速排序算法对缓存区内的数据进行排序，排序方式是，先按照分区编号Partition进行排序，然后按照key进行排序。这样，经过排序后，数据以分区为单位聚集在一起，且同一分区内所有数据按照key有序。</p>
+</li>
+<li><p>按照分区编号由小到大依次将每个分区中的数据写入任务工作目录下的临时文件output/spillN.out（N表示当前溢写次数）中。如果用户设置了Combiner，则写入文件之前，对每个分区中的数据进行一次聚集操作。</p>
+</li>
+<li><p>将分区数据的元信息写到内存索引数据结构SpillRecord中，其中每个分区的元信息包括在临时文件中的偏移量、压缩前数据大小和压缩后数据大小。如果当前内存索引大小超过1MB，则将内存索引写到文件output/spillN.out.index中。</p>
+</li>
+</ol>
+<h3 id="5-Combine-阶段"><a href="#5-Combine-阶段" class="headerlink" title="5. Combine 阶段"></a>5. Combine 阶段</h3><p>当所有数据处理完成后，MapTask对所有临时文件进行一次合并，以确保最终只会生成一个数据文件。</p>
+<p>当所有数据处理完后，MapTask会将所有临时文件合并成一个大文件，并保存到文件output/file.out中，同时生成相应的索引文件output/file.out.index。</p>
+<p>在进行文件合并过程中，MapTask以分区为单位进行合并。对于某个分区，它将采用多轮递归合并的方式。每轮合并io.sort.factor（默认10）个文件，并将产生的文件重新加入待合并列表中，对文件排序后，重复以上过程，直到最终得到一个大文件。</p>
+<p>让每个MapTask最终只生成一个数据文件，可避免同时打开大量文件和同时读取大量小文件产生的随机读取带来的开销。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><span class="toc-number">1.</span> <span class="toc-text">BD-MapReduce7-MapReduce框架原理之MapTask工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-number">1.2.</span> <span class="toc-text">一、MapReduce工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、MapTask工作机制"><span class="toc-number">1.3.</span> <span class="toc-text">二、MapTask工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Read-阶段"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. Read 阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Map-阶段"><span class="toc-number">1.3.2.</span> <span class="toc-text">2. Map 阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Collect-收集阶段"><span class="toc-number">1.3.3.</span> <span class="toc-text">3. Collect 收集阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Spill-阶段"><span class="toc-number">1.3.4.</span> <span class="toc-text">4. Spill 阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#溢写阶段详情："><span class="toc-number">1.3.4.1.</span> <span class="toc-text">溢写阶段详情：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-Combine-阶段"><span class="toc-number">1.3.5.</span> <span class="toc-text">5. Combine 阶段</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&text=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&is_video=false&description=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-MapReduce7-MapReduce框架原理之MapTask工作机制&body=Check out this article: http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&title=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&name=BD-MapReduce7-MapReduce框架原理之MapTask工作机制&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/&t=BD-MapReduce7-MapReduce框架原理之MapTask工作机制"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

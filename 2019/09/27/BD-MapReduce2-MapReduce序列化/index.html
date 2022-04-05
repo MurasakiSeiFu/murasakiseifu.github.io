@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="BD-MapReduce2-MapReduce序列化主要内容 序列化概述 自定义Bean对象实现序列化接口（Writable）  一、序列化概述1.1 什么是序列化序列化就是把内存中的对象，转换成字节序列（或其他数据传输协议）以便于存储到磁盘（持久化）和网络传输。  反序列化就是将收到字节序列（或其他数据传输协议）或者是磁盘的持久化数据，转换成内存中的对象。 1.2 为什么要序列化一般来说，“">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce2-MapReduce序列化">
+<meta property="og:url" content="http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce2-MapReduce序列化主要内容 序列化概述 自定义Bean对象实现序列化接口（Writable）  一、序列化概述1.1 什么是序列化序列化就是把内存中的对象，转换成字节序列（或其他数据传输协议）以便于存储到磁盘（持久化）和网络传输。  反序列化就是将收到字节序列（或其他数据传输协议）或者是磁盘的持久化数据，转换成内存中的对象。 1.2 为什么要序列化一般来说，“">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-01-07T01:16:44.787Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce2-MapReduce序列化">
+<meta name="twitter:description" content="BD-MapReduce2-MapReduce序列化主要内容 序列化概述 自定义Bean对象实现序列化接口（Writable）  一、序列化概述1.1 什么是序列化序列化就是把内存中的对象，转换成字节序列（或其他数据传输协议）以便于存储到磁盘（持久化）和网络传输。  反序列化就是将收到字节序列（或其他数据传输协议）或者是磁盘的持久化数据，转换成内存中的对象。 1.2 为什么要序列化一般来说，“">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BD-MapReduce2-MapReduce序列化</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/10/08/BD-MapReduce3-MapReduce框架原理之InputFormat数据输入/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/09/27/BD-MapReduce1-MapReduce概述/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&text=BD-MapReduce2-MapReduce序列化"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&is_video=false&description=BD-MapReduce2-MapReduce序列化"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-MapReduce2-MapReduce序列化&body=Check out this article: http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&name=BD-MapReduce2-MapReduce序列化&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&t=BD-MapReduce2-MapReduce序列化"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce2-MapReduce序列化"><span class="toc-number">1.</span> <span class="toc-text">BD-MapReduce2-MapReduce序列化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、序列化概述"><span class="toc-number">1.2.</span> <span class="toc-text">一、序列化概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-什么是序列化"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 什么是序列化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-为什么要序列化"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 为什么要序列化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-为什么不用Java的序列化"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.3 为什么不用Java的序列化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、自定义bean对象实现序列化接口（Writable）"><span class="toc-number">1.3.</span> <span class="toc-text">二、自定义bean对象实现序列化接口（Writable）</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BD-MapReduce2-MapReduce序列化
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-09-27T09:27:36.000Z" itemprop="datePublished">2019-09-27</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-MapReduce2-MapReduce序列化"><a href="#BD-MapReduce2-MapReduce序列化" class="headerlink" title="BD-MapReduce2-MapReduce序列化"></a>BD-MapReduce2-MapReduce序列化</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>序列化概述</li>
+<li>自定义Bean对象实现序列化接口（Writable）</li>
+</ol>
+<h2 id="一、序列化概述"><a href="#一、序列化概述" class="headerlink" title="一、序列化概述"></a>一、序列化概述</h2><h3 id="1-1-什么是序列化"><a href="#1-1-什么是序列化" class="headerlink" title="1.1 什么是序列化"></a>1.1 什么是序列化</h3><p><strong>序列化</strong>就是把<font color="red">内存中的对象，转换成字节序列</font>（或其他数据传输协议）以便于存储到磁盘（持久化）和网络传输。 </p>
+<p><strong>反序列化</strong>就是将收到字节序列（或其他数据传输协议）或者是<font color="red">磁盘的持久化数据，转换成内存中的对象。</font></p>
+<h3 id="1-2-为什么要序列化"><a href="#1-2-为什么要序列化" class="headerlink" title="1.2 为什么要序列化"></a>1.2 为什么要序列化</h3><p>一般来说，“活的”对象只生存在内存里，关机断电就没有了。而且“活的”对象只能由本地的进程使用，不能被发送到网络上的另外一台计算机。 然而<font color="red">序列化可以存储“活的”对象，可以将“活的”对象发送到远程计算机。</font></p>
+<h3 id="1-3-为什么不用Java的序列化"><a href="#1-3-为什么不用Java的序列化" class="headerlink" title="1.3 为什么不用Java的序列化"></a>1.3 为什么不用Java的序列化</h3><p>Java的序列化是一个重量级序列化框架（Serializable），一个对象被序列化后，会附带很多额外的信息（各种校验信息，Header，继承体系等），不便于在网络中高效传输。所以，Hadoop自己开发了一套序列化机制（Writable）。</p>
+<p><strong>Hadoop序列化特点：</strong></p>
+<ol>
+<li><strong>紧凑</strong>：高效使用存储空间</li>
+<li><strong>快速</strong>：读写数据的额外开销小</li>
+<li><strong>可扩展</strong>：随着通信协议的升级而可升级</li>
+<li><strong>互操作</strong>：支持多语言的交互</li>
+</ol>
+<h2 id="二、自定义bean对象实现序列化接口（Writable）"><a href="#二、自定义bean对象实现序列化接口（Writable）" class="headerlink" title="二、自定义bean对象实现序列化接口（Writable）"></a>二、自定义bean对象实现序列化接口（Writable）</h2><p>在企业开发中往往常用的基本序列化类型不能满足所有需求，比如在Hadoop框架内部传递一个bean对象，那么该对象就需要实现序列化接口。</p>
+<p>具体实现bean对象序列化步骤如下7步。</p>
+<ol>
+<li><p>必须实现Writable接口</p>
+</li>
+<li><p>反序列化时，需要反射调用空参构造函数，所以必须有空参构造</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public FlowBean() &#123;</span><br><span class="line">	super();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>重写序列化方法</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(DataOutput out)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">	out.writeLong(upFlow);</span><br><span class="line">	out.writeLong(downFlow);</span><br><span class="line">	out.writeLong(sumFlow);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>重写反序列化方法</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">readFields</span><span class="params">(DataInput in)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">	upFlow = in.readLong();</span><br><span class="line">	downFlow = in.readLong();</span><br><span class="line">	sumFlow = in.readLong();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li><font color="red">注意反序列化的顺序和序列化的顺序完全一致</font>
+</li>
+<li><p>要想把结果显示在文件中，需要重写toString()，可用”\t”分开，方便后续用</p>
+</li>
+<li><p>如果需要将自定义的bean放在key中传输，则还需要实现Comparable接口，因为MapReduce框中的Shuffle过程要求对key必须能排序</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@Override</span><br><span class="line">public int compareTo(FlowBean o) &#123;</span><br><span class="line">	// 倒序排列，从大到小</span><br><span class="line">	return this.sumFlow &gt; o.getSumFlow() ? -1 : 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce2-MapReduce序列化"><span class="toc-number">1.</span> <span class="toc-text">BD-MapReduce2-MapReduce序列化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、序列化概述"><span class="toc-number">1.2.</span> <span class="toc-text">一、序列化概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-什么是序列化"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 什么是序列化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-为什么要序列化"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 为什么要序列化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-为什么不用Java的序列化"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.3 为什么不用Java的序列化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、自定义bean对象实现序列化接口（Writable）"><span class="toc-number">1.3.</span> <span class="toc-text">二、自定义bean对象实现序列化接口（Writable）</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&text=BD-MapReduce2-MapReduce序列化"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&is_video=false&description=BD-MapReduce2-MapReduce序列化"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-MapReduce2-MapReduce序列化&body=Check out this article: http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&title=BD-MapReduce2-MapReduce序列化"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&name=BD-MapReduce2-MapReduce序列化&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/09/27/BD-MapReduce2-MapReduce序列化/&t=BD-MapReduce2-MapReduce序列化"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开发总结1. 输入数据接口：InputFormat 默认使用的实现类是：TextInputFormat TextInputFormat的功能逻辑是：一次读一行文本，然后将该行的起始偏移量作为key，行内容作为value返回。 KeyValueText">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结">
+<meta property="og:url" content="http://ilovenorth.cn/2019/11/10/BD-MapReduce9/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开发总结1. 输入数据接口：InputFormat 默认使用的实现类是：TextInputFormat TextInputFormat的功能逻辑是：一次读一行文本，然后将该行的起始偏移量作为key，行内容作为value返回。 KeyValueText">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+<meta property="og:updated_time" content="2020-01-07T01:32:43.233Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结">
+<meta name="twitter:description" content="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结主要内容一、MapReduce工作流程 二、MapReduce开发总结1. 输入数据接口：InputFormat 默认使用的实现类是：TextInputFormat TextInputFormat的功能逻辑是：一次读一行文本，然后将该行的起始偏移量作为key，行内容作为value返回。 KeyValueText">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BD-MapReduce9-MapReduce框架原理之MapReduce开发总结</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/01/17/2020 have fun/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&text=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&is_video=false&description=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结&body=Check out this article: http://ilovenorth.cn/2019/11/10/BD-MapReduce9/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&name=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&t=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><span class="toc-number">1.</span> <span class="toc-text">BD-MapReduce9-MapReduce框架原理之MapReduce开发总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-number">1.2.</span> <span class="toc-text">一、MapReduce工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、MapReduce开发总结"><span class="toc-number">1.3.</span> <span class="toc-text">二、MapReduce开发总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-输入数据接口：InputFormat"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. 输入数据接口：InputFormat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-逻辑处理接口：Mapper"><span class="toc-number">1.3.2.</span> <span class="toc-text">2. 逻辑处理接口：Mapper</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Partitioner分区"><span class="toc-number">1.3.3.</span> <span class="toc-text">3. Partitioner分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4．Comparable排序"><span class="toc-number">1.3.4.</span> <span class="toc-text">4．Comparable排序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5．Combiner合并"><span class="toc-number">1.3.5.</span> <span class="toc-text">5．Combiner合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6．Reduce端分组：GroupingComparator"><span class="toc-number">1.3.6.</span> <span class="toc-text">6．Reduce端分组：GroupingComparator</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7．逻辑处理接口：Reducer"><span class="toc-number">1.3.7.</span> <span class="toc-text">7．逻辑处理接口：Reducer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-输出数据接口：OutputFormat"><span class="toc-number">1.3.8.</span> <span class="toc-text">8. 输出数据接口：OutputFormat</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BD-MapReduce9-MapReduce框架原理之MapReduce开发总结
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-11-10T09:27:36.000Z" itemprop="datePublished">2019-11-10</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+
+<h1 id="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><a href="#BD-MapReduce9-MapReduce框架原理之MapReduce开发总结" class="headerlink" title="BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"></a>BD-MapReduce9-MapReduce框架原理之MapReduce开发总结</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h2 id="一、MapReduce工作流程"><a href="#一、MapReduce工作流程" class="headerlink" title="一、MapReduce工作流程"></a>一、MapReduce工作流程</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7e6fujlh9j30re0d6q3u.jpg" alt=""></p>
+<h2 id="二、MapReduce开发总结"><a href="#二、MapReduce开发总结" class="headerlink" title="二、MapReduce开发总结"></a>二、MapReduce开发总结</h2><h3 id="1-输入数据接口：InputFormat"><a href="#1-输入数据接口：InputFormat" class="headerlink" title="1. 输入数据接口：InputFormat"></a>1. 输入数据接口：InputFormat</h3><ol>
+<li>默认使用的实现类是：TextInputFormat</li>
+<li>TextInputFormat的功能逻辑是：一次读一行文本，然后将该行的起始偏移量作为key，行内容作为value返回。</li>
+<li>KeyValueTextInputFormat每一行均为一条记录，被分隔符分割为key，value。默认分隔符是tab（\t）。</li>
+<li>NlineInputFormat按照指定的行数N来划分切片。</li>
+<li>CombineTextInputFormat可以把多个小文件合并成一个切片处理，提高处理效率。</li>
+<li>用户还可以自定义InputFormat。</li>
+</ol>
+<h3 id="2-逻辑处理接口：Mapper"><a href="#2-逻辑处理接口：Mapper" class="headerlink" title="2. 逻辑处理接口：Mapper"></a>2. 逻辑处理接口：Mapper</h3><p>用户根据业务需求实现其中三个方法：map()   setup()   cleanup () </p>
+<h3 id="3-Partitioner分区"><a href="#3-Partitioner分区" class="headerlink" title="3. Partitioner分区"></a>3. Partitioner分区</h3><ol>
+<li>有默认实现 HashPartitioner，逻辑是根据key的哈希值和numReduces来返回一个分区号；key.hashCode()&amp;Integer.MAXVALUE % numReduces</li>
+<li>如果业务上有特别的需求，可以自定义分区。</li>
+</ol>
+<h3 id="4．Comparable排序"><a href="#4．Comparable排序" class="headerlink" title="4．Comparable排序"></a>4．Comparable排序</h3><ol>
+<li>当我们用自定义的对象作为key来输出时，就必须要实现WritableComparable接口，重写其中的compareTo()方法。</li>
+<li>部分排序：对最终输出的每一个文件进行内部排序。</li>
+<li>全排序：对所有数据进行排序，通常只有一个Reduce。</li>
+<li>二次排序：排序的条件有两个。</li>
+</ol>
+<h3 id="5．Combiner合并"><a href="#5．Combiner合并" class="headerlink" title="5．Combiner合并"></a>5．Combiner合并</h3><p>Combiner合并可以提高程序执行效率，减少IO传输。但是使用时必须不能影响原有的业务处理结果。</p>
+<h3 id="6．Reduce端分组：GroupingComparator"><a href="#6．Reduce端分组：GroupingComparator" class="headerlink" title="6．Reduce端分组：GroupingComparator"></a>6．Reduce端分组：GroupingComparator</h3><p>在Reduce端对key进行分组。应用于：在接收的key为bean对象时，想让一个或几个字段相同（全部字段比较不相同）的key进入到同一个reduce方法时，可以采用分组排序。</p>
+<h3 id="7．逻辑处理接口：Reducer"><a href="#7．逻辑处理接口：Reducer" class="headerlink" title="7．逻辑处理接口：Reducer"></a>7．逻辑处理接口：Reducer</h3><p>用户根据业务需求实现其中三个方法：reduce()   setup()   cleanup () </p>
+<h3 id="8-输出数据接口：OutputFormat"><a href="#8-输出数据接口：OutputFormat" class="headerlink" title="8. 输出数据接口：OutputFormat"></a>8. 输出数据接口：OutputFormat</h3><ol>
+<li>默认实现类是TextOutputFormat，功能逻辑是：将每一个KV对，向目标文本文件输出一行。</li>
+<li>将SequenceFileOutputFormat输出作为后续 MapReduce任务的输入，这便是一种好的输出格式，因为它的格式紧凑，很容易被压缩。</li>
+<li>用户还可以自定义OutputFormat。</li>
+</ol>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><span class="toc-number">1.</span> <span class="toc-text">BD-MapReduce9-MapReduce框架原理之MapReduce开发总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MapReduce工作流程"><span class="toc-number">1.2.</span> <span class="toc-text">一、MapReduce工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、MapReduce开发总结"><span class="toc-number">1.3.</span> <span class="toc-text">二、MapReduce开发总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-输入数据接口：InputFormat"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. 输入数据接口：InputFormat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-逻辑处理接口：Mapper"><span class="toc-number">1.3.2.</span> <span class="toc-text">2. 逻辑处理接口：Mapper</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Partitioner分区"><span class="toc-number">1.3.3.</span> <span class="toc-text">3. Partitioner分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4．Comparable排序"><span class="toc-number">1.3.4.</span> <span class="toc-text">4．Comparable排序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5．Combiner合并"><span class="toc-number">1.3.5.</span> <span class="toc-text">5．Combiner合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6．Reduce端分组：GroupingComparator"><span class="toc-number">1.3.6.</span> <span class="toc-text">6．Reduce端分组：GroupingComparator</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7．逻辑处理接口：Reducer"><span class="toc-number">1.3.7.</span> <span class="toc-text">7．逻辑处理接口：Reducer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-输出数据接口：OutputFormat"><span class="toc-number">1.3.8.</span> <span class="toc-text">8. 输出数据接口：OutputFormat</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&text=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&is_video=false&description=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结&body=Check out this article: http://ilovenorth.cn/2019/11/10/BD-MapReduce9/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&title=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&name=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/11/10/BD-MapReduce9/&t=BD-MapReduce9-MapReduce框架原理之MapReduce开发总结"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

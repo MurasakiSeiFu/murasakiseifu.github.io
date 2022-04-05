@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="Redis 高可用集群搭建1、Redis集群方案比较哨兵模式 在redis3.0以前的版本要实现集群一般是借助哨兵sentinel工具来监控master节点的状态，如果master节点异常，则会做主从切换，将某一台slave作为master，哨兵的配置略微复杂，并且性能和高可用性等各方面表现一般，特别是在主从切换的瞬间存在访问瞬断的情况，而且哨兵模式只有一个主节点对外提供服务，没法支持很高的并">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis 高可用集群搭建">
+<meta property="og:url" content="http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="Redis 高可用集群搭建1、Redis集群方案比较哨兵模式 在redis3.0以前的版本要实现集群一般是借助哨兵sentinel工具来监控master节点的状态，如果master节点异常，则会做主从切换，将某一台slave作为master，哨兵的配置略微复杂，并且性能和高可用性等各方面表现一般，特别是在主从切换的瞬间存在访问瞬断的情况，而且哨兵模式只有一个主节点对外提供服务，没法支持很高的并">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tKfTcly1g0zt79ykysj30bj065487.jpg">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tKfTcly1g0zt9uvbljj30bj06d48k.jpg">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.730Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="redis 高可用集群搭建">
+<meta name="twitter:description" content="Redis 高可用集群搭建1、Redis集群方案比较哨兵模式 在redis3.0以前的版本要实现集群一般是借助哨兵sentinel工具来监控master节点的状态，如果master节点异常，则会做主从切换，将某一台slave作为master，哨兵的配置略微复杂，并且性能和高可用性等各方面表现一般，特别是在主从切换的瞬间存在访问瞬断的情况，而且哨兵模式只有一个主节点对外提供服务，没法支持很高的并">
+<meta name="twitter:image" content="https://ws1.sinaimg.cn/large/006tKfTcly1g0zt79ykysj30bj065487.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>redis 高可用集群搭建</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/03/13/redis-集群原理分析/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/03/07/redis-安装-基础命令-持久化概念/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&text=redis 高可用集群搭建"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&is_video=false&description=redis 高可用集群搭建"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=redis 高可用集群搭建&body=Check out this article: http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&name=redis 高可用集群搭建&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&t=redis 高可用集群搭建"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis-高可用集群搭建"><span class="toc-number">1.</span> <span class="toc-text">Redis 高可用集群搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1、Redis集群方案比较"><span class="toc-number">1.1.</span> <span class="toc-text">1、Redis集群方案比较</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#哨兵模式"><span class="toc-number">1.1.1.</span> <span class="toc-text">哨兵模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高可用集群模式"><span class="toc-number">1.1.2.</span> <span class="toc-text">高可用集群模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-集群搭建"><span class="toc-number">1.2.</span> <span class="toc-text">2.集群搭建</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        redis 高可用集群搭建
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-03-12T03:55:51.000Z" itemprop="datePublished">2019-03-12</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/分布式专题/">分布式专题</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="Redis-高可用集群搭建"><a href="#Redis-高可用集群搭建" class="headerlink" title="Redis 高可用集群搭建"></a>Redis 高可用集群搭建</h1><h2 id="1、Redis集群方案比较"><a href="#1、Redis集群方案比较" class="headerlink" title="1、Redis集群方案比较"></a>1、Redis集群方案比较</h2><h3 id="哨兵模式"><a href="#哨兵模式" class="headerlink" title="哨兵模式"></a>哨兵模式</h3><p><img src="https://ws1.sinaimg.cn/large/006tKfTcly1g0zt79ykysj30bj065487.jpg" alt=""></p>
+<p>在redis3.0以前的版本要实现集群一般是借助哨兵sentinel工具来监控master节点的状态，如果master节点异常，则会做主从切换，将某一台slave作为master，哨兵的配置略微复杂，并且性能和高可用性等各方面表现一般，<strong>特别是在主从切换的瞬间存在访问瞬断的情况</strong>，<strong>而且哨兵模式只有一个主节点对外提供服务，没法支持很高的并发，且单个主节点内存也不宜设置得过大，否则会导致持久化文件过大，影响数据恢复或主从同步的效率。</strong></p>
+<ul>
+<li>客户端先访问哨兵，拿到主节点ip，然后再去访问master节点。</li>
+<li>哨兵监控主节点，当主节点挂了，哨兵收到通知，然后通过选举策略在从库中选取一个新的master。</li>
+<li>当客户端连接master发现挂了，则会再次访问哨兵，拿到新的masterIP。</li>
+</ul>
+<p>因为单台redis的并发最理想为10W，很难满足大型互联网公司的要求。</p>
+<h3 id="高可用集群模式"><a href="#高可用集群模式" class="headerlink" title="高可用集群模式"></a>高可用集群模式</h3><p><img src="https://ws2.sinaimg.cn/large/006tKfTcly1g0zt9uvbljj30bj06d48k.jpg" alt=""></p>
+<p>redis集群是一个由多个主从节点群组成的分布式服务器群，它具有复制、高可用和分片特性。Redis集群不需要sentinel哨兵也能完成节点移除和故障转移的功能。需要将每个节点设置成集群模式，这种集群模式没有中心节点，可水平扩展，据官方文档称可以线性扩展到上万个节点(官方推荐不超过1000个节点)。redis集群的性能和高可用性均优于之前版本的哨兵模式，且集群配置非常简单。<br>尽管某一个master节点挂了，也只会影响在主从切换时间里这一台机其上的数据的访问。</p>
+<h2 id="2-集群搭建"><a href="#2-集群搭建" class="headerlink" title="2.集群搭建"></a>2.集群搭建</h2><ol>
+<li>准备3个机器，每个机器上配置主从两个节点（设置不同的端口号即可），一共六个节点，三主三从。</li>
+</ol>
+<p>第一步：在第一台机器的/usr/local下创建文件夹redis-cluster，然后在其下面分别创建2个文件夾如下</p>
+<p>（1）mkdir -p /usr/local/redis-cluster</p>
+<p>（2）mkdir 8001、 mkdir 8004</p>
+<p>第二步：把之前的redis.conf配置文件copy到8001下，修改如下内容：</p>
+<p>（1）daemonize yes</p>
+<p>（2）port 8001（分别对每个机器的端口号进行设置）</p>
+<p>（3）dir /usr/local/redis-cluster/8001/（指定数据文件存放位置，必须要指定不同的目录位置，不然会丢失数据）</p>
+<p>（4）cluster-enabled yes（启动集群模式）</p>
+<p>（5）cluster-config-file nodes-8001.conf（会记录集群节点信息的文件，这里800x最好和port对应上）</p>
+<p>（6）cluster-node-timeout 5000<br> (7) # bind 127.0.0.1（去掉bind绑定访问ip信息）<br> (8) protected-mode  no   （关闭保护模式）</p>
+<p>（9）appendonly yes<br>如果要设置密码需要增加如下配置：<br>（10）requirepass fzz         (设置redis访问密码)    </p>
+<p>（11）masterauth fzz      (设置集群节点间访问密码，跟上面一致,配置后集群之间通讯是需要密码的)</p>
+<p>第三步：把修改后的配置文件，copy到8002，修改第2、3、5项里的端口号</p>
+<p>第四步：另外两台机器也需要做上面几步操作，第二台机器用8002和8005，第三台机器用8003和8006</p>
+<p>第五步：分别启动6个redis实例，然后检查是否启动成功</p>
+<p>（1）/usr/local/redis-5.0.2/src/redis-server /usr/local/redis-cluster/800*/redis.conf</p>
+<p>（2）ps -ef | grep redis 查看是否启动成功</p>
+<p>第六步：用redis-cli创建整个redis集群(redis5以前的版本集群是依靠ruby脚本redis-trib.rb实现)<br>-a 为刚才设置的密码<br>（1）/usr/local/redis-5.0.2/src/redis-cli -a fzz –cluster create –cluster-replicas 1 192.168.187.200:8001 192.168.187.201:8002 192.168.187.202:8003 192.168.187.200:8004 192.168.187.201:8005 192.168.187.202:8006 代表为每个创建的主服务器节点创建一个从服务器节点</p>
+<p>第七步：验证集群：</p>
+<p>（1）连接任意一个客户端即可：./redis-cli -c -h -p (-a访问服务端密码，-c表示集群模式，指定ip地址和端口号）如：/usr/local/redis-5.0.2/src/redis-cli -a fzz -c -h 192.168.187.200 -p 800*</p>
+<p>（2）进行验证： cluster info（查看集群信息）、cluster nodes（查看节点列表）</p>
+<p>（3）进行数据操作验证</p>
+<p>（4）关闭集群则需要逐个进行关闭，使用命令：<br>/usr/local/redis/bin/redis-cli -a fzz -c -h 192.168.187.200 -p 800* shutdown</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis-高可用集群搭建"><span class="toc-number">1.</span> <span class="toc-text">Redis 高可用集群搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1、Redis集群方案比较"><span class="toc-number">1.1.</span> <span class="toc-text">1、Redis集群方案比较</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#哨兵模式"><span class="toc-number">1.1.1.</span> <span class="toc-text">哨兵模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高可用集群模式"><span class="toc-number">1.1.2.</span> <span class="toc-text">高可用集群模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-集群搭建"><span class="toc-number">1.2.</span> <span class="toc-text">2.集群搭建</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&text=redis 高可用集群搭建"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&is_video=false&description=redis 高可用集群搭建"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=redis 高可用集群搭建&body=Check out this article: http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&title=redis 高可用集群搭建"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&name=redis 高可用集群搭建&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/03/12/redis-高可用集群搭建/&t=redis 高可用集群搭建"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

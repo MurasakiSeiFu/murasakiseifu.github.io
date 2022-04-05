@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="并发编程专题–现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并发编程专题--现代计算机理论模型与工作原理">
+<meta property="og:url" content="http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="并发编程专题–现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9rce0mvj30zk0mctbf.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9ylyc2ij315q0ruqdj.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jax5l7uqj30w70u0tar.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jbcf6acmj31a30u0go1.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jo6rn2m7j319r0u0413.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jp0818v1j315a0u0tbu.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6joidngawj314a0u0tbq.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jp3ras18j313h0u0juj.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jpkp4clhj31740u0whu.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jpr80whej317k0u0n0t.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jq9mw5ixj316s0u0wja.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jqafklftj314b0u0n0z.jpg">
+<meta property="og:updated_time" content="2019-09-01T01:29:01.278Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="并发编程专题--现代计算机理论模型与工作原理">
+<meta name="twitter:description" content="并发编程专题–现代计算机理论模型与工作原理现代计算机主要结构组成 主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。  如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9rce0mvj30zk0mctbf.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>并发编程专题--现代计算机理论模型与工作原理</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/09/23/BD-HDFS-HDFS概述/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/03/13/redis-集群原理分析/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&text=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&is_video=false&description=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=并发编程专题--现代计算机理论模型与工作原理&body=Check out this article: http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&name=并发编程专题--现代计算机理论模型与工作原理&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&t=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#并发编程专题–现代计算机理论模型与工作原理"><span class="toc-number">1.</span> <span class="toc-text">并发编程专题–现代计算机理论模型与工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现代计算机主要结构组成"><span class="toc-number">1.1.</span> <span class="toc-text">现代计算机主要结构组成</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CPU多核缓存架构"><span class="toc-number">1.2.</span> <span class="toc-text">CPU多核缓存架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总线加锁"><span class="toc-number">1.2.1.</span> <span class="toc-text">总线加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#缓存一致性协议（MESI）"><span class="toc-number">1.2.2.</span> <span class="toc-text">缓存一致性协议（MESI）</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        并发编程专题--现代计算机理论模型与工作原理
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-09-01T01:27:36.000Z" itemprop="datePublished">2019-09-01</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/并发编程专题/">并发编程专题</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="并发编程专题–现代计算机理论模型与工作原理"><a href="#并发编程专题–现代计算机理论模型与工作原理" class="headerlink" title="并发编程专题–现代计算机理论模型与工作原理"></a>并发编程专题–现代计算机理论模型与工作原理</h1><h2 id="现代计算机主要结构组成"><a href="#现代计算机主要结构组成" class="headerlink" title="现代计算机主要结构组成"></a>现代计算机主要结构组成</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9rce0mvj30zk0mctbf.jpg" alt=""></p>
+<p>主要的部分其实就是CPU和存储器，也就是内存条，CPU通过IO总线从内存中取出数据，load到CPU的缓存中（高速缓冲存储器），因为CPU的速度非常高，一般在2.6GHz的运算速度，而内存的计算速度（DDR3为例），一般在1000M左右，是跟不上CPU的速度的。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6j9ylyc2ij315q0ruqdj.jpg" alt=""></p>
+<p>如图，我们可以看到三级缓存的结构。因为CPU通过IO总线从内存中取出数据，但是我们能看到，很多的外设等都从IO总线通信，由于IO总线是有带宽的，就像公路堵车一样，如果CPU每次运算都从内存中取数据，就会造成IO堵塞。</p>
+<p>所以现在的解决方式是，先把内存条中要执行程序的指令复制一份出来，到CPU缓存中去。如Intel处理器，这几个元件的运算速度：</p>
+<blockquote>
+<p>寄存器 &gt; L1 &gt; L2 &gt; L3 &gt; 内存条。</p>
+</blockquote>
+<p>大家可能会问，既然高速缓冲存储器速断比内存条快那么多，为什么不都用高速缓冲存储器？</p>
+<blockquote>
+<p>因为不管内存条是什么，读写数据都需要走IO总线，这个速度是快不了的，而高速缓冲存储器则是内嵌在CPU中，因此速度快同样成本也是相当高的。</p>
+</blockquote>
+<p>举个例子来梳理一下CPU与内存之间的交互顺序：<br>假如有一个main()方法，定义 a=1 。</p>
+<ol>
+<li>首先第一步，从内存中将 a=1 copy一份，通过总线load到L3。</li>
+<li>然后逐级往上复制，L3-&gt;L2-&gt;L1-&gt;寄存器.</li>
+<li>从寄存器中取出指令码，送到ALU（运算逻辑单元）进行相应的运算。</li>
+<li>算完之后，将结果写回到寄存器中，然后同步到缓存。</li>
+<li>L1-&gt;L2-&gt;L3依次逐级往下复制，至于L3中运算结果何时写回内存是不确定的，看CPU什么时候有空闲，再写回到内存条。</li>
+</ol>
+<p>强制将运算结果写回内存的办法？</p>
+<blockquote>
+<p>缓存空间不够用的时候，会通过FIFO、最久未使用等算法将缓存空间让出来。</p>
+</blockquote>
+<p>然而何时写回内存，我们并不清楚，所以我们可以通过汇编的<code>#LOCK</code>信号，也就是接下来我们要聊一聊的重点：<strong>MESI 缓存一致性协议</strong></p>
+<p>在讲缓存一致性协议之前，我们先聊聊CPU多核缓存架构。</p>
+<h2 id="CPU多核缓存架构"><a href="#CPU多核缓存架构" class="headerlink" title="CPU多核缓存架构"></a>CPU多核缓存架构</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jax5l7uqj30w70u0tar.jpg" alt=""></p>
+<p>CPU的每个核上都会配备寄存器，每个主板又会搭载多个CPU，对于我们来说，真正关心的部分就是如上图所示。<br>由于可以有多个CPU，我们根据下面的场景来谈谈其中的问题。</p>
+<p>假设，主内存中有一个变量<code>X = 1</code>，然后我们做一个加1运算。</p>
+<ol>
+<li>假设此时有两个线程在跑T1,T2，两个线程都需要这个变量X，CPU先从寄存器中通过指令查找X变量的地址。</li>
+<li>由于没找到，CPU会再去问CPU缓存L1，如果L1中有则返回，没有就逐级往下找，直到内从中取。</li>
+<li>如果都没有，就会从内存中复制一份X变零的值，再load到了CPU缓存L3中，逐级向上，将数据读到寄存器中，送到ALU（运算逻辑单元）进行相应的运算。</li>
+</ol>
+<p><strong>这里就有一个很明显的问题，我们两个跑在不同CPU上的线程，同时从内存中取到了 X=1 ，在其各自的CPU缓存中，各存在X=1的副本</strong></p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jbcf6acmj31a30u0go1.jpg" alt=""></p>
+<p>现在，两个CPU同时对X变量进行+1操作。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jo6rn2m7j319r0u0413.jpg" alt=""></p>
+<p>然后将这个结果写会到主内存中，这个时候就会发生一个问题，本质上我们希望加两次，X=3，但因为CPU1和CPU2都是拷贝主内存的数据，所以CPU2并不知道CPU1也做了+1的运算，因为我们写回主存也是copy结果副本，所以结果出现了问题。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jp0818v1j315a0u0tbu.jpg" alt=""></p>
+<p>为了保证我们的结果是正确的，我们想出了两种解决问题方式。</p>
+<blockquote>
+<ol>
+<li>总线加锁</li>
+<li>缓存一致性协议</li>
+</ol>
+</blockquote>
+<h3 id="总线加锁"><a href="#总线加锁" class="headerlink" title="总线加锁"></a>总线加锁</h3><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6joidngawj314a0u0tbq.jpg" alt=""></p>
+<p>早期奔腾处理器，通过总线加锁来保证一致性，当CPU想要访问内存时，首先会对总线加锁，为了避免CPU2去抢资源，加锁之后，CPU2就没有办法读写内存数据了。</p>
+<p>这种的性能实在太低，相当于CPU2在获取数据时，直接就瘫痪了。</p>
+<h3 id="缓存一致性协议（MESI）"><a href="#缓存一致性协议（MESI）" class="headerlink" title="缓存一致性协议（MESI）"></a>缓存一致性协议（MESI）</h3><table>
+<thead>
+<tr>
+<th style="text-align:center">状态</th>
+<th style="text-align:center">描述</th>
+<th style="text-align:center">监听任务</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">M</td>
+<td style="text-align:center">修改 (Modified)</td>
+<td style="text-align:center">该Cache line有效，数据被修改了，和内存中的数据不一致，数据只存在于本Cache中。    缓存行必须时刻监听所有试图读该缓存行相对就主存的操作，这种操作必须在缓存将该缓存行写回主存并将状态变成S（共享）状态之前被延迟执行。</td>
+</tr>
+<tr>
+<td style="text-align:center">E</td>
+<td style="text-align:center">独享、互斥 (Exclusive)</td>
+<td style="text-align:center">该Cache line有效，数据和内存中的数据一致，数据只存在于本Cache中。    缓存行也必须监听其它缓存读主存中该缓存行的操作，一旦有这种操作，该缓存行需要变成S（共享）状态。</td>
+</tr>
+<tr>
+<td style="text-align:center">S</td>
+<td style="text-align:center">共享 (Shared)</td>
+<td style="text-align:center">该Cache line有效，数据和内存中的数据一致，数据存在于很多Cache中。    缓存行也必须监听其它缓存使该缓存行无效或者独享该缓存行的请求，并将该缓存行变成无效（Invalid）。</td>
+</tr>
+<tr>
+<td style="text-align:center">I</td>
+<td style="text-align:center">无效 (Invalid)</td>
+<td style="text-align:center">该Cache line无效。    无</td>
+</tr>
+</tbody>
+</table>
+<p>表格看起来很难理解，我们举个例子。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jp3ras18j313h0u0juj.jpg" alt=""></p>
+<p><strong>缓存一致性协议如何工作？数据的IO依然然通过bus总线，然而bus总线将遵循缓存一致性协议。这里我们就涉及一个概念：CPU缓存中，最小存储单元的概念</strong><br>缓存行。 </p>
+<p>首先，我们需要把X=1copy一份到我们的CPU1缓存当中，同时，把X置为<code>独占（E）</code>的状态。通过汇编的<code>#LOCK</code>信号，触发缓存一致性协议（MESI）</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jpkp4clhj31740u0whu.jpg" alt=""></p>
+<p>此时CPU1也会<strong>时刻监听（总线嗅探机制）</strong>BUS中，其他CPU对这块内存空间的操作。假如，在CPU1还没有写入结果时，CPU2从内存中读取X=1到了CPU2的缓存，这时，CPU1嗅探了CPU2的操作，<strong>于是，CPU1将X由独占（E）状态，改变为共享（S）状态</strong></p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jpr80whej317k0u0n0t.jpg" alt=""></p>
+<p>CPU1继续做+1运算操作，X=2.并将结果写回到寄存器，并同步到CPU缓存，准备把结果写回到主存当中去。首先，<strong>锁住这个存放数据的缓存行，把共享（S）状态，改变为修改（M）状态，然后向总线发出一个消息：内容就是告诉其他CPU，我已经把状态改为M，要即将写回到内存中了</strong>，与此同时，其他的CPU也一直在监听BUS总线中的消息，当CPU2得知这个消息后，<strong>会把CPU2中这个存放数据的缓存行，把共享（S）状态，改变为无效（I）状态</strong>。    </p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jq9mw5ixj316s0u0wja.jpg" alt=""></p>
+<p>接着CPU1将X=2回写到主从当中来，回写完毕之后，<strong>CPU1将缓存中X=2的状态改变为独占（E）状态</strong>，由于CPU2中这个存放数据的缓存行为无效（I）状态，如果CPU2还想访问这个变量，将会把CPU缓存中的X丢弃，重新去主存中读取X变量。CPU1嗅探了CPU2的操作，<strong>于是，CPU1再次将X由独占（E）状态，改变为共享（S）状态</strong></p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g6jqafklftj314b0u0n0z.jpg" alt=""></p>
+<p>Q1：如果两个CPU同时修改S状态为M状态，这时听谁的？</p>
+<blockquote>
+<p>A：一个指令周期内会进行裁决，有可能是CPU1，也有可能是CPU2，谁赢谁有效，另一个置为无效。如何裁决是通过硬件完成的，这里就不讨论了。</p>
+</blockquote>
+<p>Q2：什么失效了？</p>
+<blockquote>
+<p>裁决失败，整个这一条缓存行失效。缓存行（最小存储单元），大小有可能是32字节、64字节，具体看CPU是哪家的CPU。</p>
+</blockquote>
+<p>Q3：无效之后，是否会继续重新去内存中 读数据？</p>
+<blockquote>
+<p>A：这个不一定，是通过你的程序段来控制的。比如unsafe(魔术类)，或者while循环等，需要一个触发机制。</p>
+</blockquote>
+<p>JMM（java内存模型）其实就是CPU多级缓存架构的一个抽象，是一组规范，并不是真实存在的东西，规范的来源就是JVM本身就是用来屏蔽底层硬件资源的不同（不同的操作系统）。</p>
+<p>Q4：什么时候缓存一致性协议会失效？</p>
+<blockquote>
+<p>如果说X的存储长度 &gt; 一个缓存行，比如横跨了两个缓存行，这样是没有办法加锁的，这时缓存一致性协议会失效，就会去加总线锁。<br>再一个就是CPU本身不支持缓存一致性协议（奔腾系列）。</p>
+</blockquote>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#并发编程专题–现代计算机理论模型与工作原理"><span class="toc-number">1.</span> <span class="toc-text">并发编程专题–现代计算机理论模型与工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现代计算机主要结构组成"><span class="toc-number">1.1.</span> <span class="toc-text">现代计算机主要结构组成</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CPU多核缓存架构"><span class="toc-number">1.2.</span> <span class="toc-text">CPU多核缓存架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总线加锁"><span class="toc-number">1.2.1.</span> <span class="toc-text">总线加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#缓存一致性协议（MESI）"><span class="toc-number">1.2.2.</span> <span class="toc-text">缓存一致性协议（MESI）</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&text=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&is_video=false&description=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=并发编程专题--现代计算机理论模型与工作原理&body=Check out this article: http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&title=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&name=并发编程专题--现代计算机理论模型与工作原理&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/&t=并发编程专题--现代计算机理论模型与工作原理"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

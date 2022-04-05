@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="Tomcat 生产环境应用概要：  Tomcat各核心组件认知 Tomcat server.xml 配置详解 Tomcat IO模型介绍   一.Tomcat各组件认知 主要内容：  Tomcat架构说明 Tomcat组件及关系详情介绍 Tomcat启动参数说明  1.Tomcat架构说明Tomcat是一个基于JAVA的WEB容器，其实现了JAVA EE中的 Servlet 与 jsp 规范，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tomcat 生产环境应用">
+<meta property="og:url" content="http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="Tomcat 生产环境应用概要：  Tomcat各核心组件认知 Tomcat server.xml 配置详解 Tomcat IO模型介绍   一.Tomcat各组件认知 主要内容：  Tomcat架构说明 Tomcat组件及关系详情介绍 Tomcat启动参数说明  1.Tomcat架构说明Tomcat是一个基于JAVA的WEB容器，其实现了JAVA EE中的 Servlet 与 jsp 规范，">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwcezqz9mtg30kr08pdfo.gif">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwcfcjzwxxj30w00amgmq.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwdiqnjbsij30tf0dmq40.jpg">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwdiqpqdgpj31350fc76n.jpg">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.730Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tomcat 生产环境应用">
+<meta name="twitter:description" content="Tomcat 生产环境应用概要：  Tomcat各核心组件认知 Tomcat server.xml 配置详解 Tomcat IO模型介绍   一.Tomcat各组件认知 主要内容：  Tomcat架构说明 Tomcat组件及关系详情介绍 Tomcat启动参数说明  1.Tomcat架构说明Tomcat是一个基于JAVA的WEB容器，其实现了JAVA EE中的 Servlet 与 jsp 规范，">
+<meta name="twitter:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fwcezqz9mtg30kr08pdfo.gif">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Tomcat 生产环境应用</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2018/10/22/深入理解Java虚拟机/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2018/10/17/Nginx-性能优化时间-性能参数调优/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&text=Tomcat 生产环境应用"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&is_video=false&description=Tomcat 生产环境应用"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Tomcat 生产环境应用&body=Check out this article: http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&name=Tomcat 生产环境应用&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&t=Tomcat 生产环境应用"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Tomcat-生产环境应用"><span class="toc-number">1.</span> <span class="toc-text">Tomcat 生产环境应用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一-Tomcat各组件认知"><span class="toc-number">1.1.</span> <span class="toc-text">一.Tomcat各组件认知</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Tomcat架构说明"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.Tomcat架构说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Tomcat-各组件及关系"><span class="toc-number">1.1.2.</span> <span class="toc-text">2.Tomcat 各组件及关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Tomcat启动参数说明"><span class="toc-number">1.1.3.</span> <span class="toc-text">3.Tomcat启动参数说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二-Tomcat-server-xml-配置详解"><span class="toc-number">1.2.</span> <span class="toc-text">二.Tomcat server.xml 配置详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-参数说明"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.参数说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三-Tomcat-IO模型介绍"><span class="toc-number">1.3.</span> <span class="toc-text">三.Tomcat IO模型介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Tomcat支持的IO模型说明"><span class="toc-number">1.3.1.</span> <span class="toc-text">1.Tomcat支持的IO模型说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-BIO与NIO有什么区别"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.BIO与NIO有什么区别</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Tomcat 生产环境应用
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-10-18T07:34:32.000Z" itemprop="datePublished">2018-10-18</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/分布式专题/">分布式专题</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="Tomcat-生产环境应用"><a href="#Tomcat-生产环境应用" class="headerlink" title="Tomcat 生产环境应用"></a>Tomcat 生产环境应用</h1><p><strong>概要：</strong></p>
+<ol>
+<li>Tomcat各核心组件认知</li>
+<li>Tomcat server.xml 配置详解</li>
+<li>Tomcat IO模型介绍</li>
+</ol>
+<hr>
+<h2 id="一-Tomcat各组件认知"><a href="#一-Tomcat各组件认知" class="headerlink" title="一.Tomcat各组件认知"></a>一.Tomcat各组件认知</h2><hr>
+<p><strong>主要内容：</strong></p>
+<ol>
+<li>Tomcat架构说明</li>
+<li>Tomcat组件及关系详情介绍</li>
+<li>Tomcat启动参数说明</li>
+</ol>
+<h3 id="1-Tomcat架构说明"><a href="#1-Tomcat架构说明" class="headerlink" title="1.Tomcat架构说明"></a>1.Tomcat架构说明</h3><p>Tomcat是一个基于JAVA的WEB容器，其实现了JAVA EE中的 Servlet 与 jsp 规范，与 Nginx apache 服务器不同在于一般用于动态请求处理。在架构设计上采用面向组件的方式设计。即整体功能是通过组件的方式拼装完成。另外每个组件都可以被替换以保证灵活性。<br><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwcezqz9mtg30kr08pdfo.gif" alt=""></p>
+<h3 id="2-Tomcat-各组件及关系"><a href="#2-Tomcat-各组件及关系" class="headerlink" title="2.Tomcat 各组件及关系"></a>2.Tomcat 各组件及关系</h3><p>从上面的架构图我们可以看出Tomcat的主要组件，下面我们就介绍一下Tomcat各组件。</p>
+<ul>
+<li>Server 和 Service    <ul>
+<li>Server：指Tomcat的服务器。</li>
+<li>Service：指Tomcat的服务，毕竟服务是对外的，那么对外提供服务的介质就是连接器–Connector。</li>
+</ul>
+</li>
+<li>Connector 连接器：帮我们把客户端的请求连接到Tomcat。<ul>
+<li>一个service可以配置多个连接器，每个连接器可以使用不用的端口号：8080/8009。</li>
+<li>PS : 我们会注意到server会对应一个8005的端口，这个一般是运维操作的端口。</li>
+<li>HTTP 1.1：指定连接器承载的Http协议，也可以用AJP协议。</li>
+<li>SSL：https</li>
+<li>AJP（ Apache JServ Protocol）二进制协议，apache 私有协议，用于 apache 反向代理Tomcat。</li>
+</ul>
+</li>
+<li>Container<ul>
+<li>连接器拿到请求后就发送给引擎Engine,Engine又可以把请求丢给多个虚拟机Host</li>
+<li>Engine: 引擎(catalina)，唯一的。 </li>
+<li>Host: 虚拟机，可以配置多个。分发哪个虚拟机是基于域名，分发请求。正常会配置一个默认。</li>
+<li>Context: 隔离各个WEB应用，每个Context的，ClassLoader都是独立。</li>
+</ul>
+</li>
+<li>Component <ul>
+<li>Manager （管理器）</li>
+<li>logger （日志管理）</li>
+<li>loader （载入器）</li>
+<li>pipeline (管道)</li>
+<li>valve （管道中的阀）</li>
+</ul>
+</li>
+</ul>
+<p>和我们的Nginx有一些相似之处，Nginx是从service到localhost到upstream，而Tomcat是从service到localhost到Context。</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwcfcjzwxxj30w00amgmq.jpg" alt=""></p>
+<h3 id="3-Tomcat启动参数说明"><a href="#3-Tomcat启动参数说明" class="headerlink" title="3.Tomcat启动参数说明"></a>3.Tomcat启动参数说明</h3><p>我们平时启动Tomcat过程是怎么样的？ </p>
+<ol>
+<li>复制WAR包至Tomcat webapp 目录。</li>
+<li>执行starut.bat 脚本启动。</li>
+<li>启动过程中war 包会被自动解压装载。</li>
+</ol>
+<p>但是我们在 Eclipse 或 idea 中启动 WEB 项目的时候，也是把War包复制到 webapps 目录解压吗？显然不是，其真正做法是在Tomcat程序文件之外创建了一个部署目录，在一般生产环境中也是这么做的，即：Tomcat 程序目录和部署目录分开。<br>我们只需要在启动时指定 CATALINA_HOME 与 CATALINA_BASE 参数即可实现。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"><strong>启动参数</strong></th>
+<th style="text-align:left"><strong>描述说明</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">JAVA_OPTS</td>
+<td style="text-align:left">jvm 启动参数，设置内存编码等 -Xms100m -Xmx200m -Dfile.encoding=UTF-8</td>
+</tr>
+<tr>
+<td style="text-align:left">JAVA_HOME</td>
+<td style="text-align:left">指定jdk目录，如果未设置，会从java环境变量当中去找。</td>
+</tr>
+<tr>
+<td style="text-align:left">CATALINA_HOME</td>
+<td style="text-align:left">Tomcat 程序根目录</td>
+</tr>
+<tr>
+<td style="text-align:left">CATALINA_BASE</td>
+<td style="text-align:left">应用部署目录，默认为$CATALINA_HOME</td>
+</tr>
+<tr>
+<td style="text-align:left">CATALINA_OUT</td>
+<td style="text-align:left">应用日志输出目录：默认$CATALINA_BASE/log</td>
+</tr>
+<tr>
+<td style="text-align:left">CATALINA_TMPDIR</td>
+<td style="text-align:left">应用临时目录：默认：$CATALINA_BASE/temp</td>
+</tr>
+</tbody>
+</table>
+<p>可以编写一个脚本 来实现自定义配置：<br><strong>安装Tomcat</strong><br>1.下载 Tomcat 8.5.34    </p>
+<pre><code>https://tomcat.apache.org/download-80.cgi#8.5.34
+</code></pre><p>2.发送到我们的虚拟机</p>
+<pre><code>scp apache-tomcat-8.5.34.zip root@xxx.xx.xxx.xxx:~
+</code></pre><p>3.解压 apache-tomcat-8.5.34.zip</p>
+<pre><code>unzip apache-tomcat-8.5.34.zip
+</code></pre><p>4.把解压好的目录移动到 /usr/local/</p>
+<pre><code>mv apache-tomcat-8.5.34 /usr/local/
+</code></pre><p>5.我们新建一个 apps 文件夹，一会将我们应用都放到这里</p>
+<pre><code>mkdir apps
+pwd: /usr/local/apps
+</code></pre><p>6.在apps文件夹里，创建一个我们的应用文件夹</p>
+<pre><code>mkdir murasakiseifu-web/
+</code></pre><p>7.然后把apache-tomcat-8.5.34文件夹里的conf文件夹拷贝到我们的murasakiseifu-web/文件夹,为了演示，我们把webapps也拷贝进去</p>
+<pre><code>cd /usr/local/apache-tomcat-8.5.34
+cp -r conf ../apps/murasakiseifu-web/
+</code></pre><p>8.我们在murasakiseifu-web/文件夹创建一个logs文件夹</p>
+<pre><code>mkdir logs
+</code></pre><p>9.这样我们就建立好了一个murasakiseifu-web的应用程序部署目录</p>
+<pre><code>conf  logs  webapps
+</code></pre><p><strong>创建自定义脚本</strong></p>
+<p>1.在murasakiseifu-web/文件夹，创建tomcat.sh脚本</p>
+<pre><code>vim tomcat.sh
+</code></pre><p>2.脚本内容<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#!/bin/bash </span><br><span class="line"># 配置java内存（当然生产环境不可能这么配）</span><br><span class="line">export JAVA_OPTS=&quot;-Xms100m -Xmx200m&quot;</span><br><span class="line"># 指定jdk目录，好处是可以用debug启动Tomcat</span><br><span class="line">export JAVA_HOME=/usr/lib/jvm/jdk1.8.0_144</span><br><span class="line"># 对应Tomcat的部署目录</span><br><span class="line">export CATALINA_HOME=/usr/local/apache-tomcat-8.5.34</span><br><span class="line"># 对应我们程序的部署目录</span><br><span class="line">export CATALINA_BASE=&quot;`pwd`&quot;</span><br><span class="line"></span><br><span class="line">case $1 in</span><br><span class="line">        start)</span><br><span class="line">        $CATALINA_HOME/bin/catalina.sh start</span><br><span class="line">                echo start success!!</span><br><span class="line">        ;;</span><br><span class="line">        stop)</span><br><span class="line">                $CATALINA_HOME/bin/catalina.sh stop</span><br><span class="line">                echo stop success!!</span><br><span class="line">        ;;</span><br><span class="line">        restart)</span><br><span class="line">        $CATALINA_HOME/bin/catalina.sh stop</span><br><span class="line">                echo stop success!!</span><br><span class="line">                sleep 2</span><br><span class="line">        $CATALINA_HOME/bin/catalina.sh start</span><br><span class="line">        echo start success!!</span><br><span class="line">        ;;</span><br><span class="line">        version)</span><br><span class="line">        $CATALINA_HOME/bin/catalina.sh version</span><br><span class="line">        ;;</span><br><span class="line">        configtest)</span><br><span class="line">        $CATALINA_HOME/bin/catalina.sh configtest</span><br><span class="line">        ;;</span><br><span class="line">        esac</span><br><span class="line">exit 0</span><br></pre></td></tr></table></figure></p>
+<p>3.给脚本配置权限</p>
+<pre><code>chmod +x tomcat.sh
+</code></pre><p>4.测试脚本配置是否正确</p>
+<pre><code>./tomcat.sh configtest
+Using CATALINA_BASE:   /usr/local/apps/murasakiseifu-web
+Using CATALINA_HOME:   /usr/local/apache-tomcat-8.5.34
+Using CATALINA_TMPDIR: /usr/local/apps/murasakiseifu-web/temp
+Using JRE_HOME:        /usr/lib/jvm/jdk1.8.0_144/jre
+......
+</code></pre><p>5.启动</p>
+<pre><code>./tomcat.sh start
+Using CATALINA_BASE:   /usr/local/apps/murasakiseifu-web
+Using CATALINA_HOME:   /usr/local/apache-tomcat-8.5.34
+Using CATALINA_TMPDIR: /usr/local/apps/murasakiseifu-web/temp
+Using JRE_HOME:        /usr/lib/jvm/jdk1.8.0_144/jre
+Using CLASSPATH:       /usr/local/apache-tomcat-8.5.34/bin/bootstrap.jar:/usr/local/apache-tomcat-8.5.34/bin/tomcat-juli.jar
+Tomcat started.
+start success!!
+</code></pre><p>6.访问一下</p>
+<pre><code># 应用与应用之间是隔离的，当我们再配置一个应用时，同样可以启动8080端口
+curl 127.0.0.1:8080
+</code></pre><p>这样建立apps的好处就是我们的log是独立的，conf配置也是独立的，而且当我们要升级Tomcat时，我们只需要升级apache-tomcat-8.5.34就好，这样我们的apps也会升级了。</p>
+<hr>
+<h2 id="二-Tomcat-server-xml-配置详解"><a href="#二-Tomcat-server-xml-配置详解" class="headerlink" title="二.Tomcat server.xml 配置详解"></a>二.Tomcat server.xml 配置详解</h2><hr>
+<p>Server 的基本基本配置：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;Server&gt;</span><br><span class="line">    &lt;Listener /&gt;&lt;!-- 监听器 --&gt;</span><br><span class="line">    &lt;GlobaNamingResources&gt; &lt;!-- 全局资源 --&gt;</span><br><span class="line">    &lt;/GlobaNamingResources</span><br><span class="line">    &lt;Service&gt;          &lt;!-- 服务 用于 绑定 连接器与 Engine --&gt;</span><br><span class="line">        &lt;Connector 8080/&gt; &lt;!-- 连接器--&gt;</span><br><span class="line">        &lt;Connector 8010 /&gt; &lt;!-- 连接器--&gt;</span><br><span class="line">        &lt;Connector 8030/&gt; &lt;!-- 连接器--&gt;</span><br><span class="line">        </span><br><span class="line">        &lt;Engine&gt;      &lt;!-- 执行引擎--&gt;</span><br><span class="line">            &lt;Logger /&gt;</span><br><span class="line">            &lt;Realm /&gt;</span><br><span class="line">               &lt;host &quot;www.tl.com&quot; appBase=&quot;&quot;&gt;  &lt;!-- 虚拟主机--&gt;</span><br><span class="line">                   &lt;Logger /&gt; &lt;!-- 日志配置--&gt;</span><br><span class="line">                   &lt;Context &quot;/luban&quot; path=&quot;&quot;/&gt; &lt;!-- 上下文配置--&gt;</span><br><span class="line">               &lt;/host&gt;</span><br><span class="line">        &lt;/Engine&gt;</span><br><span class="line">    &lt;/Service&gt;</span><br><span class="line">&lt;/Server&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="1-参数说明"><a href="#1-参数说明" class="headerlink" title="1.参数说明"></a>1.参数说明</h3><p><strong>server  </strong><br>root元素：server 的顶级配置<br><strong>主要属性:</strong><br>port：执行关闭命令的端口号<br>shutdown：关闭命令    </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#基于telent 执行SHUTDOWN 命令即可关闭</span><br><span class="line">telent 127.0.0.1 8005</span><br><span class="line">SHUTDOWN</span><br></pre></td></tr></table></figure>
+<p><strong>service</strong><br>服务：将多个connector与一个Engine组合成一个服务，可以配置多个服务,name属性不重复即可。</p>
+<p><strong>Connector</strong><br>连接器：用于接收 指定协议下的连接 并指定给唯一的Engine 进行处理。<br>主要属性：</p>
+<ul>
+<li>protocol 监听的协议，默认是http/1.1</li>
+<li>port 指定服务器端要创建的端口号</li>
+<li>minSpareThread    服务器启动时创建的处理请求的线程数</li>
+<li>maxThread    最大可以创建的处理请求的线程数</li>
+<li>enableLookups    如果为true，则可以通过调用request.getRemoteHost()进行DNS查询来得到远程客户端的实际主机名，若为false则不进行DNS查询，而是返回其ip地址</li>
+<li>redirectPort    指定服务器正在处理http请求时收到了一个SSL传输请求后重定向的端口号</li>
+<li>acceptCount    指定当所有可以使用的处理请求的线程数都被使用时，可以放到处理队列中的请求数，超过这个数的请求将不予处理</li>
+<li>connectionTimeout    指定超时的时间数(以毫秒为单位)</li>
+<li>SSLEnabled 是否开启 sll 验证，在Https 访问时需要开启。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"> &lt;Connector port=&quot;8860&quot; protocol=&quot;org.apache.coyote.http11.Http11NioProtocol&quot;</span><br><span class="line">                connectionTimeout=&quot;20000&quot;</span><br><span class="line">                redirectPort=&quot;8862&quot;</span><br><span class="line">                URIEncoding=&quot;UTF-8&quot;</span><br><span class="line">                useBodyEncodingForURI=&quot;true&quot;</span><br><span class="line">                compression=&quot;on&quot; compressionMinSize=&quot;2048&quot;</span><br><span class="line">compressableMimeType=&quot;text/html,text/xml,text/plain,text/javascript,text/css,application/x-json,application/json,application/x-javascript&quot;</span><br><span class="line">                maxThreads=&quot;1024&quot; minSpareThreads=&quot;200&quot;</span><br><span class="line">                acceptCount=&quot;800&quot;</span><br><span class="line">                enableLookups=&quot;false&quot;</span><br><span class="line">        /&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>Engine</strong><br>引擎：用于处理连接的执行器，默认的引擎是catalina。一个service 中只能配置一个Engine。<br>主要属性：name 引擎名称 defaultHost 默认host</p>
+<p><strong>Host</strong><br>虚拟机：基于域名匹配至指定虚拟机。类似于nginx当中的server,默认的虚拟机是localhost.<br>主要属性：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;Host name=&quot;www.fzz.com&quot;  appBase=&quot;/usr/www/fzz&quot;</span><br><span class="line">            unpackWARs=&quot;true&quot; autoDeploy=&quot;true&quot;&gt;</span><br><span class="line">        &lt;Valve className=&quot;org.apache.catalina.valves.AccessLogValve&quot; directory=&quot;logs&quot;               prefix=&quot;www.fzz.com.access_log&quot; suffix=&quot;.txt&quot;</span><br><span class="line">               pattern=&quot;%h %l %u %t &amp;quot;%r&amp;quot; %s %b&quot; /&gt;</span><br><span class="line">&lt;/Host&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>Context</strong><br>应用上下文：一个host下可以配置多个Context，每个Context都有其独立的classPath。相互隔离，以免造成ClassPath 冲突。<br>主要属性：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;Context docBase=&quot;hello&quot; path=&quot;/h&quot; reloadable=&quot;true&quot;/&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>Valve</strong><br>阀门：可以理解成request的过滤器，具体配置要基于具体的Valve接口的子类。以下即为一个访问日志的Valve.<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"> &lt;Valve className=&quot;org.apache.catalina.valves.AccessLogValve&quot; directory=&quot;logs&quot;</span><br><span class="line">               prefix=&quot;www.fzz.com.access_log&quot; suffix=&quot;.txt&quot;</span><br><span class="line">               pattern=&quot;%h %l %u %t &amp;quot;%r&amp;quot; %s %b&quot; /&gt;</span><br></pre></td></tr></table></figure></p>
+<hr>
+<h2 id="三-Tomcat-IO模型介绍"><a href="#三-Tomcat-IO模型介绍" class="headerlink" title="三.Tomcat IO模型介绍"></a>三.Tomcat IO模型介绍</h2><hr>
+<p>主要内容：</p>
+<ol>
+<li>Tomcat支持的IO模型说明</li>
+<li>BIO与NIO的区别</li>
+</ol>
+<h3 id="1-Tomcat支持的IO模型说明"><a href="#1-Tomcat支持的IO模型说明" class="headerlink" title="1.Tomcat支持的IO模型说明"></a>1.Tomcat支持的IO模型说明</h3><table>
+<thead>
+<tr>
+<th style="text-align:left">IO</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">BIO</td>
+<td style="text-align:left">阻塞式IO，即Tomcat使用传统的java.io进行操作。该模式下每个请求都会创建一个线程，对性能开销大，不适合高并发场景。优点是稳定，适合连接数目小且固定架构。</td>
+</tr>
+<tr>
+<td style="text-align:left">NIO</td>
+<td style="text-align:left">非阻塞式IO，jdk1.4 之后实现的新IO。该模式基于多路复用选择器监测连接状态，再通知线程处理，从而达到非阻塞的目的。比传统BIO能更好的支持并发性能。Tomcat 8.0之后默认采用该模式</td>
+</tr>
+<tr>
+<td style="text-align:left">APR</td>
+<td style="text-align:left">全称是 Apache Portable Runtime（Apache可移植运行库），是Apache HTTP服务器的支持库。可以简单地理解为，Tomcat将以JNI的形式调用Apache HTTP服务器的核心动态链接库来处理文件读取，或网络传输操作。使用需要编译安装APR 库</td>
+</tr>
+<tr>
+<td style="text-align:left">AIO</td>
+<td style="text-align:left">异步非阻塞式IO，jdk1.7后之支持 。与nio不同在于不需要多路复用选择器，而是请求处理线程执行完成，进行回调调知，已继续执行后续操作。Tomcat 8之后支持。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>使用指定IO模型的配置方式:</strong><br>配置 server.xml。</p>
+<pre><code>&lt;Connector protocol=&quot;HTTP/1.1&quot;&gt; 
+</code></pre><p>默认配置 8.0：protocol=“HTTP/1.1”  8.0之前是BIO，8.0之后是NIO。</p>
+<p><strong>BIO</strong>    </p>
+<pre><code>protocol=“org.apache.coyote.http11.Http11Protocol“
+</code></pre><p><strong>NIO</strong>    </p>
+<pre><code>protocol=”org.apache.coyote.http11.Http11NioProtocol“
+</code></pre><p><strong>AIO</strong>    </p>
+<pre><code>protocol=”org.apache.coyote.http11.Http11Nio2Protocol“
+</code></pre><p><strong>APR</strong>    </p>
+<pre><code>protocol=”org.apache.coyote.http11.Http11AprProtocol“
+</code></pre><h3 id="2-BIO与NIO有什么区别"><a href="#2-BIO与NIO有什么区别" class="headerlink" title="2.BIO与NIO有什么区别"></a>2.BIO与NIO有什么区别</h3><p><strong>在高并发场景下BIO与NIO的线程数的变化</strong><br><strong>演示数据：</strong>    </p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">每秒提交数</th>
+<th style="text-align:left">BIO执行线程</th>
+<th style="text-align:left">NIO执行线程</th>
+<th style="text-align:left"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">预测</td>
+<td style="text-align:left">200</td>
+<td style="text-align:left">200</td>
+<td style="text-align:left">50</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">实验环境</td>
+<td style="text-align:left">200</td>
+<td style="text-align:left">48</td>
+<td style="text-align:left">37</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">生产环境</td>
+<td style="text-align:left">200</td>
+<td style="text-align:left">419</td>
+<td style="text-align:left">23</td>
+</tr>
+</tbody>
+</table>
+<p><strong>结论：</strong><br>表格中的线程指的是我们的work业务线程，业务线程就是处理servlet服务代码的线程，我们实验的生产环境是在实验环境的基础上人为阻塞了2s，BIO模型下，work业务线程同样也会阻塞。为了达到200的并发，就会继续创建线程来达到并发量。    </p>
+<p><strong>BIO 线程模型</strong><br><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwdiqnjbsij30tf0dmq40.jpg" alt=""><br>当客户端和服务端通过Acceptor建立完连接之后，要交给线程池来处理，也就是work线程，这个work线程除了要处理IO的读和写，还要处理我们的业务执行(数据库的增删改查)，当work处理IO的读和写时，我们在这里阻塞了2s，所以work线程也要阻塞，因为它和IO线程一一对应的。</p>
+<p><strong>NIO 线程模型</strong><br><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fwdiqpqdgpj31350fc76n.jpg" alt=""><br>IO线程和work线程已经分开了，当work线程处理业务时，处理的是IO线程发送过来的已经打包好的Http包，就可以直接从内存里取了。<br>IO线程一直轮询整个请求列表，看哪些请求已经完整过来了。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Tomcat-生产环境应用"><span class="toc-number">1.</span> <span class="toc-text">Tomcat 生产环境应用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一-Tomcat各组件认知"><span class="toc-number">1.1.</span> <span class="toc-text">一.Tomcat各组件认知</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Tomcat架构说明"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.Tomcat架构说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Tomcat-各组件及关系"><span class="toc-number">1.1.2.</span> <span class="toc-text">2.Tomcat 各组件及关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Tomcat启动参数说明"><span class="toc-number">1.1.3.</span> <span class="toc-text">3.Tomcat启动参数说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二-Tomcat-server-xml-配置详解"><span class="toc-number">1.2.</span> <span class="toc-text">二.Tomcat server.xml 配置详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-参数说明"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.参数说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三-Tomcat-IO模型介绍"><span class="toc-number">1.3.</span> <span class="toc-text">三.Tomcat IO模型介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Tomcat支持的IO模型说明"><span class="toc-number">1.3.1.</span> <span class="toc-text">1.Tomcat支持的IO模型说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-BIO与NIO有什么区别"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.BIO与NIO有什么区别</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&text=Tomcat 生产环境应用"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&is_video=false&description=Tomcat 生产环境应用"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Tomcat 生产环境应用&body=Check out this article: http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&title=Tomcat 生产环境应用"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&name=Tomcat 生产环境应用&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/10/18/Tomcat-生产环境应用/&t=Tomcat 生产环境应用"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

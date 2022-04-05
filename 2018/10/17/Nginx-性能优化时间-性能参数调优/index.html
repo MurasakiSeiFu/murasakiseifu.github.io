@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="Nginx 性能参数调优1.worker_processes numberNginx是多进程单线程的应用。专门处理请求的进程是worker process，处理缓存的进程是cache manager process(只有我们配置了缓存这个进程才会启动)。[root@root /]# ps -ef | grep nginxroot      15809      1  0 11:51 ?">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx 性能优化时间---性能参数调优">
+<meta property="og:url" content="http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="Nginx 性能参数调优1.worker_processes numberNginx是多进程单线程的应用。专门处理请求的进程是worker process，处理缓存的进程是cache manager process(只有我们配置了缓存这个进程才会启动)。[root@root /]# ps -ef | grep nginxroot      15809      1  0 11:51 ?">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwb7u7wnyyj30po0fsq3z.jpg">
+<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tNbRwly1fwb7vry2sjj30py0fyt98.jpg">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.750Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Nginx 性能优化时间---性能参数调优">
+<meta name="twitter:description" content="Nginx 性能参数调优1.worker_processes numberNginx是多进程单线程的应用。专门处理请求的进程是worker process，处理缓存的进程是cache manager process(只有我们配置了缓存这个进程才会启动)。[root@root /]# ps -ef | grep nginxroot      15809      1  0 11:51 ?">
+<meta name="twitter:image" content="https://ws1.sinaimg.cn/large/006tNbRwly1fwb7u7wnyyj30po0fsq3z.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Nginx 性能优化时间---性能参数调优</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2018/10/18/Tomcat-生产环境应用/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2018/10/17/Nginx-性能优化实践-高速缓存/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&text=Nginx 性能优化时间---性能参数调优"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&is_video=false&description=Nginx 性能优化时间---性能参数调优"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Nginx 性能优化时间---性能参数调优&body=Check out this article: http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&name=Nginx 性能优化时间---性能参数调优&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&t=Nginx 性能优化时间---性能参数调优"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Nginx-性能参数调优"><span class="toc-number">1.</span> <span class="toc-text">Nginx 性能参数调优</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-worker-processes-number"><span class="toc-number">1.1.</span> <span class="toc-text">1.worker_processes number</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-每个worker进程的最大连接数"><span class="toc-number">1.2.</span> <span class="toc-text">2.每个worker进程的最大连接数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-绑定Nginx-worker进程到指定的CPU内核"><span class="toc-number">1.3.</span> <span class="toc-text">3.绑定Nginx worker进程到指定的CPU内核</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Nginx-worker-进程优先级设置"><span class="toc-number">1.4.</span> <span class="toc-text">3.Nginx worker 进程优先级设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Nginx-worker进程可以打开的最大句柄描述符个数"><span class="toc-number">1.5.</span> <span class="toc-text">4.Nginx worker进程可以打开的最大句柄描述符个数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-是否打开accept锁"><span class="toc-number">1.6.</span> <span class="toc-text">5.是否打开accept锁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-使用accept锁后到真正建立连接之间的延迟时间"><span class="toc-number">1.7.</span> <span class="toc-text">6.使用accept锁后到真正建立连接之间的延迟时间</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Nginx 性能优化时间---性能参数调优
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-10-17T06:23:21.000Z" itemprop="datePublished">2018-10-17</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/分布式专题/">分布式专题</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="Nginx-性能参数调优"><a href="#Nginx-性能参数调优" class="headerlink" title="Nginx 性能参数调优"></a>Nginx 性能参数调优</h1><h2 id="1-worker-processes-number"><a href="#1-worker-processes-number" class="headerlink" title="1.worker_processes number"></a>1.worker_processes number</h2><p>Nginx是多进程单线程的应用。专门处理请求的进程是worker process，处理缓存的进程是cache manager process(只有我们配置了缓存这个进程才会启动)。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@root /]# ps -ef | grep nginx</span><br><span class="line">root      15809      1  0 11:51 ?        00:00:00 nginx: master process sbin/nginx</span><br><span class="line">root      16530  15809  0 15:21 ?        00:00:00 nginx: worker process</span><br><span class="line">root      16531  15809  0 15:21 ?        00:00:00 nginx: cache manager process</span><br></pre></td></tr></table></figure></p>
+<p>当我们请求太多时，我们可以多配几个worker process进程。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 在配置文件的顶部 修改worker_processes参数，默认为1.</span><br><span class="line">worker_processes	2;</span><br></pre></td></tr></table></figure></p>
+<p>但并不是配的越多越好，worker_processes的数值是根据CPU来决定的，如果你的CPU是双核的，那么worker_processes最好就配置2个。    </p>
+<p>如果你配置了5个worker_processes，那么最多工作时只有两个worker_processes在启用，剩下3个是闲置的状态，并且当请求来的时候，这5个worker_processes会争抢资源，反而会使性能下降。    </p>
+<p><font color="orange"><strong>并不是等于CPU数就是最好的</strong>    </font><br>每个worker进程都是单线程的进程，它们会调用各个模块以实现多种多样的功能。如果这些模块确认不会出现阻塞式的调用，那么，有多少CPU内核就应该配置多少个进程；反之，如果有可能出现阻塞式调用，那么需要配置稍多一些的worker进程。</p>
+<p><font color="green">例如:</font> 如果业务方面会致使用户请求大量读取本地磁盘上的静态资源文件，而且服务器上的内存较小，以至于大部分的请求访问静态资源文件时都必须读取磁盘（磁头的寻址是缓慢的），而不是内存中的磁盘缓存，那么磁盘I/O调用可能会阻塞住worker进程少量时间，进而导致服务整体性能下降。</p>
+<h2 id="2-每个worker进程的最大连接数"><a href="#2-每个worker进程的最大连接数" class="headerlink" title="2.每个worker进程的最大连接数"></a>2.每个worker进程的最大连接数</h2><p>指每个worker最大能接受的请求数。</p>
+<p><strong>语法</strong>：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_connections number;</span><br></pre></td></tr></table></figure></p>
+<p><strong>默认</strong>：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_connections 1024</span><br></pre></td></tr></table></figure></p>
+<h2 id="3-绑定Nginx-worker进程到指定的CPU内核"><a href="#3-绑定Nginx-worker进程到指定的CPU内核" class="headerlink" title="3.绑定Nginx worker进程到指定的CPU内核"></a>3.绑定Nginx worker进程到指定的CPU内核</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_cpu_affinity cpumask[cpumask……]</span><br></pre></td></tr></table></figure>
+<p>为什么要绑定worker进程到指定的CPU内核呢？    </p>
+<p>如下图所示，假定每一个worker进程都是非常繁忙的，如果多个worker进程都在抢同一个CPU，那么这就会出现同步问题。</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwly1fwb7u7wnyyj30po0fsq3z.jpg" alt=""></p>
+<p>如果每一个worker进程都独享一个CPU，就在内核的调度策略上实现了完全的并发。</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fwb7vry2sjj30py0fyt98.jpg" alt=""></p>
+<p>例如，如果有4颗CPU内核，就可以进行如下配置    </p>
+<p><font color="orange">注意 worker_cpu_affinity 配置仅对 Linux 操作系统有效。</font><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_processes 4;	</span><br><span class="line">worker_cpu_affinity 1000 0100 0010 0001;</span><br></pre></td></tr></table></figure></p>
+<h2 id="3-Nginx-worker-进程优先级设置"><a href="#3-Nginx-worker-进程优先级设置" class="headerlink" title="3.Nginx worker 进程优先级设置"></a>3.Nginx worker 进程优先级设置</h2><p><strong>语法</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_priority nice;</span><br></pre></td></tr></table></figure></p>
+<p><strong>默认</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_priority 0;</span><br></pre></td></tr></table></figure></p>
+<p>优先级,由静态优先级和内核,根据进程执行情况所做的动态调整（目前只有±5的调整）共同决定。nice值是进程的静态优先级，它的取值范围是–20～+19，–20是最高优先级，+19是最低优先级。因此，如果用户希望Nginx占有更多的系统资源，那么可以把nice值配置得更小一些，但不建议比内核进程的nice值（通常为–5）还要小。</p>
+<h2 id="4-Nginx-worker进程可以打开的最大句柄描述符个数"><a href="#4-Nginx-worker进程可以打开的最大句柄描述符个数" class="headerlink" title="4.Nginx worker进程可以打开的最大句柄描述符个数"></a>4.Nginx worker进程可以打开的最大句柄描述符个数</h2><p><strong>语法</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_rlimit_nofile limit;</span><br></pre></td></tr></table></figure></p>
+<p><strong>默认</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure></p>
+<p>更改worker进程的最大打开文件数限制。如果没设置的话，这个值为操作系统的限制。设置后你的操作系统和Nginx可以处理比 “ulimit -a” 命令更多的文件，所以把这个值设高，这样 nginx 就不会有“too many open files”问题了。</p>
+<h2 id="5-是否打开accept锁"><a href="#5-是否打开accept锁" class="headerlink" title="5.是否打开accept锁"></a>5.是否打开accept锁</h2><p><strong>语法</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">accept_mutex[on|off]</span><br></pre></td></tr></table></figure></p>
+<p><strong>默认</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">accept_mutext on;</span><br></pre></td></tr></table></figure></p>
+<p>accept_mutex 是 Nginx 的负载均衡锁，当某一个worker进程建立的连接数量达到worker_connections配置的最大连接数的7/8时，会大大地减小该worker进程试图建立新TCP连接的机会，accept锁默认是打开的，如果关闭它，那么建立TCP连接的耗时会更短，但worker进程之间的负载会非常不均衡，因此不建议关闭它。</p>
+<h2 id="6-使用accept锁后到真正建立连接之间的延迟时间"><a href="#6-使用accept锁后到真正建立连接之间的延迟时间" class="headerlink" title="6.使用accept锁后到真正建立连接之间的延迟时间"></a>6.使用accept锁后到真正建立连接之间的延迟时间</h2><p><strong>语法</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">accept_mutex_delay Nms;</span><br></pre></td></tr></table></figure></p>
+<p><strong>默认</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">accept_mutex_delay 500ms;</span><br></pre></td></tr></table></figure></p>
+<p>在使用accept锁后，同一时间只有一个worker进程能够取到accept锁。这个accept锁不是堵塞锁，如果取不到会立刻返回。如果只有一个worker进程试图取锁而没有取到，他至少要等待accept_mutex_delay定义的时间才能再次试图取锁。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Nginx-性能参数调优"><span class="toc-number">1.</span> <span class="toc-text">Nginx 性能参数调优</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-worker-processes-number"><span class="toc-number">1.1.</span> <span class="toc-text">1.worker_processes number</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-每个worker进程的最大连接数"><span class="toc-number">1.2.</span> <span class="toc-text">2.每个worker进程的最大连接数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-绑定Nginx-worker进程到指定的CPU内核"><span class="toc-number">1.3.</span> <span class="toc-text">3.绑定Nginx worker进程到指定的CPU内核</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Nginx-worker-进程优先级设置"><span class="toc-number">1.4.</span> <span class="toc-text">3.Nginx worker 进程优先级设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Nginx-worker进程可以打开的最大句柄描述符个数"><span class="toc-number">1.5.</span> <span class="toc-text">4.Nginx worker进程可以打开的最大句柄描述符个数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-是否打开accept锁"><span class="toc-number">1.6.</span> <span class="toc-text">5.是否打开accept锁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-使用accept锁后到真正建立连接之间的延迟时间"><span class="toc-number">1.7.</span> <span class="toc-text">6.使用accept锁后到真正建立连接之间的延迟时间</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&text=Nginx 性能优化时间---性能参数调优"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&is_video=false&description=Nginx 性能优化时间---性能参数调优"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Nginx 性能优化时间---性能参数调优&body=Check out this article: http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&title=Nginx 性能优化时间---性能参数调优"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&name=Nginx 性能优化时间---性能参数调优&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/10/17/Nginx-性能优化时间-性能参数调优/&t=Nginx 性能优化时间---性能参数调优"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

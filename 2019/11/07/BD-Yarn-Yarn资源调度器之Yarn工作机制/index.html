@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-Yarn-Yarn资源调度器之Yarn工作机制">
+<meta property="og:url" content="http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzkzcsenj310z08s0tw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzo10l7pj311u0k476h.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzrr028wj31130k340y.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yztoedwuj311h0k6jud.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzw8j6trj31180k9whl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzyjm23oj31100kcq6b.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0296iawj312l0k9djk.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z04xap8gj315l0kajvu.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z07hs168j315t0k7jwb.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0c0sf8tj315g0li0yi.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0f26hyjj315l0lagro.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gdawf3j315s0l80yy.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gywkszj30k40iwgoh.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0lhok8uj30vz0u0qd5.jpg">
+<meta property="og:updated_time" content="2019-11-11T06:53:11.840Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-Yarn-Yarn资源调度器之Yarn工作机制">
+<meta name="twitter:description" content="BD-Yarn-Yarn资源调度器之Yarn工作机制主要内容 基本架构 工作机制（作业提交流程）  基本架构 工作机制（作业提交流程） 在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。  提交后，如果是HDFS">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BD-Yarn-Yarn资源调度器之Yarn工作机制</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/11/10/BD-MapReduce9/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/11/05/BD-MapReduce8-MapReduce框架原理之ReduceTask工作机制/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&text=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&is_video=false&description=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-Yarn-Yarn资源调度器之Yarn工作机制&body=Check out this article: http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&name=BD-Yarn-Yarn资源调度器之Yarn工作机制&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&t=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-Yarn-Yarn资源调度器之Yarn工作机制"><span class="toc-number">1.</span> <span class="toc-text">BD-Yarn-Yarn资源调度器之Yarn工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基本架构"><span class="toc-number">1.2.</span> <span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#工作机制（作业提交流程）"><span class="toc-number">1.3.</span> <span class="toc-text">工作机制（作业提交流程）</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BD-Yarn-Yarn资源调度器之Yarn工作机制
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-11-07T09:27:36.000Z" itemprop="datePublished">2019-11-07</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Hadoop-Yarn/">Hadoop-Yarn</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-Yarn-Yarn资源调度器之Yarn工作机制"><a href="#BD-Yarn-Yarn资源调度器之Yarn工作机制" class="headerlink" title="BD-Yarn-Yarn资源调度器之Yarn工作机制"></a>BD-Yarn-Yarn资源调度器之Yarn工作机制</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>基本架构</li>
+<li>工作机制（作业提交流程）</li>
+</ol>
+<h2 id="基本架构"><a href="#基本架构" class="headerlink" title="基本架构"></a>基本架构</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0nlllpoj30sr0een03.jpg" alt=""></p>
+<h2 id="工作机制（作业提交流程）"><a href="#工作机制（作业提交流程）" class="headerlink" title="工作机制（作业提交流程）"></a>工作机制（作业提交流程）</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzkzcsenj310z08s0tw.jpg" alt=""></p>
+<p>在Driver中最后一步，我们调用waitForCompletion()后，会向ResourceManager申请一个ApplicationId，有了这个Id，就知道Job要用的临时文件提交到哪个文件的下面（我们临时申请的工作目录）。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzo10l7pj311u0k476h.jpg" alt=""></p>
+<p>提交后，如果是HDFS，我们会看到在根目录生成了一个tmp的文件夹，在我们临时申请的工作目录，会放着这三个文件。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzrr028wj31130k340y.jpg" alt=""></p>
+<p>提交完了以后，就会告诉yarn，job任务提交完了，申请一个AppMaster负责跟进我们的任务</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yztoedwuj311h0k6jud.jpg" alt=""></p>
+<p>所有的自愿申请进入到RM，都会被包装成一个个Task，Yarn收到这些Task之后，就把Task扔到调度队列里（稍后再说），根据自己的调度逻辑来判断到底需不需要执行。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzw8j6trj31180k9whl.jpg" alt=""></p>
+<p>假设按照规则，轮到这个Task执行了，就会找一个NM来接收这个任务。假如我们AppMaster需要2核1G的资源，那么就会找一个有2核1G的NM来接收它。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7yzyjm23oj31100kcq6b.jpg" alt=""></p>
+<p>NM就会运行Container（2核1G），里面跑着这个AppMaster。AppMaster出现以后，就以任务为己任，因为我们会发现其实Yarn并不管我们跑的是什么任务、什么数据等等，只有AppMaster管。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0296iawj312l0k9djk.jpg" alt=""></p>
+<p>下一步开始，AppMaster下载job资源到本地，然后根据任务切片信息，申请相应数量的MapTask。申请这个过程会被包装成一个Task进入队列，等着调度。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z04xap8gj315l0kajvu.jpg" alt=""></p>
+<p>当轮到这个Task的时候，就会启动相应数量的Container来执行这两个MapTask（假如我们有两个切片），</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z07hs168j315t0k7jwb.jpg" alt=""></p>
+<p>MapTask的执行是由AppMaster把jar包和启动脚本发送过去，然后开始执行。出现了输出文件（0、1为分区），接着就会回收这两个Container。文件出来，RM、NM都不关心这个文件，只有AppMaster关心，AppMaster会一直问这个MapTask执行到哪了。当所有的MapTask执行到100%Lee，也就开始下一步了。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0c0sf8tj315g0li0yi.jpg" alt=""></p>
+<p>根据我们程序里写的ReduceTask的数量，来申请相应数量的ReduceTask。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0f26hyjj315l0lagro.jpg" alt=""></p>
+<p>每个ReduceTask接收相应分区的数据。处理完的结果会写回到HDFS。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gdawf3j315s0l80yy.jpg" alt=""></p>
+<p>都搞定以后，Container就会被回收，AppMaster发现都执行了完了，会向RM注销自己。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0gywkszj30k40iwgoh.jpg" alt=""></p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7z0lhok8uj30vz0u0qd5.jpg" alt=""></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-Yarn-Yarn资源调度器之Yarn工作机制"><span class="toc-number">1.</span> <span class="toc-text">BD-Yarn-Yarn资源调度器之Yarn工作机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基本架构"><span class="toc-number">1.2.</span> <span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#工作机制（作业提交流程）"><span class="toc-number">1.3.</span> <span class="toc-text">工作机制（作业提交流程）</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&text=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&is_video=false&description=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-Yarn-Yarn资源调度器之Yarn工作机制&body=Check out this article: http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&title=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&name=BD-Yarn-Yarn资源调度器之Yarn工作机制&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/11/07/BD-Yarn-Yarn资源调度器之Yarn工作机制/&t=BD-Yarn-Yarn资源调度器之Yarn工作机制"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

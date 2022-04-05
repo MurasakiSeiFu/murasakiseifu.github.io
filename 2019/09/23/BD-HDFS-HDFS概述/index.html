@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="BD-HDFS-HDFS概述主要内容 产出背景及定义 优缺点 组成架构 文件块大小  1.1 HDFS 产出背景及定义1.1.1 HDFS产生背景随着数据量越来越大，在一个操作系统存不下所有的数据，那么就分配到更多的操作系统管理的磁盘中，但是不方便管理和维护，迫切需要一种系统来管理多台机器上的文件，这就是分布式文件管理系统。HDFS只是分布式文件管理系统中的一种。 1.1.2 HDFS定义HD">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-HDFS-HDFS概述">
+<meta property="og:url" content="http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-HDFS-HDFS概述主要内容 产出背景及定义 优缺点 组成架构 文件块大小  1.1 HDFS 产出背景及定义1.1.1 HDFS产生背景随着数据量越来越大，在一个操作系统存不下所有的数据，那么就分配到更多的操作系统管理的磁盘中，但是不方便管理和维护，迫切需要一种系统来管理多台机器上的文件，这就是分布式文件管理系统。HDFS只是分布式文件管理系统中的一种。 1.1.2 HDFS定义HD">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g79kehgoekj30d9049aa3.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g79kg97551j30ii0480sx.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g79knt9hkxj30mc0g4wg1.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7ae4hv6bdj30qi0b7402.jpg">
+<meta property="og:updated_time" content="2019-09-25T02:59:07.735Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-HDFS-HDFS概述">
+<meta name="twitter:description" content="BD-HDFS-HDFS概述主要内容 产出背景及定义 优缺点 组成架构 文件块大小  1.1 HDFS 产出背景及定义1.1.1 HDFS产生背景随着数据量越来越大，在一个操作系统存不下所有的数据，那么就分配到更多的操作系统管理的磁盘中，但是不方便管理和维护，迫切需要一种系统来管理多台机器上的文件，这就是分布式文件管理系统。HDFS只是分布式文件管理系统中的一种。 1.1.2 HDFS定义HD">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g79kehgoekj30d9049aa3.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BD-HDFS-HDFS概述</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/09/24/BD-HDFS-HDFS的数据流写入/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/09/01/并发编程专题-现代计算机理论模型与工作原理/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&text=BD-HDFS-HDFS概述"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&is_video=false&description=BD-HDFS-HDFS概述"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-HDFS-HDFS概述&body=Check out this article: http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&name=BD-HDFS-HDFS概述&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&t=BD-HDFS-HDFS概述"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-HDFS-HDFS概述"><span class="toc-number">1.</span> <span class="toc-text">BD-HDFS-HDFS概述</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-HDFS-产出背景及定义"><span class="toc-number">1.2.</span> <span class="toc-text">1.1 HDFS 产出背景及定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-1-HDFS产生背景"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1.1 HDFS产生背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-2-HDFS定义"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.1.2 HDFS定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-DataNode（dn）：就是Slave。NameNode下达命令，DataNode执行实际的操作。"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">2. DataNode（dn）：就是Slave。NameNode下达命令，DataNode执行实际的操作。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-Client：就是客户端"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">3. Client：就是客户端</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-Secondery-NameNode（2nn）：并非NameNode的热备。当NameNode挂掉的时候，它并不能马上替换NameNode并提供服务。"><span class="toc-number">1.2.2.3.</span> <span class="toc-text">4. Secondery NameNode（2nn）：并非NameNode的热备。当NameNode挂掉的时候，它并不能马上替换NameNode并提供服务。</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-HDFS-文件块大小"><span class="toc-number">1.3.</span> <span class="toc-text">1.4 HDFS 文件块大小</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BD-HDFS-HDFS概述
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-09-23T01:27:36.000Z" itemprop="datePublished">2019-09-23</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Hadoop-HDFS/">Hadoop-HDFS</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-HDFS-HDFS概述"><a href="#BD-HDFS-HDFS概述" class="headerlink" title="BD-HDFS-HDFS概述"></a>BD-HDFS-HDFS概述</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>产出背景及定义</li>
+<li>优缺点</li>
+<li>组成架构</li>
+<li>文件块大小</li>
+</ol>
+<h2 id="1-1-HDFS-产出背景及定义"><a href="#1-1-HDFS-产出背景及定义" class="headerlink" title="1.1 HDFS 产出背景及定义"></a>1.1 HDFS 产出背景及定义</h2><h3 id="1-1-1-HDFS产生背景"><a href="#1-1-1-HDFS产生背景" class="headerlink" title="1.1.1 HDFS产生背景"></a>1.1.1 HDFS产生背景</h3><p>随着数据量越来越大，在一个操作系统存不下所有的数据，那么就分配到更多的操作系统管理的磁盘中，但是不方便管理和维护，迫切<font color="red">需要一种系统来管理多台机器上的文件</font>，这就是分布式文件管理系统。HDFS只是<font color="red">分布式文件管理系统中的一种。</font></p>
+<h3 id="1-1-2-HDFS定义"><a href="#1-1-2-HDFS定义" class="headerlink" title="1.1.2 HDFS定义"></a>1.1.2 HDFS定义</h3><font color="red"></font><br><font color="red">HDFS（Hadoop Distributed File System），它是一个文件系统</font>，用于存储文件，通过目录树来定位文件；<font color="red">其次，它是分布式</font>，由很多服务器联合起来实现其功能，集群中的服务器有各自的角色。<br><br><font color="red">HDFS的使用场景：适合一次写入，多次读出的场景，且不支持文件的修改。</font>适合用来做数据分析，并不适合用来网盘应用。<br><br>## 1.2 HDFS优缺点<br><br>### 1.2.1 优点<br><br><strong>1. 高容错性</strong><br><br><em> 数据自动保存多个副本。他通过增加副本的形式，提高容错性。<br>    <img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g79kehgoekj30d9049aa3.jpg" alt="">
+
+</em> 某一个副本丢失以后，他可以自动恢复。<br>    <img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g79kg97551j30ii0480sx.jpg" alt=""><br><br><strong>2. 适合处理大数据</strong><br><br><em> 数据规模：能够处理数据规模达到GB、TB、甚至<font color="red">PB级别的数据</font>。
+</em> 文件规模：能够处理<font color="red"> 百万 </font>规模以上的<font color="red">文件数量</font>，数量相当之大。<br><br><strong>3. 可构建在廉价的机器上，通过多副本鸡翅，提高可靠性。</strong><br><br>### 1.2.2 缺点<br><br><strong>1. <font color="red">不适合低延时数据访问</font>，比如毫秒级的存储数据，是做不到的。</strong><br><br><strong>2. <font color="red">无法高效的对大量小文件进行存储</font></strong><br><br><em> 存储大量小文件的话，它会占用NameNode大量的内存来存储目录和块信息。这样是不可取的，因为NameNode的内存总是有限的。
+</em> 小文件存储的寻址时间会超过读取时间，它违反了HDFS的设计目标。<br>* 不支持并发写入，不允许文件随机修改。<br><br><strong>3. 一个文件只能有一个写，不允许多个线程同时写</strong><br><br><strong>4. <font color="red">仅支持数据append(追加)</font>，不支持文件的随机修改</strong><br><br>## 1.3 HDFS组成架构<br><br><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g79knt9hkxj30mc0g4wg1.jpg" alt=""><br><br>#### <font color="#5599FF">1. NameNode（nn）：就是Master，它是一个主管、管理者。</font>
+
+<blockquote>
+<p>HDFS 最重要的角色</p>
+</blockquote>
+<ol>
+<li>管理HDFS的名称空间。</li>
+<li>配置副本策略。</li>
+<li>管理数据块（Block）映射信息。</li>
+<li><font color="red">处理所有客户端读写请求</font>。</li>
+</ol>
+<h4 id="2-DataNode（dn）：就是Slave。NameNode下达命令，DataNode执行实际的操作。"><a href="#2-DataNode（dn）：就是Slave。NameNode下达命令，DataNode执行实际的操作。" class="headerlink" title="2. DataNode（dn）：就是Slave。NameNode下达命令，DataNode执行实际的操作。"></a><font color="#5599FF">2. DataNode（dn）：就是Slave。NameNode下达命令，DataNode执行实际的操作。</font></h4><ol>
+<li>存储实际的数据块。</li>
+<li>执行数据款的读写操作。</li>
+</ol>
+<h4 id="3-Client：就是客户端"><a href="#3-Client：就是客户端" class="headerlink" title="3. Client：就是客户端"></a><font color="#5599FF">3. Client：就是客户端</font></h4><ol>
+<li>文件切分。文件上传HDFS的时候，Client将文件切分成一个一个的Block，然后进行上传。</li>
+<li>与NameNode交互，获取文件的文职信息。</li>
+<li>与DataNode交互，读取或者写入数据。</li>
+<li>Client提供一些命令来管理HDFS，比如NameNode格式化。</li>
+<li>Client可以通过一些命令来访问HDFS，比如对HDFS增删改查操作。</li>
+</ol>
+<h4 id="4-Secondery-NameNode（2nn）：并非NameNode的热备。当NameNode挂掉的时候，它并不能马上替换NameNode并提供服务。"><a href="#4-Secondery-NameNode（2nn）：并非NameNode的热备。当NameNode挂掉的时候，它并不能马上替换NameNode并提供服务。" class="headerlink" title="4. Secondery NameNode（2nn）：并非NameNode的热备。当NameNode挂掉的时候，它并不能马上替换NameNode并提供服务。"></a><font color="#5599FF">4. Secondery NameNode（2nn）：并非NameNode的热备。当NameNode挂掉的时候，它并不能马上替换NameNode并提供服务。</font></h4><ol>
+<li>辅助NameNode，分担其工作量，比如定期合并Fsimage和Edits，并推送给NameNode。</li>
+</ol>
+<h2 id="1-4-HDFS-文件块大小"><a href="#1-4-HDFS-文件块大小" class="headerlink" title="1.4 HDFS 文件块大小"></a>1.4 HDFS 文件块大小</h2><p>HDFS的文件在物理上是分块存储（block），块的大小可以通过配置参数（dfs.blocksize）来规定，默认大小在Hadoop 2.x版本中是128M，老版本中是64M。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7ae4hv6bdj30qi0b7402.jpg" alt=""></p>
+<p><strong>Q&amp;A</strong></p>
+<p>Q： 为什么块的大小不能设置的太大，也不能设置的太小？</p>
+<ul>
+<li>HDFS的块设置<font color="red">太小，会增加寻址时间</font>，程序一直在找块的开始位置。</li>
+<li>如果块设置的<font color="red">太大</font>，从<font color="red">磁盘传输数据的时间</font>会明显<font color="red">大于定位这个块开始位置所需的时间</font>。导致MapReduce程序在处理大块数据时，会非常慢。</li>
+</ul>
+<p><strong><font color="red">总结：HDFS块的大小设置取决于磁盘传输速率。</font></strong></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-HDFS-HDFS概述"><span class="toc-number">1.</span> <span class="toc-text">BD-HDFS-HDFS概述</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-HDFS-产出背景及定义"><span class="toc-number">1.2.</span> <span class="toc-text">1.1 HDFS 产出背景及定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-1-HDFS产生背景"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1.1 HDFS产生背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-2-HDFS定义"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.1.2 HDFS定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-DataNode（dn）：就是Slave。NameNode下达命令，DataNode执行实际的操作。"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">2. DataNode（dn）：就是Slave。NameNode下达命令，DataNode执行实际的操作。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-Client：就是客户端"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">3. Client：就是客户端</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-Secondery-NameNode（2nn）：并非NameNode的热备。当NameNode挂掉的时候，它并不能马上替换NameNode并提供服务。"><span class="toc-number">1.2.2.3.</span> <span class="toc-text">4. Secondery NameNode（2nn）：并非NameNode的热备。当NameNode挂掉的时候，它并不能马上替换NameNode并提供服务。</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-HDFS-文件块大小"><span class="toc-number">1.3.</span> <span class="toc-text">1.4 HDFS 文件块大小</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&text=BD-HDFS-HDFS概述"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&is_video=false&description=BD-HDFS-HDFS概述"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-HDFS-HDFS概述&body=Check out this article: http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&title=BD-HDFS-HDFS概述"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&name=BD-HDFS-HDFS概述&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/09/23/BD-HDFS-HDFS概述/&t=BD-HDFS-HDFS概述"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

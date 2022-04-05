@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="Nginx 简介与安装1、Nginx简介：Nginx是一个高性能WEB服务器，除它之外Apache、Tomcat、Jetty、IIS，它们都是Web服务器，或者叫做WWW（World Wide Web）服务器，相应地也都具备Web服务器的基本功能。Nginx  相对基它WEB服务有什么优势呢？  Tomcat、Jetty 面向java语言，先天就是重量级的WEB服务器，其性能与Nginx没有可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx 核心模块与配置实践">
+<meta property="og:url" content="http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="Nginx 简介与安装1、Nginx简介：Nginx是一个高性能WEB服务器，除它之外Apache、Tomcat、Jetty、IIS，它们都是Web服务器，或者叫做WWW（World Wide Web）服务器，相应地也都具备Web服务器的基本功能。Nginx  相对基它WEB服务有什么优势呢？  Tomcat、Jetty 面向java语言，先天就是重量级的WEB服务器，其性能与Nginx没有可">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fw8rpn1pmdj30i30f4dgq.jpg">
+<meta property="og:image" content="https://ws4.sinaimg.cn/large/006tNbRwly1fw8w7tipm3j30q80gbwfh.jpg">
+<meta property="og:image" content="https://ws3.sinaimg.cn/large/006tNbRwly1fw8w9tfiktj31280kc78n.jpg">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.750Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Nginx 核心模块与配置实践">
+<meta name="twitter:description" content="Nginx 简介与安装1、Nginx简介：Nginx是一个高性能WEB服务器，除它之外Apache、Tomcat、Jetty、IIS，它们都是Web服务器，或者叫做WWW（World Wide Web）服务器，相应地也都具备Web服务器的基本功能。Nginx  相对基它WEB服务有什么优势呢？  Tomcat、Jetty 面向java语言，先天就是重量级的WEB服务器，其性能与Nginx没有可">
+<meta name="twitter:image" content="https://ws2.sinaimg.cn/large/006tNbRwly1fw8rpn1pmdj30i30f4dgq.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Nginx 核心模块与配置实践</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2018/10/16/Nginx-性能优化实践/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2018/09/19/Mybatis-自定义拦截器/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&text=Nginx 核心模块与配置实践"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&is_video=false&description=Nginx 核心模块与配置实践"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Nginx 核心模块与配置实践&body=Check out this article: http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&name=Nginx 核心模块与配置实践&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&t=Nginx 核心模块与配置实践"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Nginx-简介与安装"><span class="toc-number">1.</span> <span class="toc-text">Nginx 简介与安装</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1、Nginx简介："><span class="toc-number">1.1.</span> <span class="toc-text">1、Nginx简介：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2、编译与安装"><span class="toc-number">1.2.</span> <span class="toc-text">2、编译与安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Nginx-架构说明"><span class="toc-number">1.3.</span> <span class="toc-text">二、Nginx 架构说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、Nginx-配置与使用"><span class="toc-number">1.4.</span> <span class="toc-text">三、Nginx 配置与使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#主要内容"><span class="toc-number">1.4.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1、配置文件的语法格式："><span class="toc-number">1.4.2.</span> <span class="toc-text">1、配置文件的语法格式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2、配置第一个静态WEB服务"><span class="toc-number">1.4.3.</span> <span class="toc-text">2、配置第一个静态WEB服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3、日志配置："><span class="toc-number">1.4.4.</span> <span class="toc-text">3、日志配置：</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Nginx 核心模块与配置实践
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-10-15T03:51:45.000Z" itemprop="datePublished">2018-10-15</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/分布式专题/">分布式专题</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="Nginx-简介与安装"><a href="#Nginx-简介与安装" class="headerlink" title="Nginx 简介与安装"></a>Nginx 简介与安装</h1><h2 id="1、Nginx简介："><a href="#1、Nginx简介：" class="headerlink" title="1、Nginx简介："></a>1、Nginx简介：</h2><p>Nginx是一个高性能WEB服务器，除它之外Apache、Tomcat、Jetty、IIS，它们都是Web服务器，或者叫做WWW（World Wide Web）服务器，相应地也都具备Web服务器的基本功能。Nginx  相对基它WEB服务有什么优势呢？</p>
+<ol>
+<li>Tomcat、Jetty 面向java语言，先天就是重量级的WEB服务器，其性能与Nginx没有可比性。</li>
+<li>IIS只能在Windows操作系统上运行。Windows作为服务器在稳定性与其他一些性能上都不如类UNIX操作系统，因此，在需要高性能Web服务器的场合下IIS并不占优。</li>
+<li>Apache的发展时期很长，而且是目前毫无争议的世界第一大Web服务器，其有许多优点，如稳定、开源、跨平台等，但它出现的时间太长了，在它兴起的年代，互联网的产业规模远远比不上今天，所以它被设计成了一个重量级的、不支持高并发的Web服务器。在Apache服务器上，如果有数以万计的并发HTTP请求同时访问，就会导致服务器上消耗大量内存，操作系统内核对成百上千的Apache进程做进程间切换也会消耗大量CPU资源，并导致HTTP请求的平均响应速度降低，这些都决定了Apache不可能成为高性能Web服务器，这也促使了Lighttpd和Nginx的出现。 下图可以看出07年到17 年强劲增长势头。<br><img src="https://ws2.sinaimg.cn/large/006tNbRwly1fw8rpn1pmdj30i30f4dgq.jpg" alt=""></li>
+</ol>
+<h2 id="2、编译与安装"><a href="#2、编译与安装" class="headerlink" title="2、编译与安装"></a><strong>2、编译与安装</strong></h2><p><strong>安装环境准备：</strong><br><strong>（1）linux 内核2.6及以上版本:</strong><br>只有2.6之后才支持epool ，在此之前使用select或pool多路复用的IO模型，无法解决高并发压力的问题。通过命令uname -a 即可查看。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#查看 linux 内核</span><br><span class="line">uname -a</span><br></pre></td></tr></table></figure></p>
+<p><strong>（2）GCC编译器</strong><br>GCC（GNU Compiler Collection）可用来编译C语言程序。Nginx不会直接提供二进制可执行程序,只能下载源码进行编译。</p>
+<p><strong>（3）PCRE库</strong><br>PCRE（Perl Compatible Regular Expressions，Perl兼容正则表达式）是由Philip Hazel开发的函数库，目前为很多软件所使用，该库支持正则表达式。</p>
+<p><strong>（4）zlib库</strong><br>zlib库用于对HTTP包的内容做gzip格式的压缩，如果我们在nginx.conf里配置了gzip on，并指定对于某些类型（content-type）的HTTP响应使用gzip来进行压缩以减少网络传输量。</p>
+<p><strong>（5）OpenSSL开发库</strong><br>如果我们的服务器不只是要支持HTTP，还需要在更安全的SSL协议上传输HTTP，那么就需要拥有OpenSSL了。另外，如果我们想使用MD5、SHA1等散列函数，那么也需要安装它。<br>上面几个库都是Nginx 基础功能所必需的，为简单起见我们可以通过yum 命令统一安装。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#yum 安装nginx 环境</span><br><span class="line">yum -y install make zlib zlib-devel gcc-c++ libtool openssl openssl-devel pcre pcre-devel</span><br></pre></td></tr></table></figure>
+<p><strong>源码获取：</strong><br>nginx 下载页：<a href="http://nginx.org/en/download.html" target="_blank" rel="noopener">http://nginx.org/en/download.html</a> 。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 下载nginx 最新稳定版本</span><br><span class="line">wget http://nginx.org/download/nginx-1.14.0.tar.gz</span><br><span class="line">#解压</span><br><span class="line">tar -zxvf nginx-1.14.0.tar.gz</span><br></pre></td></tr></table></figure></p>
+<p>最简单的安装：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 全部采用默认安装</span><br><span class="line">./configure</span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure></p>
+<p>执行完成之后 nginx 运行文件 就会被安装在 /usr/local/nginx 下。</p>
+<p>基于参数构建<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-debug</span><br><span class="line">make</span><br><span class="line">进入objs文件夹 会生成nginx文件 我们需要用它替换掉/usr/local/nginx/sbin/下的nginx文件</span><br><span class="line">/usr/local/nginx/sbin/nginx -s stop</span><br><span class="line">cp nginx /usr/local/nginx/sbin/</span><br><span class="line">cp: overwrite `/usr/local/nginx/sbin/nginx&apos;? y</span><br></pre></td></tr></table></figure></p>
+<p><strong>控制命令：</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#默认方式启动：</span><br><span class="line">./sbin/nginx </span><br><span class="line">#指定配置文件启动 </span><br><span class="line">./sbing/nginx -c /tmp/nginx.conf </span><br><span class="line">#指定nginx程序目录启动</span><br><span class="line">./sbin/nginx -p /usr/local/nginx/</span><br><span class="line"></span><br><span class="line">#快速停止 不管有没有未执行完的请求 直接停止进程</span><br><span class="line">./sbin/nginx -s stop</span><br><span class="line">#优雅停止 等待当前请求执行完 再停止进程</span><br><span class="line">./sbin/nginx -s quit</span><br><span class="line">#检测配置文件是否正确</span><br><span class="line">./sbin/nginx -t</span><br><span class="line"></span><br><span class="line"># 热装载配置文件 在不停止nginx的情况下更新配置文件</span><br><span class="line">./sbin/nginx -s reload</span><br><span class="line"># 重新打开日志文件</span><br><span class="line">./sbin/nginx -s reopen</span><br></pre></td></tr></table></figure></p>
+<h2 id="二、Nginx-架构说明"><a href="#二、Nginx-架构说明" class="headerlink" title="二、Nginx 架构说明"></a>二、Nginx 架构说明</h2><hr>
+<p><strong>Nginx 架构图:</strong><br><img src="https://ws4.sinaimg.cn/large/006tNbRwly1fw8w7tipm3j30q80gbwfh.jpg" alt=""></p>
+<p><strong>架构说明：</strong><br>1）nginx启动时，会生成两种类型的进程，一个是主进程（Master），一个（windows版本的目前只有一个）和多个工作进程（Worker）。主进程并不处理网络请求，主要负责调度工作进程，也就是图示的三项：加载配置、启动工作进程及非停升级。所以，nginx启动以后，查看操作系统的进程列表，我们就能看到至少有两个nginx进程。</p>
+<p>2）服务器实际处理网络请求及响应的是工作进程（worker），在类unix系统上，nginx可以配置多个worker，而每个worker进程都可以同时处理数以千计的网络请求。    </p>
+<p>3）模块化设计。nginx的worker，包括核心和功能性模块，核心模块负责维持一个运行循环（run-loop），执行网络请求处理的不同阶段的模块功能，如网络读写、存储读写、内容传输、外出过滤，以及将请求发往上游服务器等。而其代码的模块化设计，也使得我们可以根据需要对功能模块进行适当的选择和修改，编译成具有特定功能的服务器。</p>
+<p>4）事件驱动、异步及非阻塞，可以说是nginx得以获得高并发、高性能的关键因素，同时也得益于对Linux、Solaris及类BSD等操作系统内核中事件通知及I/O性能增强功能的采用，如kqueue、epoll及event ports。</p>
+<p><strong>简单说明流程:</strong><br><img src="https://ws3.sinaimg.cn/large/006tNbRwly1fw8w9tfiktj31280kc78n.jpg" alt=""><br>正常流程：浏览器发送请求—&gt;连接到网卡—&gt;内核从硬盘读取Html文件到内核态—&gt;内核再把文件发送到nginx应用态—&gt;应用态在复制到网卡</p>
+<p>最早的nginx的流程：通过eqoll/select IO模型来完成非阻塞，所有需要I/O操作的进程进入selet队列。nginx会轮询队列是否有I/O进程，如果有，再去硬盘读写。</p>
+<p>现在：如果轮询需要10万个，也是很耗时间的，所以在内核里会增加一个事件，通过AIO的方式，不需要轮询，当有可读可写的I/O时，不通过select，内核自己来通知nginx，nginx在通过进一步的配置，内核态就可以不经过nginx直接到网卡。</p>
+<h2 id="三、Nginx-配置与使用"><a href="#三、Nginx-配置与使用" class="headerlink" title="三、Nginx 配置与使用"></a>三、Nginx 配置与使用</h2><h3 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a><strong>主要内容</strong></h3><ol>
+<li>配置文件语法格式</li>
+<li>配置第一个静态WEB服务</li>
+<li>配置案例<ol>
+<li>动静分离实现</li>
+<li>防盗链</li>
+<li>多域名站点</li>
+<li>下载限速</li>
+<li>IP 黑名单</li>
+<li>基于user-agent分流</li>
+</ol>
+</li>
+<li>日志配置<h3 id="1、配置文件的语法格式："><a href="#1、配置文件的语法格式：" class="headerlink" title="1、配置文件的语法格式："></a><strong>1、配置文件的语法格式：</strong></h3>先来看一个简单的nginx 配置<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">worker_processes  1;</span><br><span class="line">events &#123;</span><br><span class="line">    worker_connections  1024;</span><br><span class="line">&#125;</span><br><span class="line">http &#123;</span><br><span class="line">    include       mime.types;</span><br><span class="line">    default_type  application/octet-stream;</span><br><span class="line">    # 开启后 内核态就可以不经过nginx直接发送文件到网卡。</span><br><span class="line">    sendfile        on;</span><br><span class="line">    # 长连接保活时间</span><br><span class="line">    keepalive_timeout  65;</span><br><span class="line">    </span><br><span class="line">    # 代表虚拟机</span><br><span class="line">    server &#123;</span><br><span class="line">    	# 监听端口(不要重复)</span><br><span class="line">        listen       80;</span><br><span class="line">        # 配置域名</span><br><span class="line">        server_name  localhost;</span><br><span class="line">        # 请求地址</span><br><span class="line">        location / &#123;</span><br><span class="line">            root   html;</span><br><span class="line">            index  index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line">        location /nginx_status &#123;</span><br><span class="line">    	   stub_status on;</span><br><span class="line">    	   access_log   off;</span><br><span class="line">  	    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>上述配置中的events、http、server、location、upstream等属于配置项块。<br>而worker_processes 、worker_connections、include、listen  属于配置项块中的属性。<br>/nginx_status：属于配置块的特定参数参数。其中server块嵌套于http块，其可以直接继承访问Http块当中的参数。<br>| <strong>配置块</strong>   | 名称开头用大口号包裹其对应属性   |<br>|:—-|:—-|<br>| <strong>属性</strong>   | 基于空格切分属性名与属性值，属性值可能有多个项 都以空格进行切分 如：  access_log  logs/host.access.log  main   |<br>| <strong>参数</strong>   | 其配置在 块名称与大括号间，其值如果有多个也是通过空格进行拆   | </p>
+<p>注意 如果配置项值中包括语法符号，比如空格符，那么需要使用单引号或双引号括住配置项值，否则Nginx会报语法错误。例如：<br>    log_format  main  ‘$remote_addr - $remote_user [$time_local] “$request” ‘<br>                     ‘$status $body_bytes_sent “$http_referer” ‘<br>                     ‘“$http_user_agent” “$http_x_forwarded_for”‘;</p>
+<h3 id="2、配置第一个静态WEB服务"><a href="#2、配置第一个静态WEB服务" class="headerlink" title="2、配置第一个静态WEB服务"></a>2、配置第一个静态WEB服务</h3><p>基本配置介绍说明：<br>（1）监听端口<br>语法：listen address：<br>默认：listen 80;<br>配置块：server    </p>
+<p>（2）主机名称<br>语法：server_name name[……];<br>默认：server_name “”;<br>配置块：server<br>server_name后可以跟多个主机名称，如server_name <a href="http://www.testweb.com" target="_blank" rel="noopener">www.testweb.com</a>、download.testweb.com;。 支持通配符与正则</p>
+<p>（3）location<br>语法：location[=|～|～*|^～|@]/uri/{……}<br>配置块：server</p>
+<ol>
+<li>/ 基于uri目录匹配</li>
+<li>=表示把URI作为字符串，以便与参数中的uri做完全匹配。</li>
+<li>～表示正则匹配URI时是字母大小写敏感的。</li>
+<li>～*表示正则匹配URI时忽略字母大小写问题。</li>
+<li>^～表示正则匹配URI时只需要其前半部分与uri参数匹配即可。</li>
+</ol>
+<p><strong>动静分离：</strong></p>
+<ul>
+<li style="list-style: none"><input type="checkbox"> 创建静态站点</li>
+<li style="list-style: none"><input type="checkbox"> 配置 location /static</li>
+<li style="list-style: none"><input type="checkbox"> 配置 ~* .(gif|png|css|js)$ </li>
+</ul>
+<p>基于目录动静分离<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">   server &#123;</span><br><span class="line">        listen 80;</span><br><span class="line">        server_name *.MurasakiSeiFu.com;</span><br><span class="line">        root /usr/www/MurasakiSeiFu;</span><br><span class="line">        location / &#123;</span><br><span class="line">                index MurasakiSeiFu.html;</span><br><span class="line">        &#125;</span><br><span class="line"># 静态资源配置</span><br><span class="line"># 访问/static/***.jpg</span><br><span class="line">        location /static &#123;</span><br><span class="line"> # 创建static文件夹 然后放入一张图片 在这里指定路径</span><br><span class="line">         alias /usr/www/static;</span><br><span class="line">        &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p>基于正则动静分离(如果配置正则表达式 最先匹配正则 其次是static 最后是 /)<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">location ~* \.(gif|jpg|png|css|js)$ &#123;</span><br><span class="line">      root /usr/www/static;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>防盗链配置演示：</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 加入至指定location 即可实现</span><br><span class="line">valid_referers none blocked *.MurasakiSeiFu.com;</span><br><span class="line"> if ($invalid_referer) &#123;</span><br><span class="line">       return 403;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>下载限速：</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">location /download &#123;</span><br><span class="line">    limit_rate 1m;</span><br><span class="line">    limit_rate_after 30m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>创建IP黑名单: </strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 创建黑名单文件</span><br><span class="line">echo &apos;deny 192.168.0.132;&apos; &gt;&gt; balck.ip</span><br><span class="line">#http 配置块中引入 黑名单文件</span><br><span class="line">include       black.ip;</span><br></pre></td></tr></table></figure></p>
+<h3 id="3、日志配置："><a href="#3、日志配置：" class="headerlink" title="3、日志配置："></a>3、日志配置：</h3><p><strong>日志格式：</strong><br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">log_format  main  &apos;$remote_addr - $remote_user [$time_local]   &quot;$request&quot; &apos;</span><br><span class="line">                     &apos;$status $body_bytes_sent &quot;$http_referer&quot; &apos;</span><br><span class="line">                  &apos;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&apos;;</span><br><span class="line">access_log  logs/access.log  main;</span><br><span class="line">#基于域名打印日志</span><br><span class="line">access_log logs/$host.access.log main;</span><br></pre></td></tr></table></figure></p>
+<p><strong>error日志的设置</strong></p>
+<p>语法：error_log /path/file level;<br>默认：error_log logs/error.log error;<br>level是日志的输出级别，取值范围是debug、info、notice、warn、error、crit、alert、emerg.</p>
+<p><strong>针对指定的客户端输出debug级别的日志</strong><br>语法：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">debug_connection[IP|CIDR]</span><br><span class="line">events &#123;</span><br><span class="line">	debug_connection 192.168.0.147; </span><br><span class="line">	debug_connection 10.224.57.0/200;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><a href="https://attachments-cdn.shimo.im/fWYRhqhjvfIxcISK/nginx.conf" target="_blank" rel="noopener">nginx.conf</a></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Nginx-简介与安装"><span class="toc-number">1.</span> <span class="toc-text">Nginx 简介与安装</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1、Nginx简介："><span class="toc-number">1.1.</span> <span class="toc-text">1、Nginx简介：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2、编译与安装"><span class="toc-number">1.2.</span> <span class="toc-text">2、编译与安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Nginx-架构说明"><span class="toc-number">1.3.</span> <span class="toc-text">二、Nginx 架构说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、Nginx-配置与使用"><span class="toc-number">1.4.</span> <span class="toc-text">三、Nginx 配置与使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#主要内容"><span class="toc-number">1.4.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1、配置文件的语法格式："><span class="toc-number">1.4.2.</span> <span class="toc-text">1、配置文件的语法格式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2、配置第一个静态WEB服务"><span class="toc-number">1.4.3.</span> <span class="toc-text">2、配置第一个静态WEB服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3、日志配置："><span class="toc-number">1.4.4.</span> <span class="toc-text">3、日志配置：</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&text=Nginx 核心模块与配置实践"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&is_video=false&description=Nginx 核心模块与配置实践"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Nginx 核心模块与配置实践&body=Check out this article: http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&title=Nginx 核心模块与配置实践"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&name=Nginx 核心模块与配置实践&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/10/15/Nginx-核心模块与配置实践/&t=Nginx 核心模块与配置实践"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

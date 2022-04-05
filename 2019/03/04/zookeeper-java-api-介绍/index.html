@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="zookeeper java-api 介绍原生引包首先我们引入gradle。 compile &apos;org.apache.zookeeper:zookeeper:3.4.10&apos; 创建我们的连接 我们先创建一个类，类名：ZookeeperCrud，然后创建一个构造函数。  /** * @author: murasakiseifu * @date: 2019-02-27 15:26&amp;#125; * @">
+<meta property="og:type" content="article">
+<meta property="og:title" content="zookeeper java-api 介绍">
+<meta property="og:url" content="http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="zookeeper java-api 介绍原生引包首先我们引入gradle。 compile &apos;org.apache.zookeeper:zookeeper:3.4.10&apos; 创建我们的连接 我们先创建一个类，类名：ZookeeperCrud，然后创建一个构造函数。  /** * @author: murasakiseifu * @date: 2019-02-27 15:26&amp;#125; * @">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-04-29T01:57:10.740Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="zookeeper java-api 介绍">
+<meta name="twitter:description" content="zookeeper java-api 介绍原生引包首先我们引入gradle。 compile &apos;org.apache.zookeeper:zookeeper:3.4.10&apos; 创建我们的连接 我们先创建一个类，类名：ZookeeperCrud，然后创建一个构造函数。  /** * @author: murasakiseifu * @date: 2019-02-27 15:26&amp;#125; * @">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>zookeeper java-api 介绍</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/03/07/redis-安装-基础命令-持久化概念/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/02/27/zookeeper客户端详解/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&text=zookeeper java-api 介绍"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&is_video=false&description=zookeeper java-api 介绍"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=zookeeper java-api 介绍&body=Check out this article: http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&name=zookeeper java-api 介绍&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&t=zookeeper java-api 介绍"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#zookeeper-java-api-介绍"><span class="toc-number">1.</span> <span class="toc-text">zookeeper java-api 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#原生"><span class="toc-number">1.1.</span> <span class="toc-text">原生</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#引包"><span class="toc-number">1.1.1.</span> <span class="toc-text">引包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建我们的连接"><span class="toc-number">1.1.2.</span> <span class="toc-text">创建我们的连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#流程分析"><span class="toc-number">1.1.3.</span> <span class="toc-text">流程分析</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        zookeeper java-api 介绍
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-03-04T01:52:55.000Z" itemprop="datePublished">2019-03-04</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/分布式专题/">分布式专题</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="zookeeper-java-api-介绍"><a href="#zookeeper-java-api-介绍" class="headerlink" title="zookeeper java-api 介绍"></a>zookeeper java-api 介绍</h1><h2 id="原生"><a href="#原生" class="headerlink" title="原生"></a>原生</h2><h3 id="引包"><a href="#引包" class="headerlink" title="引包"></a>引包</h3><p>首先我们引入gradle。</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">compile</span> <span class="string">'org.apache.zookeeper:zookeeper:3.4.10'</span></span><br></pre></td></tr></table></figure>
+<h3 id="创建我们的连接"><a href="#创建我们的连接" class="headerlink" title="创建我们的连接"></a>创建我们的连接</h3><ol>
+<li><p>我们先创建一个类，类名：ZookeeperCrud，然后创建一个构造函数。</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span>: murasakiseifu</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span>: 2019-02-27 15:26&#125;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@version</span>: V1.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@review</span>: murasakiseifu/2019-02-27 15:26&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZookeeperCrud</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ZookeeperCrud</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ZooKeeper zooKeeper = <span class="keyword">new</span> ZooKeeper(...);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ol start="2">
+<li><p>我们会发现，创建zookeeper连接，需要三个参数，我们进到ZooKeeper.java类中，看一看这三个参数是什么。</p>
+ <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public ZooKeeper(String connectString, int sessionTimeout, Watcher watcher)</span><br><span class="line">       throws IOException</span><br><span class="line">   &#123;</span><br><span class="line">       this(connectString, sessionTimeout, watcher, false);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p> 在源码上有对这三个参数的详解，在这里简单说一下前两个，watcher我们一会再说。</p>
+<p> <strong>String connectString：</strong><br> 创建Zookeeper客户端对象，应用程序需要传递一个String connectString，其中包含逗号分隔的host：port为一对的列表，每一对对应一个zookeeper服务器。<br> <strong>int sessionTimeout：</strong><br> session会话的超时时间，默认单位为毫秒。</p>
+</li>
+<li><p>最终连接zookeeper服务的代码。</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class ZookeeperCrud &#123;</span><br><span class="line"></span><br><span class="line">    String connectString = &quot;192.168.187.200:2181,192.168.187.201:2181,192.168.187.202:2181&quot;;</span><br><span class="line"></span><br><span class="line">    public ZookeeperCrud() &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            ZooKeeper zooKeeper = new ZooKeeper(connectString, 5000, null);</span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        ZookeeperCrud zookeeperCrud = new ZookeeperCrud();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>   成功连接的日志</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[2019-02-27 15:58:24] [INFO] Client environment:zookeeper.version=3.4.10-39d3a4f269333c922ed3db283be479f9deacaa0f, built on 03/23/2017 10:13 GMT</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:host.name=192.168.187.1</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:java.version=1.8.0_144</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:java.vendor=Oracle Corporation</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:java.home=/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:java.class.path=......</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:java.library.path=/Users/murasakiseifu/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:java.io.tmpdir=/var/folders/60/s3wc1nqj74xfjb63z688j6k40000gn/T/</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:java.compiler=&lt;NA&gt;</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:os.name=Mac OS X</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:os.arch=x86_64</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:os.version=10.14</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:user.name=murasakiseifu</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:user.home=/Users/murasakiseifu</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Client environment:user.dir=/Users/murasakiseifu/my-project/zookeeper-java-api</span><br><span class="line">  [2019-02-27 15:58:24] [INFO] Initiating client connection, connectString=192.168.187.200:2181,192.168.187.201:2181,192.168.187.202:2181 sessionTimeout=5000 watcher=null</span><br></pre></td></tr></table></figure>
+<h3 id="流程分析"><a href="#流程分析" class="headerlink" title="流程分析"></a>流程分析</h3><p><strong>使用工具很简单，重要的是为什么这个工具可以这么用。</strong><br>为什么上述代码能连接zk，我们带着这个问题去查一下zookeeper的源码。其实很简单。</p>
+<ol>
+<li><p>我们实现了通过java客户端连接zookeeper客户端。我们想要看懂是如何连接，可以点到源码里一点一点的找，但是这样很麻烦，而且效率低。看源码要带着问题去看，我们思考，java连接zookeeper客户端肯定是封装了一层，那么什么方式是直接就能连接zookeeper服务器的呢？<font color="red">Zookeeper自己的客户端啊</font>，我们直接查看zkCli.sh的脚本，看看里面有什么。</p>
+ <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">[root@murasakiseifu bin]# vim zkCli.sh</span><br><span class="line">ZOOBIN="$&#123;BASH_SOURCE-$0&#125;"</span><br><span class="line">ZOOBIN="$(dirname "$&#123;ZOOBIN&#125;")"</span><br><span class="line">ZOOBINDIR="$(cd "$&#123;ZOOBIN&#125;"; pwd)"</span><br><span class="line"></span><br><span class="line">if [ -e "$ZOOBIN/../libexec/zkEnv.sh" ]; then</span><br><span class="line">  . "$ZOOBINDIR"/../libexec/zkEnv.sh</span><br><span class="line">else</span><br><span class="line">  . "$ZOOBINDIR"/zkEnv.sh</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">"$JAVA" "-Dzookeeper.log.dir=$&#123;ZOO_LOG_DIR&#125;" "-Dzookeeper.root.logger=$&#123;ZOO_LOG4J_PROP&#125;" \</span><br><span class="line">     -cp "$CLASSPATH" $CLIENT_JVMFLAGS $JVMFLAGS \</span><br><span class="line">     org.apache.zookeeper.ZooKeeperMain "$@"</span><br><span class="line">~</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>除去注释，我们看到这个脚本里有一个我们熟悉的：org.apache.zookeeper.ZooKeeperMain，我们可以找到这个类，去看看有什么.（类里的代码很多，我们挑选几个常见的）</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZooKeeperMain</span> </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;String,String&gt; commandMap = <span class="keyword">new</span> HashMap&lt;String,String&gt;( );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> MyCommandOptions cl = <span class="keyword">new</span> MyCommandOptions();</span><br><span class="line">    <span class="keyword">protected</span> HashMap&lt;Integer,String&gt; history = <span class="keyword">new</span> HashMap&lt;Integer,String&gt;( );</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">int</span> commandCount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">boolean</span> printWatches = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> ZooKeeper zk;</span><br><span class="line">    <span class="keyword">protected</span> String host = <span class="string">""</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">getPrintWatches</span><span class="params">( )</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> printWatches;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        commandMap.put(<span class="string">"connect"</span>, <span class="string">"host:port"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"close"</span>,<span class="string">""</span>);</span><br><span class="line">        commandMap.put(<span class="string">"create"</span>, <span class="string">"[-s] [-e] path data acl"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"delete"</span>,<span class="string">"path [version]"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"rmr"</span>,<span class="string">"path"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"set"</span>,<span class="string">"path data [version]"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"get"</span>,<span class="string">"path [watch]"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"ls"</span>,<span class="string">"path [watch]"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"ls2"</span>,<span class="string">"path [watch]"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"getAcl"</span>,<span class="string">"path"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"setAcl"</span>,<span class="string">"path acl"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"stat"</span>,<span class="string">"path [watch]"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"sync"</span>,<span class="string">"path"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"setquota"</span>,<span class="string">"-n|-b val path"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"listquota"</span>,<span class="string">"path"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"delquota"</span>,<span class="string">"[-n|-b] path"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"history"</span>,<span class="string">""</span>);</span><br><span class="line">        commandMap.put(<span class="string">"redo"</span>,<span class="string">"cmdno"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"printwatches"</span>, <span class="string">"on|off"</span>);</span><br><span class="line">        commandMap.put(<span class="string">"quit"</span>,<span class="string">""</span>);</span><br><span class="line">        commandMap.put(<span class="string">"addauth"</span>, <span class="string">"scheme auth"</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>static静态代码块里的，就是在zkClient执行help命令的信息。</p>
+<pre><code><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">	[zk: localhost:2181(CONNECTED) 0] help</span><br><span class="line">	ZooKeeper -server host:port cmd args</span><br><span class="line">	        stat path [watch]</span><br><span class="line">	        set path data [version]</span><br><span class="line">	        ls path [watch]</span><br><span class="line">	        delquota [-n|-b] path</span><br><span class="line">	        ls2 path [watch]</span><br><span class="line">	        setAcl path acl</span><br><span class="line">	        setquota -n|-b val path</span><br><span class="line">	        history </span><br><span class="line">	        redo cmdno</span><br><span class="line">	        printwatches on|off</span><br><span class="line">	        delete path [version]</span><br><span class="line">	        sync path</span><br><span class="line">	        listquota path</span><br><span class="line">	        rmr path</span><br><span class="line">	        get path [watch]</span><br><span class="line">	        create [-s] [-e] path data acl</span><br><span class="line">	        addauth scheme auth</span><br><span class="line">	        quit </span><br><span class="line">	        getAcl path</span><br><span class="line">	        close </span><br><span class="line">	        connect host:port</span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">再比如这个。</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line">private static void printStat(Stat stat) &#123;</span><br><span class="line">       System.err.println(&quot;cZxid = 0x&quot; + Long.toHexString(stat.getCzxid()));</span><br><span class="line">       System.err.println(&quot;ctime = &quot; + new Date(stat.getCtime()).toString());</span><br><span class="line">       System.err.println(&quot;mZxid = 0x&quot; + Long.toHexString(stat.getMzxid()));</span><br><span class="line">       System.err.println(&quot;mtime = &quot; + new Date(stat.getMtime()).toString());</span><br><span class="line">       System.err.println(&quot;pZxid = 0x&quot; + Long.toHexString(stat.getPzxid()));</span><br><span class="line">       System.err.println(&quot;cversion = &quot; + stat.getCversion());</span><br><span class="line">       System.err.println(&quot;dataVersion = &quot; + stat.getVersion());</span><br><span class="line">       System.err.println(&quot;aclVersion = &quot; + stat.getAversion());</span><br><span class="line">       System.err.println(&quot;ephemeralOwner = 0x&quot;</span><br><span class="line">       		+ Long.toHexString(stat.getEphemeralOwner()));</span><br><span class="line">       System.err.println(&quot;dataLength = &quot; + stat.getDataLength());</span><br><span class="line">       System.err.println(&quot;numChildren = &quot; + stat.getNumChildren());</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+对应的就是节点的stat状态信息。
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 1] get /murasaki</span><br><span class="line">666</span><br><span class="line">cZxid = 0x400000002</span><br><span class="line">ctime = Thu Feb 21 10:53:25 CST 2019</span><br><span class="line">mZxid = 0x800000003</span><br><span class="line">mtime = Fri Feb 22 00:59:05 CST 2019</span><br><span class="line">pZxid = 0x400000003</span><br><span class="line">cversion = 1</span><br><span class="line">dataVersion = 1</span><br><span class="line">aclVersion = 0</span><br><span class="line">ephemeralOwner = 0x0</span><br><span class="line">dataLength = 3</span><br><span class="line">numChildren = 1</span><br></pre></td></tr></table></figure>
+</code></pre><ol start="3">
+<li><p>ZooKeeperMain 类就是我们要找的核心类，在这个类里面有一个main方法。</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span></span></span><br><span class="line"><span class="function">       <span class="keyword">throws</span> KeeperException, IOException, InterruptedException</span></span><br><span class="line"><span class="function">   </span>&#123;</span><br><span class="line">       ZooKeeperMain main = <span class="keyword">new</span> ZooKeeperMain(args);</span><br><span class="line">       main.run();</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>这个main方法里创建了一个ZooKeeperMain对象，我们依然点进去。</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">ZooKeeperMain</span><span class="params">(String args[])</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        cl.parseOptions(args);</span><br><span class="line">        System.out.println(<span class="string">"Connecting to "</span> + cl.getOption(<span class="string">"server"</span>));</span><br><span class="line">        connectToZK(cl.getOption(<span class="string">"server"</span>));</span><br><span class="line">        <span class="comment">//zk = new ZooKeeper(cl.getOption("server"),</span></span><br><span class="line"><span class="comment">//                Integer.parseInt(cl.getOption("timeout")), new MyWatcher());</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<pre><code>看有标志性的代码，connectToZK(cl.getOption(&quot;server&quot;));连接zk，这正是我们想要找的，所以我们接着点进去。
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">connectToZK</span><span class="params">(String newHost)</span> <span class="keyword">throws</span> InterruptedException, IOException </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (zk != <span class="keyword">null</span> &amp;&amp; zk.getState().isAlive()) &#123;</span><br><span class="line">           zk.close();</span><br><span class="line">       &#125;</span><br><span class="line">       host = newHost;</span><br><span class="line">       <span class="keyword">boolean</span> readOnly = cl.getOption(<span class="string">"readonly"</span>) != <span class="keyword">null</span>;</span><br><span class="line">       zk = <span class="keyword">new</span> ZooKeeper(host,</span><br><span class="line">                Integer.parseInt(cl.getOption(<span class="string">"timeout"</span>)),</span><br><span class="line">                <span class="keyword">new</span> MyWatcher(), readOnly);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+
+看，我们找到了最终的连接zk = new ZooKeeper(...);
+</code></pre><p><strong>我们既然要执行api的crud，我们就再找一下create方法</strong>    </p>
+<ol>
+<li><p>首先我们全局搜索create关键字，我们会发现有很多方法，这里有一个技巧，看带有返回值的方法。</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">createQuota</span><span class="params">(ZooKeeper zk, String path,</span></span></span><br><span class="line"><span class="function"><span class="params">           <span class="keyword">long</span> bytes, <span class="keyword">int</span> numNodes)</span></span></span><br><span class="line"><span class="function">       <span class="keyword">throws</span> KeeperException, IOException, InterruptedException </span>&#123;</span><br><span class="line">   &#125;</span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">里面代码很多，我们就不一一列举了，查看源码我们会发现有一段代码：</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line"><span class="keyword">if</span> (zk.exists(quotaPath, <span class="keyword">false</span>) == <span class="keyword">null</span>) &#123;</span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           zk.create(Quotas.procZookeeper, <span class="keyword">null</span>, Ids.OPEN_ACL_UNSAFE,</span><br><span class="line">                   CreateMode.PERSISTENT);</span><br><span class="line">           zk.create(Quotas.quotaZookeeper, <span class="keyword">null</span>, Ids.OPEN_ACL_UNSAFE,</span><br><span class="line">                   CreateMode.PERSISTENT);</span><br><span class="line">       &#125; <span class="keyword">catch</span>(KeeperException.NodeExistsException ne) &#123;</span><br><span class="line">           <span class="comment">// do nothing</span></span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ol start="2">
+<li><p>里面的zk.create很像我们要找的代码，点进去会发现这就是创建节点的方法，需要我们提供四个参数：路径、数据、权限集合、创建的节点类型。</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">create</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">byte</span> data[], List&lt;ACL&gt; acl,</span></span></span><br><span class="line"><span class="function"><span class="params">           CreateMode createMode)</span></span></span><br><span class="line"><span class="function">       <span class="keyword">throws</span> KeeperException, InterruptedException</span></span><br><span class="line"><span class="function">   </span>&#123;</span><br><span class="line">   </span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>我们不一一列举zookeeper其他方法了，大家按照这个方法就都能找到，而且在寻找的过程中，也能知道一些zookeeper java方法的一些使用方式。</p>
+<p><strong>创建持久节点</strong>    </p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 创建持久节点</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span> MurasakiSeiFu</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@date</span> 2019-02-28 10:16</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span>: [path, data]</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span>: java.lang.String</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">createPersistent</span><span class="params">(String path, String data)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> zookeeper.create(path, data.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (KeeperException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">```	</span><br><span class="line">	</span><br><span class="line">ZooDefs.Ids.OPEN_ACL_UNSAFE 为权限设置。	</span><br><span class="line"></span><br><span class="line">CreateMode.PERSISTENT 为节点类型设置，如果我们要建立临时节点，就把它设置为CreateMode.EPHEMERAL 就可以了。</span><br><span class="line">	</span><br><span class="line">**获取信息**</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取信息</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span> MurasakiSeiFu</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@date</span> 2019-02-28 10:46</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span>: [path]</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span>: java.lang.String</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getData</span><span class="params">(String path)</span> <span class="keyword">throws</span> KeeperException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">byte</span> data[] = zookeeper.getData(path, <span class="keyword">false</span>, <span class="keyword">null</span>);</span><br><span class="line">        data = (data == <span class="keyword">null</span>) ? <span class="string">"null"</span>.getBytes() : data;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> String(data);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>更新信息</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 更新信息</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@author</span> FuZizheng</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@date</span> 2019-02-28 11:01</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span>: [path, data]</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span>: org.apache.zookeeper.data.Stat</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Stat <span class="title">setData</span><span class="params">(String path, String data)</span> <span class="keyword">throws</span> KeeperException, InterruptedException </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> zookeeper.setData(path, data.getBytes(), -<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>删除节点</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 删除节点</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> MurasakiSeiFu</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2019-02-28 11:03</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: [path]</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>: void</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteData</span><span class="params">(String path)</span> <span class="keyword">throws</span> KeeperException, InterruptedException </span>&#123;</span><br><span class="line">    zookeeper.delete(path, -<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>递归删除节点</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 递归删除节点</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span> FuZizheng</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@date</span> 2019-02-28 11:05</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span>: [path]</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span>: void</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteRecursive</span><span class="params">(String path)</span> <span class="keyword">throws</span> KeeperException, InterruptedException </span>&#123;</span><br><span class="line">        ZKUtil.deleteRecursive(zookeeper, path);</span><br><span class="line">    &#125;</span><br><span class="line">```	</span><br><span class="line">	</span><br><span class="line">### watch事件</span><br><span class="line"></span><br><span class="line">上述是最简单的api，现在我们要讲一下watch事件。	基本和上述的代码差不多。</span><br><span class="line"></span><br><span class="line">**实现 Watcher接口**</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZookeeperWatchCrud</span> <span class="keyword">implements</span> <span class="title">Watcher</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(WatchedEvent event)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>基础准备和之前一样，提供集群信息。稍加修改和完善，如下所示：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZookeeperWatchCrud</span> <span class="keyword">implements</span> <span class="title">Watcher</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String connectString = <span class="string">"192.168.187.200:2181,192.168.187.201:2181,192.168.187.202:2181"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ZooKeeper zookeeper;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ZookeeperWatchCrud</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            zookeeper = <span class="keyword">new</span> ZooKeeper(connectString, <span class="number">5000</span>, <span class="keyword">this</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(WatchedEvent event)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 连接状态</span></span><br><span class="line">        Event.KeeperState keeperState = event.getState();</span><br><span class="line">        <span class="comment">// 事件类型</span></span><br><span class="line">        Event.EventType eventType = event.getType();</span><br><span class="line">        <span class="comment">// 受影响的path</span></span><br><span class="line">        String path = event.getPath();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"连接状态:"</span> + keeperState + <span class="string">",事件类型："</span> + eventType + <span class="string">",受影响的path:"</span> + path);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ZookeeperWatchCrud zookeeperWatchCrud = <span class="keyword">new</span> ZookeeperWatchCrud();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和之前不同，这次控制台没有报错。watcher=watch.ZookeeperWatchCrud@42110406</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[2019-02-28 11:29:25] [INFO] Client environment:zookeeper.version=3.4.10-39d3a4f269333c922ed3db283be479f9deacaa0f, built on 03/23/2017 10:13 GMT</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:host.name=172.16.191.1</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:java.version=1.8.0_144</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:java.vendor=Oracle Corporation</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:java.home=/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:java.class.path=...</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:java.library.path=/Users/murasakiseifu/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:java.io.tmpdir=/var/folders/60/s3wc1nqj74xfjb63z688j6k40000gn/T/</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:java.compiler=&lt;NA&gt;</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:os.name=Mac OS X</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:os.arch=x86_64</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:os.version=10.14</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:user.name=murasakiseifu</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:user.home=/Users/murasakiseifu</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Client environment:user.dir=/Users/murasakiseifu/my-project/zookeeper-java-api</span><br><span class="line"> [2019-02-28 11:29:25] [INFO] Initiating client connection, connectString=192.168.187.200:2181,192.168.187.201:2181,192.168.187.202:2181 sessionTimeout=5000 watcher=watch.ZookeeperWatchCrud@42110406</span><br><span class="line"> </span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>其余代码相同，只在getData和exits两个方法，加上watcher。</p>
+<p><strong>获取信息</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取信息</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> path</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> KeeperException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getData</span><span class="params">(String path, <span class="keyword">boolean</span> watcher)</span> <span class="keyword">throws</span> KeeperException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">byte</span> data[] = zookeeper.getData(path, watcher, <span class="keyword">null</span>);</span><br><span class="line">        data = (data == <span class="keyword">null</span>) ? <span class="string">"null"</span>.getBytes() : data;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> String(data);</span><br><span class="line">    &#125;</span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">**是否存在**</span><br><span class="line">	</span><br><span class="line">```java</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 是否存在</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> path</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> KeeperException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Stat <span class="title">exists</span><span class="params">(String path, <span class="keyword">boolean</span> watcher)</span> <span class="keyword">throws</span> KeeperException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> zookeeper.exists(path, watcher);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>加上监听之后，我们修改一下proccess方法，以方便我们做监听。一会测试类中新建的节点路径为/watcher,在process方法把这个路径写死了，方便测试 -。-</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(WatchedEvent event)</span> </span>&#123;</span><br><span class="line">       <span class="comment">// 连接状态</span></span><br><span class="line">       Event.KeeperState keeperState = event.getState();</span><br><span class="line">       <span class="comment">// 事件类型</span></span><br><span class="line">       Event.EventType eventType = event.getType();</span><br><span class="line">       <span class="comment">// 受影响的path</span></span><br><span class="line">       String path = event.getPath();</span><br><span class="line"></span><br><span class="line">       System.out.println(<span class="string">"连接状态:"</span> + keeperState + <span class="string">",事件类型："</span> + eventType + <span class="string">",受影响的path:"</span> + path);</span><br><span class="line"></span><br><span class="line">       <span class="comment">//step:2</span></span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           <span class="keyword">if</span> (<span class="keyword">null</span> != <span class="keyword">this</span>.exists(<span class="string">"/watcher"</span>, <span class="keyword">true</span>)) &#123;</span><br><span class="line">               System.out.println(<span class="string">"内容:"</span> + <span class="keyword">this</span>.getData(<span class="string">"/watcher"</span>, <span class="keyword">true</span>));</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">       &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">           e.printStackTrace();</span><br><span class="line">       &#125;</span><br><span class="line">       System.out.println(<span class="string">"--------------------"</span>);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>我们写一个测试类试一下效果。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> KeeperException, InterruptedException </span>&#123;</span><br><span class="line">    ZookeeperWatchCrud zookeeperWatchCrud = <span class="keyword">new</span> ZookeeperWatchCrud();</span><br><span class="line">    <span class="comment">//创建节点</span></span><br><span class="line">    zookeeperWatchCrud.createPersistent(<span class="string">"/watcher"</span>,<span class="string">"watcher test"</span>);</span><br><span class="line">    <span class="comment">//为watcher节点注册监听，并且输出当前内容</span></span><br><span class="line">    System.out.println(zookeeperWatchCrud.getData(<span class="string">"/watcher"</span>, <span class="keyword">true</span>));</span><br><span class="line">    <span class="comment">//修改watcher节点数据</span></span><br><span class="line">    zookeeperWatchCrud.setData(<span class="string">"/watcher"</span>,<span class="string">"change data"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>控制台输出</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">连接状态:SyncConnected,事件类型：None,受影响的path:null</span><br><span class="line">watcher test</span><br><span class="line">内容:change data</span><br><span class="line">--------------------</span><br><span class="line">连接状态:SyncConnected,事件类型：NodeDataChanged,受影响的path:/watcher</span><br></pre></td></tr></table></figure>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#zookeeper-java-api-介绍"><span class="toc-number">1.</span> <span class="toc-text">zookeeper java-api 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#原生"><span class="toc-number">1.1.</span> <span class="toc-text">原生</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#引包"><span class="toc-number">1.1.1.</span> <span class="toc-text">引包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建我们的连接"><span class="toc-number">1.1.2.</span> <span class="toc-text">创建我们的连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#流程分析"><span class="toc-number">1.1.3.</span> <span class="toc-text">流程分析</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&text=zookeeper java-api 介绍"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&is_video=false&description=zookeeper java-api 介绍"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=zookeeper java-api 介绍&body=Check out this article: http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&title=zookeeper java-api 介绍"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&name=zookeeper java-api 介绍&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/03/04/zookeeper-java-api-介绍/&t=zookeeper java-api 介绍"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

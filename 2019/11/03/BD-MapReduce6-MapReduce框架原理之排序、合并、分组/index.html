@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组主要内容 WritableComparable排序 Combiner合并 GroupingComparator分组 Shuffle机制查缺补漏  一、WritableComparable排序1.1 排序概述排序是MapReduce框架中最重要的操作之一。 MapTask和ReduceTask均会对数据按照key进行排序。该">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组">
+<meta property="og:url" content="http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组主要内容 WritableComparable排序 Combiner合并 GroupingComparator分组 Shuffle机制查缺补漏  一、WritableComparable排序1.1 排序概述排序是MapReduce框架中最重要的操作之一。 MapTask和ReduceTask均会对数据按照key进行排序。该">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u3rgstmcj31600llwjj.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u43e5ibkj30qr0913zi.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u84ilt40j30bb098q3i.jpg">
+<meta property="og:updated_time" content="2019-11-11T06:51:44.247Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组">
+<meta name="twitter:description" content="BD-MapReduce6-MapReduce框架原理之排序、合并、分组主要内容 WritableComparable排序 Combiner合并 GroupingComparator分组 Shuffle机制查缺补漏  一、WritableComparable排序1.1 排序概述排序是MapReduce框架中最重要的操作之一。 MapTask和ReduceTask均会对数据按照key进行排序。该">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BD-MapReduce6-MapReduce框架原理之排序、合并、分组</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/11/04/BD-MapReduce7-MapReduce框架原理之OutputFormat数据输出/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/11/02/BD-MapReduce5-MapReduce框架原理之Shuffle机制/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&text=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&is_video=false&description=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-MapReduce6-MapReduce框架原理之排序、合并、分组&body=Check out this article: http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&name=BD-MapReduce6-MapReduce框架原理之排序、合并、分组&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&t=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><span class="toc-number">1.</span> <span class="toc-text">BD-MapReduce6-MapReduce框架原理之排序、合并、分组</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、WritableComparable排序"><span class="toc-number">1.2.</span> <span class="toc-text">一、WritableComparable排序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-排序概述"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 排序概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-排序分类"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 排序分类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Combiner合并"><span class="toc-number">1.3.</span> <span class="toc-text">二、Combiner合并</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、GroupingComparator分组"><span class="toc-number">1.4.</span> <span class="toc-text">三、GroupingComparator分组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、Shuffle机制查缺补漏"><span class="toc-number">1.5.</span> <span class="toc-text">四、Shuffle机制查缺补漏</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BD-MapReduce6-MapReduce框架原理之排序、合并、分组
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-11-03T09:27:36.000Z" itemprop="datePublished">2019-11-03</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Hadoop-MR/">Hadoop-MR</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<h1 id="BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><a href="#BD-MapReduce6-MapReduce框架原理之排序、合并、分组" class="headerlink" title="BD-MapReduce6-MapReduce框架原理之排序、合并、分组"></a>BD-MapReduce6-MapReduce框架原理之排序、合并、分组</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><ol>
+<li>WritableComparable排序</li>
+<li>Combiner合并</li>
+<li>GroupingComparator分组</li>
+<li>Shuffle机制查缺补漏</li>
+</ol>
+<h2 id="一、WritableComparable排序"><a href="#一、WritableComparable排序" class="headerlink" title="一、WritableComparable排序"></a>一、WritableComparable排序</h2><h3 id="1-1-排序概述"><a href="#1-1-排序概述" class="headerlink" title="1.1 排序概述"></a>1.1 排序概述</h3><p><strong><font color="red">排序是MapReduce框架中最重要的操作之一。<br></font></strong></p>
+<p>MapTask和ReduceTask均会对数据<font color="red">按照key</font>进行排序。该操作属于Hadoop的默认行为。<font color="red">任何应用程序中的数据均会被排序，而不管逻辑上是否需要。</font></p>
+<p>默认排序是按照<font color="red">字典顺序排序</font>，且实现该排序的方法是<font color="red">快速排序.</font></p>
+<p>对于MapTask，它会将处理的结果暂时放到环形缓冲区中，<font color="red">当环形缓冲区使用率达到一定阈值后，再对缓冲区中的数据进行一次快速排序</font>，并将这些有序数据溢写到磁盘上，而当数据处理完毕后，它会<font color="red">对磁盘上所有文件进行归并排序。</font></p>
+<p>对于ReduceTask，它从每个MapTask上远程拷贝相应的数据文件，如果文件大小超过一定阈值，则溢写磁盘上，否则存储在内存中。如果磁盘上文件数目达到一定阈值，则进行一次归并排序以生成一个更大文件；如果内存中文件大小或者数目超过一定阈值，则进行一次合并后将数据溢写到磁盘上。当所有数据拷贝完毕后，<font color="red">ReduceTask统一对内存和磁盘上的所有数据进行一次归并排序。</font></p>
+<h3 id="1-2-排序分类"><a href="#1-2-排序分类" class="headerlink" title="1.2 排序分类"></a>1.2 排序分类</h3><p><strong>1. 部分排序：</strong>MapReduce根据输入记录的键对数据集排序。保证输出的每个文件内部有序。<br><strong>2. 全排序：</strong>最终输出结果只有一个文件，且文件内部有序。实现方式是只设置一个ReduceTask。但该方法在处理大型文件时效率极低，因为一台机器处理所有文件，完全丧失了MapReduce所提供的并行架构。<br><strong>3. 辅助排序：（GroupingComparator分组）：</strong>在Reduce端对key进行分组。应用于：在接收的key为bean对象时，想让一个或几个字段相同（全部字段比较不相同）的key进入到同一个reduce方法时，可以采用分组排序。</p>
+<p><strong>4. 二次排序：</strong>在自定义排序过程中，如果compareTo中的判断条件为两个即为二次排序。</p>
+<h2 id="二、Combiner合并"><a href="#二、Combiner合并" class="headerlink" title="二、Combiner合并"></a>二、Combiner合并</h2><ol>
+<li>Combiner是MR程序中Mapper和Reducer之外的一种组件。</li>
+<li>Combiner组件的父类就是Reducer。</li>
+<li>Combiner和Reducer的区别在于运行的位置<ul>
+<li><font color="red">Combiner是在每一个MapTask所在的节点运行;</font></li>
+<li><font color="red">Reducer是接收全局所有Mapper的输出结果；</font></li>
+</ul>
+</li>
+<li>Combiner的意义就是对每一个MapTask的输出进行局部汇总，以减小网络传输量。</li>
+<li><font color="red">Combiner能够应用的前提是不能影响最终的业务逻辑，</font>而且，Combiner的输出kv应该跟Reducer的输入kv类型要对应起来。<font color="red">Combiner输入输出类型必须一样。</font>
+
+</li>
+</ol>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u93ttqkgj30os03q3yp.jpg" alt=""></p>
+<h2 id="三、GroupingComparator分组"><a href="#三、GroupingComparator分组" class="headerlink" title="三、GroupingComparator分组"></a>三、GroupingComparator分组</h2><p>对Reduce阶段的数据根据某一个或几个字段进行分组。</p>
+<h2 id="四、Shuffle机制查缺补漏"><a href="#四、Shuffle机制查缺补漏" class="headerlink" title="四、Shuffle机制查缺补漏"></a>四、Shuffle机制查缺补漏</h2><p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1sbljalj30q00ax75f.jpg" alt=""></p>
+<p>我们知道Map方法出来的数据，首先写到环形缓冲区，当缓冲区满了就会发生溢写，溢写之前要先发生分区和排序。<br>数据进入缓冲区之前是&lt;K,V&gt;，当数据进入缓冲区的时候会获得一个分区号P，显示为&lt;K,V,P&gt;，然后这个数据进入缓冲区，注意，此时只是获得分区号，并没有进行物理分区。    </p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1udhqi0j30xg0ahjsz.jpg" alt=""></p>
+<p>物理的分区发生在缓冲区满了需要写磁盘的时候，先按照分区号进行排序，分区号相同的再按Key进行排序(实际上分区排序是一个过程，也就是二次排序)。排完的结果是相同的分区在一起并且区内又序。</p>
+<p>分区排序后，在落盘前，如果我们启用了Combiner，这个数据在落盘前会先到Combiner中进行合并（把Key值相同的合并，\&lt;a,1&gt; \&lt;a,1&gt; —-&gt; \&lt;a,2&gt;），合并完成后再真正的落盘。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t1yyyevsj315u0ceadg.jpg" alt=""></p>
+<p>会多次放生溢写生成的文件会通过归并排序之后，在Combiner中合并（压缩以后再说），最终落到磁盘上。这就是MapTask最终的输出文件，这个文件的特点就是分区且区内有序。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u3rgstmcj31600llwjj.jpg" alt=""></p>
+<p>图片上有两个，假设我们有N个MapTask，每个MapTask分了3个区（1区、2区、3区），最后生成了N个文件，每个文件3个qu且区内有序。然后启用3个ReduceTask，ReduceTask与MapTask数量并没有直接关系。<font color="red">每个ReduceTask都会处理所有MapTask相应分区的数据。</font>ReduceTask在Reduce端有一个内存缓存，这些数据以序列化的形式（文件）最开始都放在内存缓存中，如果缓存满了才用磁盘。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7t24yn8ycj315v0lh7a3.jpg" alt=""></p>
+<p>最后我们把这是文件进行了归并排序，合成了一整个的输出文件，这个文件的特点就是按照Key有序，下一步对文件进行分组（自定义规则，注意排序的粒度一定要比分组的粒度细），并放到Reduce方法中，</p>
+<p><strong>接下来说一下缓冲区</strong>    </p>
+<p><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u43e5ibkj30qr0913zi.jpg" alt=""></p>
+<p>所谓的环形缓冲区，好处是没头没尾，从哪里写入都一样。假如我们中正中间开始写，顺时针写KV，逆时针写索引。<br><img src="https://tva1.sinaimg.cn/large/006y8mN6ly1g7u84ilt40j30bb098q3i.jpg" alt=""></p>
+<p>这个索引就是KV在环形缓冲区的位置索引。一直写，直到写到80%的时候就开始溢写，在溢写的时候，同样会有新的数据会进入缓冲区，这时就会从缓冲区剩下的20%中选择一点写入缓冲区。逆时针写KV，顺时针写索引。80%的数据在溢写腾空缓冲区的速度还是挺快的。而且这个大小是可以根据实际情况进行设置的，默认是100M的0.8。</p>
+<p>排序就发生在环形缓冲区。在排序的时候，如果KV1和KV2通过比较需要交换顺序，不直接移动右侧的数据，而是交换他们的索引值，因为索引占用很小，这样可以节省IO。排好序后，根据索引的序列开始落盘，通过索引找到对应的数据。</p>
+<p>学会手画。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><span class="toc-number">1.</span> <span class="toc-text">BD-MapReduce6-MapReduce框架原理之排序、合并、分组</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、WritableComparable排序"><span class="toc-number">1.2.</span> <span class="toc-text">一、WritableComparable排序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-排序概述"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 排序概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-排序分类"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 排序分类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Combiner合并"><span class="toc-number">1.3.</span> <span class="toc-text">二、Combiner合并</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、GroupingComparator分组"><span class="toc-number">1.4.</span> <span class="toc-text">三、GroupingComparator分组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、Shuffle机制查缺补漏"><span class="toc-number">1.5.</span> <span class="toc-text">四、Shuffle机制查缺补漏</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&text=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&is_video=false&description=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BD-MapReduce6-MapReduce框架原理之排序、合并、分组&body=Check out this article: http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&title=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&name=BD-MapReduce6-MapReduce框架原理之排序、合并、分组&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2019/11/03/BD-MapReduce6-MapReduce框架原理之排序、合并、分组/&t=BD-MapReduce6-MapReduce框架原理之排序、合并、分组"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

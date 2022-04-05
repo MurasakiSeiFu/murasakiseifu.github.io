@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="算法-排序-快速排序主要内容基本概念须知1. 经典快排 每次只搞定一个位置的数   把数组最后的数作为划分值     小于等于X的放左边，大于X的放右边     然后，小于等于区域继续这么干，大于区域也这么干      2. 随机快排因为经典快排是每次取每一段数组最后一个数作为划分值，容易出现数据倾斜的情况。  比如：1234567 7654321  随机快排就是在经典快排的基础上，在取划分值这一">
+<meta name="keywords" content="算法 排序">
+<meta property="og:type" content="article">
+<meta property="og:title" content="算法-排序-快速排序">
+<meta property="og:url" content="http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="算法-排序-快速排序主要内容基本概念须知1. 经典快排 每次只搞定一个位置的数   把数组最后的数作为划分值     小于等于X的放左边，大于X的放右边     然后，小于等于区域继续这么干，大于区域也这么干      2. 随机快排因为经典快排是每次取每一段数组最后一个数作为划分值，容易出现数据倾斜的情况。  比如：1234567 7654321  随机快排就是在经典快排的基础上，在取划分值这一">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gcmmptw7qqj312206mt8i.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gcmmreulfjj313u06aglg.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gcmn25njr9j310u060wec.jpg">
+<meta property="og:updated_time" content="2020-03-08T09:55:34.714Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="算法-排序-快速排序">
+<meta name="twitter:description" content="算法-排序-快速排序主要内容基本概念须知1. 经典快排 每次只搞定一个位置的数   把数组最后的数作为划分值     小于等于X的放左边，大于X的放右边     然后，小于等于区域继续这么干，大于区域也这么干      2. 随机快排因为经典快排是每次取每一段数组最后一个数作为划分值，容易出现数据倾斜的情况。  比如：1234567 7654321  随机快排就是在经典快排的基础上，在取划分值这一">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gcmmptw7qqj312206mt8i.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>算法-排序-快速排序</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/03/07/算法-排序-堆/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&text=算法-排序-快速排序"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&is_video=false&description=算法-排序-快速排序"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=算法-排序-快速排序&body=Check out this article: http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&name=算法-排序-快速排序&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&t=算法-排序-快速排序"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#算法-排序-快速排序"><span class="toc-number">1.</span> <span class="toc-text">算法-排序-快速排序</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基本概念须知"><span class="toc-number">1.1.1.</span> <span class="toc-text">基本概念须知</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-经典快排"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">1. 经典快排</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-随机快排"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">2. 随机快排</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-改进后的随机快排"><span class="toc-number">1.1.1.3.</span> <span class="toc-text">3. 改进后的随机快排</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#code详解"><span class="toc-number">1.1.2.</span> <span class="toc-text">code详解</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        算法-排序-快速排序
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-03-08T01:27:36.000Z" itemprop="datePublished">2020-03-08</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/算法/">算法</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/算法-排序/">算法 排序</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h1 id="算法-排序-快速排序"><a href="#算法-排序-快速排序" class="headerlink" title="算法-排序-快速排序"></a>算法-排序-快速排序</h1><h2 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h2><h3 id="基本概念须知"><a href="#基本概念须知" class="headerlink" title="基本概念须知"></a>基本概念须知</h3><h4 id="1-经典快排"><a href="#1-经典快排" class="headerlink" title="1. 经典快排"></a>1. 经典快排</h4><blockquote>
+<p>每次只搞定一个位置的数</p>
+</blockquote>
+<ul>
+<li><p>把数组最后的数作为划分值</p>
+<p>  <img src="https://tva1.sinaimg.cn/large/00831rSTly1gcmmptw7qqj312206mt8i.jpg" alt=""></p>
+</li>
+<li><p>小于等于X的放左边，大于X的放右边</p>
+<p>  <img src="https://tva1.sinaimg.cn/large/00831rSTly1gcmmreulfjj313u06aglg.jpg" alt=""></p>
+</li>
+<li><p>然后，小于等于区域继续这么干，大于区域也这么干</p>
+<p>  <img src="https://tva1.sinaimg.cn/large/00831rSTly1gcmn25njr9j310u060wec.jpg" alt=""></p>
+</li>
+</ul>
+<h4 id="2-随机快排"><a href="#2-随机快排" class="headerlink" title="2. 随机快排"></a>2. 随机快排</h4><p>因为经典快排是每次取每一段数组最后一个数作为划分值，容易出现数据倾斜的情况。</p>
+<blockquote>
+<p>比如：1234567 7654321</p>
+</blockquote>
+<p>随机快排就是在经典快排的基础上，在取划分值这一步，进行调整。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">swap(arr, l + (<span class="keyword">int</span>) (Math.random() * (r - l + <span class="number">1</span>)), r);</span><br></pre></td></tr></table></figure>
+<p>l 和 r 分别为数组的左右邻接，这里不需要看懂，只需要理解这种取数逻辑。</p>
+<h4 id="3-改进后的随机快排"><a href="#3-改进后的随机快排" class="headerlink" title="3. 改进后的随机快排"></a>3. 改进后的随机快排</h4><p>在随机快排的基础上，维护一份数组，数组里记录每次等于划分值的左右下标，这样就可以一次定位多个数的位置。</p>
+<h3 id="code详解"><a href="#code详解" class="headerlink" title="code详解"></a>code详解</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">quickSort</span><span class="params">(<span class="keyword">int</span>[] arr)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (arr == <span class="keyword">null</span> || arr.length &lt; <span class="number">2</span>) &#123;</span><br><span class="line">           <span class="keyword">return</span>;</span><br><span class="line">       &#125;</span><br><span class="line">       quickSort(arr, <span class="number">0</span>, arr.length - <span class="number">1</span>);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">quickSort</span><span class="params">(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> l, <span class="keyword">int</span> r)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (l &lt; r) &#123;</span><br><span class="line">           <span class="comment">// 这一步为随机快排的步骤 随机快排：防止数据倾斜 1234567 7654321</span></span><br><span class="line">           swap(arr, l + (<span class="keyword">int</span>) (Math.random() * (r - l + <span class="number">1</span>)), r);</span><br><span class="line"></span><br><span class="line">           <span class="comment">// 首先找到等于区域的下标</span></span><br><span class="line">           <span class="comment">// p[] : 长度为2</span></span><br><span class="line">           <span class="comment">// p[0] 为等于这次划分值区域的第一个数</span></span><br><span class="line">           <span class="comment">// p[1] 为等于这次划分值区域的最后一个数</span></span><br><span class="line">           <span class="keyword">int</span>[] p = partition(arr, l, r);</span><br><span class="line"></span><br><span class="line">           <span class="comment">// 排序的范围为：L ~ (p[0] - 1)   (p[1] + 1) ~ R</span></span><br><span class="line">           quickSort(arr, l, p[<span class="number">0</span>] - <span class="number">1</span>);</span><br><span class="line">           quickSort(arr, p[<span class="number">1</span>] + <span class="number">1</span>, r);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span>[] partition(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> l, <span class="keyword">int</span> r) &#123;</span><br><span class="line">       <span class="keyword">int</span> less = l - <span class="number">1</span>;</span><br><span class="line">       <span class="keyword">int</span> more = r;</span><br><span class="line">       <span class="comment">// 循环的前提一定是 l &lt; more</span></span><br><span class="line">       <span class="keyword">while</span> (l &lt; more) &#123;</span><br><span class="line">           <span class="comment">// 如果小于划分值r</span></span><br><span class="line">           <span class="keyword">if</span> (arr[l] &lt; arr[r]) &#123;</span><br><span class="line">               <span class="comment">// less+1 并与l交换 l++ 其实就是less永远都是对应在位置上已经确认的额最后一个比r小的数</span></span><br><span class="line">               swap(arr, ++less, l++);</span><br><span class="line">           <span class="comment">// 如果大于划分值r</span></span><br><span class="line">           &#125; <span class="keyword">else</span> <span class="keyword">if</span> (arr[l] &gt; arr[r]) &#123;</span><br><span class="line">               <span class="comment">// more-1 并与l交换 more就是永远都是对应在位置上已经确认的第一个比r大的数</span></span><br><span class="line">               swap(arr, --more, l);</span><br><span class="line">           &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               <span class="comment">// 如果等于划分值r 则l挪到下一个位置</span></span><br><span class="line">               l++;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="comment">// 此时 more所在位置就是第一个大于划分值r的数的下标</span></span><br><span class="line">       <span class="comment">// 交换后 确定了r的位置（如果有多个相等的r 则一次确定好了多个位置）</span></span><br><span class="line">       swap(arr, more, r);</span><br><span class="line">       <span class="comment">// 返回等于划分值区域的下标数组 数组里存的是等于区域的下标</span></span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">new</span> <span class="keyword">int</span>[] &#123; less + <span class="number">1</span>, more &#125;;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#算法-排序-快速排序"><span class="toc-number">1.</span> <span class="toc-text">算法-排序-快速排序</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#主要内容"><span class="toc-number">1.1.</span> <span class="toc-text">主要内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基本概念须知"><span class="toc-number">1.1.1.</span> <span class="toc-text">基本概念须知</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-经典快排"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">1. 经典快排</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-随机快排"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">2. 随机快排</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-改进后的随机快排"><span class="toc-number">1.1.1.3.</span> <span class="toc-text">3. 改进后的随机快排</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#code详解"><span class="toc-number">1.1.2.</span> <span class="toc-text">code详解</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&text=算法-排序-快速排序"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&is_video=false&description=算法-排序-快速排序"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=算法-排序-快速排序&body=Check out this article: http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&title=算法-排序-快速排序"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&name=算法-排序-快速排序&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2020/03/08/算法-排序-快速排序/&t=算法-排序-快速排序"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

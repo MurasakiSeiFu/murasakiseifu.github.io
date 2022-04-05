@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang=de>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="在之前我们已经完成了通过递归的方式生成菜单树：递归生成菜单树,然而在登录功能中，不可能所有用户的菜单权限都一样，因此在这基础上，我们要完成权限菜单的功能。 准备数据我们需要两张表，权限表和权限菜单关联表。加上之前的菜单表，现在我们已经有3张表了。 角色表CREATE TABLE `c_role` (  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMEN">
+<meta property="og:type" content="article">
+<meta property="og:title" content="springboot 根据角色权限生成菜单树">
+<meta property="og:url" content="http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/index.html">
+<meta property="og:site_name" content="MurasakiSeiFu">
+<meta property="og:description" content="在之前我们已经完成了通过递归的方式生成菜单树：递归生成菜单树,然而在登录功能中，不可能所有用户的菜单权限都一样，因此在这基础上，我们要完成权限菜单的功能。 准备数据我们需要两张表，权限表和权限菜单关联表。加上之前的菜单表，现在我们已经有3张表了。 角色表CREATE TABLE `c_role` (  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMEN">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-04-29T01:54:58.500Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="springboot 根据角色权限生成菜单树">
+<meta name="twitter:description" content="在之前我们已经完成了通过递归的方式生成菜单树：递归生成菜单树,然而在登录功能中，不可能所有用户的菜单权限都一样，因此在这基础上，我们要完成权限菜单的功能。 准备数据我们需要两张表，权限表和权限菜单关联表。加上之前的菜单表，现在我们已经有3张表了。 角色表CREATE TABLE `c_role` (  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMEN">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>springboot 根据角色权限生成菜单树</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2018/04/20/Springboot-初始化加载菜单/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2018/04/20/Springboot-定时器用法/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&text=springboot 根据角色权限生成菜单树"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&is_video=false&description=springboot 根据角色权限生成菜单树"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=springboot 根据角色权限生成菜单树&body=Check out this article: http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&name=springboot 根据角色权限生成菜单树&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&t=springboot 根据角色权限生成菜单树"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#准备数据"><span class="toc-number">1.</span> <span class="toc-text">准备数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#角色表"><span class="toc-number">1.1.</span> <span class="toc-text">角色表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#初始化角色表"><span class="toc-number">1.1.1.</span> <span class="toc-text">初始化角色表</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#角色菜单关联表"><span class="toc-number">1.2.</span> <span class="toc-text">角色菜单关联表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#初始化角色菜单关联表"><span class="toc-number">1.2.1.</span> <span class="toc-text">初始化角色菜单关联表</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#接口"><span class="toc-number">2.</span> <span class="toc-text">接口</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CMenuServiceImpl"><span class="toc-number">2.1.</span> <span class="toc-text">CMenuServiceImpl</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#xml"><span class="toc-number">3.</span> <span class="toc-text">xml</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        springboot 根据角色权限生成菜单树
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">MurasakiSeiFu.</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-04-20T06:03:00.000Z" itemprop="datePublished">2018-04-20</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Springboot/">Springboot</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <meta name="referrer" content="no-referrer">
+
+<p>在之前我们已经完成了通过递归的方式生成菜单树：<a href="/2018/04/18/springboot-登录技巧/">递归生成菜单树</a>,然而在登录功能中，不可能所有用户的菜单权限都一样，因此在这基础上，我们要完成权限菜单的功能。</p>
+<h2 id="准备数据"><a href="#准备数据" class="headerlink" title="准备数据"></a>准备数据</h2><p>我们需要两张表，权限表和权限菜单关联表。加上之前的菜单表，现在我们已经有3张表了。</p>
+<h3 id="角色表"><a href="#角色表" class="headerlink" title="角色表"></a>角色表</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`c_role`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">BIGINT</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">'主键'</span>,</span><br><span class="line">  <span class="string">`role_code`</span> <span class="built_in">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'角色编号'</span>,</span><br><span class="line">  <span class="string">`role_name`</span> <span class="built_in">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'角色名称'</span>,</span><br><span class="line">  <span class="string">`sort`</span> <span class="built_in">INT</span>(<span class="number">5</span>) <span class="keyword">DEFAULT</span> <span class="string">'0'</span> <span class="keyword">COMMENT</span> <span class="string">'角色排序'</span>,</span><br><span class="line">  <span class="string">`iscancel`</span> <span class="built_in">INT</span>(<span class="number">2</span>) <span class="keyword">DEFAULT</span> <span class="string">'0'</span> <span class="keyword">COMMENT</span> <span class="string">'是否作废'</span>,</span><br><span class="line">  <span class="string">`type`</span> <span class="built_in">INT</span>(<span class="number">5</span>) <span class="keyword">DEFAULT</span> <span class="string">'1'</span> <span class="keyword">COMMENT</span> <span class="string">'类型'</span>,</span><br><span class="line">  <span class="string">`state`</span> <span class="built_in">INT</span>(<span class="number">5</span>) <span class="keyword">DEFAULT</span> <span class="string">'1'</span> <span class="keyword">COMMENT</span> <span class="string">'状态'</span>,</span><br><span class="line">  <span class="string">`remark`</span> <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'备注'</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">INNODB</span> AUTO_INCREMENT=<span class="number">5</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COMMENT</span>=<span class="string">'角色表'</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="初始化角色表"><a href="#初始化角色表" class="headerlink" title="初始化角色表"></a>初始化角色表</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">INSERT</span>  <span class="keyword">INTO</span> <span class="string">`c_role`</span>(<span class="string">`id`</span>,<span class="string">`role_code`</span>,<span class="string">`role_name`</span>,<span class="string">`sort`</span>,<span class="string">`iscancel`</span>,<span class="string">`type`</span>,<span class="string">`state`</span>,<span class="string">`remark`</span>) <span class="keyword">VALUES</span> </span><br><span class="line">(<span class="number">1</span>,<span class="string">'A0001'</span>,<span class="string">'超级管理员'</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="string">'超级管理员'</span>),</span><br><span class="line">(<span class="number">2</span>,<span class="string">'A0002'</span>,<span class="string">'普通管理员'</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="string">'普通管理员'</span>),</span><br><span class="line">(<span class="number">3</span>,<span class="string">'B0001'</span>,<span class="string">'监控观察者'</span>,<span class="number">2</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="string">'观察者'</span>),</span><br><span class="line">(<span class="number">4</span>,<span class="string">'C0001'</span>,<span class="string">'访客'</span>,<span class="number">4</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="string">'访客'</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="角色菜单关联表"><a href="#角色菜单关联表" class="headerlink" title="角色菜单关联表"></a>角色菜单关联表</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`c_role_menu`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">BIGINT</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">'主键'</span>,</span><br><span class="line">  <span class="string">`role_code`</span> <span class="built_in">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'角色id'</span>,</span><br><span class="line">  <span class="string">`menu_code`</span> <span class="built_in">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'菜单code'</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">INNODB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COMMENT</span>=<span class="string">'角色菜单关联表'</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="初始化角色菜单关联表"><a href="#初始化角色菜单关联表" class="headerlink" title="初始化角色菜单关联表"></a>初始化角色菜单关联表</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">'A0002'</span>, <span class="string">'F001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">2</span>, <span class="string">'A0002'</span>, <span class="string">'J001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">3</span>, <span class="string">'A0002'</span>, <span class="string">'J001001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">4</span>, <span class="string">'A0002'</span>, <span class="string">'N001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">5</span>, <span class="string">'A0002'</span>, <span class="string">'N001001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">6</span>, <span class="string">'A0002'</span>, <span class="string">'B001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">7</span>, <span class="string">'A0002'</span>, <span class="string">'B001001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">8</span>, <span class="string">'A0002'</span>, <span class="string">'B001002'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">9</span>, <span class="string">'A0002'</span>, <span class="string">'M001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">10</span>, <span class="string">'A0002'</span>, <span class="string">'M001001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">11</span>, <span class="string">'A0002'</span>, <span class="string">'M001002'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">12</span>, <span class="string">'A0002'</span>, <span class="string">'M001003'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">13</span>, <span class="string">'B0001'</span>, <span class="string">'F001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">14</span>, <span class="string">'B0001'</span>, <span class="string">'M001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">15</span>, <span class="string">'B0001'</span>, <span class="string">'M001001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">16</span>, <span class="string">'B0001'</span>, <span class="string">'M001002'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">17</span>, <span class="string">'B0001'</span>, <span class="string">'M001003'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">18</span>, <span class="string">'C0001'</span>, <span class="string">'F001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">19</span>, <span class="string">'C0001'</span>, <span class="string">'M001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">20</span>, <span class="string">'C0001'</span>, <span class="string">'M001001'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">21</span>, <span class="string">'C0001'</span>, <span class="string">'M001002'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`c_role_menu`</span> <span class="keyword">VALUES</span> (<span class="number">22</span>, <span class="string">'C0001'</span>, <span class="string">'M001003'</span>);</span><br></pre></td></tr></table></figure>
+<p>你一定会发现，关联表里并没有超级管理员的信息，因为超级管理员拥有所有菜单的权限，所以我们只需要在查询时判断一下，如果是超级管理员我们就查询所有菜单就好啦，这也是个小技巧~</p>
+<h2 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h2><h3 id="CMenuServiceImpl"><a href="#CMenuServiceImpl" class="headerlink" title="CMenuServiceImpl"></a>CMenuServiceImpl</h3><p>在我们的菜单接口实现类里，我们完成一个接受角色code的方法。<br><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CMenu <span class="title">menuTree</span><span class="params">(String roleCode)</span> </span>&#123;</span><br><span class="line">    List&lt;CMenu&gt; menulist = cmenuMapper.findByRoleCode(roleCode);</span><br><span class="line">    <span class="keyword">return</span> parentMenu(menulist);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>parentMenu()方法就是我们之前完成的递归方法的入口。</p>
+<h2 id="xml"><a href="#xml" class="headerlink" title="xml"></a>xml</h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 根据权限查询菜单 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"findByRoleCode"</span> <span class="attr">resultType</span>=<span class="string">"com.datas.manager.core.entity.CMenu"</span>&gt;</span></span><br><span class="line">    select t.id, t.code, t.fathercode, t.name, t.menu_url AS menuUrl,</span><br><span class="line">        t.menu_image AS menuImage, t.level, t.sort, t.iscancel, t.type, t.isleaf</span><br><span class="line">        from c_menu t</span><br><span class="line">    <span class="tag">&lt;<span class="name">where</span>&gt;</span></span><br><span class="line">        1 = 1</span><br><span class="line">        <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">" roleCode != 'A0001'"</span>&gt;</span></span><br><span class="line">            AND code IN (select menu_code from c_role_menu a where role_code = #&#123;roleCode&#125;)</span><br><span class="line">        <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">where</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这样，我们就完成根据不同角色权限生成菜单树，这些都是准备工作，下一篇我们将完成初始化加载这些菜单，慢慢就会完成登录功能了~</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+         
+          <li><a href="http://github.com/murasakiseifu">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#准备数据"><span class="toc-number">1.</span> <span class="toc-text">准备数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#角色表"><span class="toc-number">1.1.</span> <span class="toc-text">角色表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#初始化角色表"><span class="toc-number">1.1.1.</span> <span class="toc-text">初始化角色表</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#角色菜单关联表"><span class="toc-number">1.2.</span> <span class="toc-text">角色菜单关联表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#初始化角色菜单关联表"><span class="toc-number">1.2.1.</span> <span class="toc-text">初始化角色菜单关联表</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#接口"><span class="toc-number">2.</span> <span class="toc-text">接口</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CMenuServiceImpl"><span class="toc-number">2.1.</span> <span class="toc-text">CMenuServiceImpl</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#xml"><span class="toc-number">3.</span> <span class="toc-text">xml</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&text=springboot 根据角色权限生成菜单树"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&is_video=false&description=springboot 根据角色权限生成菜单树"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=springboot 根据角色权限生成菜单树&body=Check out this article: http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&title=springboot 根据角色权限生成菜单树"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&name=springboot 根据角色权限生成菜单树&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://ilovenorth.cn/2018/04/20/springboot-根据角色权限生成菜单树/&t=springboot 根据角色权限生成菜单树"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    MurasakiSeiFu.
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/murasakiseifu">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
